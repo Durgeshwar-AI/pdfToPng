@@ -1,5 +1,6 @@
 import fitz
 import io
+import os
 from flask import Flask, request, send_file
 from flask_cors import CORS
 from PIL import Image
@@ -19,6 +20,8 @@ def convert_pdf():
 
         pdf_bytes = pdf_file.read()
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        
+        base = os.path.splitext(pdf_file.filename)[0]
 
         if len(doc) == 0:
             return {'error': 'Empty PDF'}, 400
@@ -33,7 +36,7 @@ def convert_pdf():
             img_bytes,
             mimetype='image/png',
             as_attachment=True,
-            download_name='converted.png'
+            download_name=f"{base}.png"
         )
 
     except Exception as e:

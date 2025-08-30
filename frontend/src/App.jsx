@@ -39,7 +39,11 @@ function App() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "converted.png";
+        const disposition = response.headers.get("Content-Disposition");
+        console.log("Content-Disposition:", disposition);
+        let filename = file.name.replace(/\.pdf$/i, ".png");
+        a.download = filename;
+
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
