@@ -1,0 +1,40 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: margin-left 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* When sidebar is collapsed */
+.layout:has(.sidebar.collapsed) .main-content {
+  margin-left: 70px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .layout:has(.sidebar.collapsed) .main-content {
+    margin-left: 0;
+  }
+}
+
+/* Ensure the converter containers fit properly */
+.main-content .container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}

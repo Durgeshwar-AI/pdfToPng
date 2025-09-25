@@ -8,7 +8,7 @@ from PIL import Image
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/convert', methods=['POST'])
+@app.route('/convertPng', methods=['POST'])
 def convert_pdf():
     try:
         if 'file' not in request.files:
@@ -43,6 +43,32 @@ def convert_pdf():
         import traceback
         traceback.print_exc()
         return {'error': str(e)}, 500
+
+@app.route('/convertWebP', methods=['POST'])
+def convert_to_webp():
+    if 'image' not in request.files:
+        return {"error": "No image provided"}, 400
+
+    file = request.files['image']
+
+    try:
+        # Open the PNG image
+        img = Image.open(file)
+
+        # Convert to WebP in memory
+        webp_io = io.BytesIO()
+        img.save(webp_io, format="WEBP")
+        webp_io.seek(0)
+
+        return send_file(
+            webp_io,
+            mimetype='image/webp',
+            as_attachment=True,
+            download_name='converted.webp'
+        )
+
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
