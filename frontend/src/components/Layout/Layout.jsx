@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
 import PdfPng from "../../pages/PdfPng";
 import ImageWebp from "../../pages/ImageWbp";
+import RemoveBg from "../../pages/RemoveBg";
 import "./Layout.css";
 
 const Layout = () => {
@@ -18,6 +19,8 @@ const Layout = () => {
         return <PdfPng />;
       case "image-to-webp":
         return <ImageWebp />;
+      case "remove-bg":
+        return <RemoveBg />;
       default:
         return <PdfPng />;
     }

@@ -4,6 +4,7 @@ import os
 from flask import Flask, request, send_file
 from flask_cors import CORS
 from PIL import Image
+from rembg import remove
 
 app = Flask(__name__)
 CORS(app)
@@ -68,6 +69,40 @@ def convert_to_webp():
         )
 
     except Exception as e:
+        return {"error": str(e)}, 500
+
+@app.route('/removeBg', methods=['POST'])
+def remove_background():
+    if 'image' not in request.files:
+        return {"error": "No image provided"}, 400
+
+    file = request.files['image']
+
+    try:
+        # Open the image
+        input_image = Image.open(file)
+        
+        # Remove background
+        output_image = remove(input_image)
+        
+        # Save to bytes
+        output_io = io.BytesIO()
+        output_image.save(output_io, format="PNG")
+        output_io.seek(0)
+
+        # Get original filename without extension
+        original_name = os.path.splitext(file.filename)[0]
+
+        return send_file(
+            output_io,
+            mimetype='image/png',
+            as_attachment=True,
+            download_name=f'{original_name}_no_bg.png'
+        )
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {"error": str(e)}, 500
 
 if __name__ == '__main__':
