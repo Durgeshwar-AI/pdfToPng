@@ -87,13 +87,10 @@ function RemoveBg() {
     formData.append("image", file);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/removeBg`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/removeBg`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (response.ok) {
         const blob = await response.blob();
@@ -207,7 +204,11 @@ function RemoveBg() {
                   src={previewUrl}
                   alt="Preview"
                   className="preview-image"
-                  style={{ maxWidth: "200px", maxHeight: "150px", objectFit: "contain" }}
+                  style={{
+                    maxWidth: "200px",
+                    maxHeight: "150px",
+                    objectFit: "contain",
+                  }}
                 />
               )}
               <div className="file-info">
