@@ -9,15 +9,8 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-allowed_origins_env = os.environ.get("CORS_ALLOWED", "*")
-if allowed_origins_env == "*":
-    cors_origins = "*"
-else:
-    cors_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
-
 CORS(
-    app,
-    resources={r"/*": {"origins": cors_origins}},
+    app
 )
 
 # ---------------- CONFIG ---------------- #
