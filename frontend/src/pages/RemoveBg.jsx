@@ -167,7 +167,7 @@ function RemoveBg() {
           </div>
           <input
             type="file"
-            accept=".pdf"
+            accept="image/*"
             onChange={handleFileChange}
             id="file-input"
             ref={fileInputRef}
