@@ -24,52 +24,39 @@ def error(msg, code=400):
 
 # ---------------- ROUTES ---------------- #
 
-@app.route("/convertPng", methods=["POST"])
+@app.route('/convertPng', methods=['POST'])
 def convert_pdf():
     try:
-        if "file" not in request.files:
-            return error("No file provided")
+        if 'file' not in request.files:
+            return {'error': 'No file provided'}, 400
 
-        pdf_file = request.files["file"]
-
-        if pdf_file.filename == "":
-            return error("No file selected")
-
-        filename = secure_filename(pdf_file.filename)
-        base = os.path.splitext(filename)[0]
+        pdf_file = request.files['file']
+        if pdf_file.filename == '':
+            return {'error': 'No file selected'}, 400
 
         pdf_bytes = pdf_file.read()
-        if not pdf_bytes:
-            return error("Empty PDF")
-
-        # Open PDF
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
-        if doc.page_count == 0:
-            doc.close()
-            return error("PDF has no pages")
+        if len(doc) == 0:
+            return {'error': 'Empty PDF'}, 400
 
         page = doc.load_page(0)
-
-        # 🔥 HIGH QUALITY RENDER (300 DPI)
-        zoom = 300 / 72
-        matrix = fitz.Matrix(zoom, zoom)
-        pix = page.get_pixmap(matrix=matrix, alpha=True)
+        pix = page.get_pixmap()
 
         img_bytes = io.BytesIO(pix.tobytes("png"))
         img_bytes.seek(0)
 
-        doc.close()
-
         return send_file(
             img_bytes,
-            mimetype="image/png",
+            mimetype='image/png',
             as_attachment=True,
-            download_name=f"{base}.png",
+            download_name='converted.png'
         )
 
     except Exception as e:
-        return error(str(e), 500)
+        import traceback
+        traceback.print_exc()
+        return {'error': str(e)}, 500
 
 # ------------------------------------------------ #
 
