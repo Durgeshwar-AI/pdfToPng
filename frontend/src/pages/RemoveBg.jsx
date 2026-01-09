@@ -5,7 +5,6 @@ function RemoveBg() {
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
   const dropAreaRef = useRef(null);
 
@@ -17,7 +16,6 @@ function RemoveBg() {
   const processFile = (selectedFile) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile));
       setStatusMessage(
         `File "${selectedFile.name}" selected (${(
           selectedFile.size / 1024
@@ -116,192 +114,92 @@ function RemoveBg() {
     }
   };
 
-  const handleClear = () => {
-    setFile(null);
-    setPreviewUrl(null);
-    setStatusMessage("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   return (
-    <div className="converter-container">
-      <div className="converter-header">
-        <h1>Remove Background</h1>
-        <p>Remove background from images using AI</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="converter-form">
+    <div className="container">
+      <h1>Remove Background</h1>
+      <form onSubmit={handleSubmit} style={{ width: "100%" }}>
         <div
           ref={dropAreaRef}
-          className={`drop-area ${isDragging ? "dragging" : ""} ${
-            file ? "has-file" : ""
-          }`}
+          className={`upload-area ${isDragging ? "dragging" : ""}`}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={handleAreaClick}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="file-input"
-            id="file-upload"
-          />
-
-          {!file ? (
-            <div className="drop-content">
-              <div className="drop-icon">
-                <svg
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <polyline
-                    points="17,8 12,3 7,8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <line
-                    x1="12"
-                    y1="3"
-                    x2="12"
-                    y2="15"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <p className="drop-text">
-                Drag & drop your image here, or{" "}
-                <label htmlFor="file-upload" className="browse-link">
-                  browse
-                </label>
-              </p>
-              <p className="drop-hint">Supports PNG, JPG, JPEG, WebP</p>
-            </div>
-          ) : (
-            <div className="file-preview">
-              {previewUrl && (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="preview-image"
-                  style={{
-                    maxWidth: "200px",
-                    maxHeight: "150px",
-                    objectFit: "contain",
-                  }}
-                />
-              )}
-              <div className="file-info">
-                <span className="file-name">{file.name}</span>
-                <span className="file-size">
-                  {(file.size / 1024).toFixed(1)} KB
-                </span>
-              </div>
-              <button
-                type="button"
-                className="clear-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClear();
-                }}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <line
-                    x1="18"
-                    y1="6"
-                    x2="6"
-                    y2="18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <line
-                    x1="6"
-                    y1="6"
-                    x2="18"
-                    y2="18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {statusMessage && (
-          <div
-            className={`status-message ${
-              statusMessage.includes("Error") ? "error" : "success"
-            }`}
-          >
-            {statusMessage}
+          <div className="upload-icon">
+            <svg
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14 2V8H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12 18V12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9 15L12 12L15 15"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
-        )}
-
-        <button
-          type="submit"
-          className={`convert-btn ${loading ? "loading" : ""}`}
-          disabled={!file || loading}
-        >
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileChange}
+            id="file-input"
+            ref={fileInputRef}
+          />
+          <label htmlFor="file-input">
+            {file ? (
+              <div className="file-selected" title={file.name}>
+                {file.name.length > 25
+                  ? `${file.name.substring(0, 22)}...`
+                  : file.name}
+              </div>
+            ) : (
+              <>
+                Choose PDF file or drag & drop here
+                <div className="drop-instructions">
+                  Click to browse or drop your PDF file
+                </div>
+              </>
+            )}
+          </label>
+        </div>
+        <button type="submit" disabled={!file || loading}>
           {loading ? (
             <>
-              <span className="spinner"></span>
-              Processing...
+              <span className="loading-spinner"></span>
+              Removing...
             </>
           ) : (
-            <>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M8 12l3 3 5-6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Remove Background
-            </>
+            "Remove Background"
           )}
         </button>
+        {statusMessage && <p className="status-message">{statusMessage}</p>}
       </form>
     </div>
   );
