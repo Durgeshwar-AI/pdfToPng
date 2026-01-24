@@ -1,53 +1,73 @@
 import fitz  # PyMuPDF
 import io
 import os
+import tempfile
+
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from PIL import Image
 from rembg import remove
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
+# ---------------- APP ---------------- #
 
-CORS(
-    app
-)
+app = Flask(__name__)
+CORS(app)
 
 # ---------------- CONFIG ---------------- #
 
-app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20 MB max upload
+# 10 MB limit (Render free safe)
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
 # ---------------- HELPERS ---------------- #
 
 def error(msg, code=400):
     return jsonify({"error": msg}), code
 
-# ---------------- ROUTES ---------------- #
+# ---------------- HEALTH ---------------- #
+
+@app.route("/health", methods=["GET"])
+def health():
+    return "ok", 200
+
+# ---------------- PDF → PNG ---------------- #
 
 @app.route('/convertPng', methods=['POST'])
-def convert_pdf():
+def convert_pdf_to_png():
     try:
         if 'file' not in request.files:
-            return {'error': 'No file provided'}, 400
+            return error("No file provided")
 
         pdf_file = request.files['file']
-        if pdf_file.filename == '':
-            return {'error': 'No file selected'}, 400
 
-        pdf_bytes = pdf_file.read()
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        if pdf_file.filename == '':
+            return error("No file selected")
+
+        # Save PDF to temp file (prevents memory spike)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            pdf_file.save(tmp.name)
+            pdf_path = tmp.name
+
+        # Open PDF
+        doc = fitz.open(pdf_path)
 
         if len(doc) == 0:
-            return {'error': 'Empty PDF'}, 400
+            os.remove(pdf_path)
+            return error("Empty PDF")
 
+        # Render first page
         page = doc.load_page(0)
         pix = page.get_pixmap()
 
-        img_bytes = io.BytesIO(pix.tobytes("png"))
-        img_bytes.seek(0)
+        img_io = io.BytesIO(pix.tobytes("png"))
+        img_io.seek(0)
+
+        # Cleanup
+        doc.close()
+        os.remove(pdf_path)
 
         return send_file(
-            img_bytes,
+            img_io,
             mimetype='image/png',
             as_attachment=True,
             download_name='converted.png'
@@ -56,9 +76,9 @@ def convert_pdf():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return {'error': str(e)}, 500
+        return error(str(e), 500)
 
-# ------------------------------------------------ #
+# ---------------- IMAGE → WEBP ---------------- #
 
 @app.route("/convertWebP", methods=["POST"])
 def convert_to_webp():
@@ -71,7 +91,6 @@ def convert_to_webp():
 
         img = Image.open(file)
 
-        # 🔥 Ensure proper mode
         if img.mode not in ("RGB", "RGBA"):
             img = img.convert("RGBA")
 
@@ -97,7 +116,7 @@ def convert_to_webp():
     except Exception as e:
         return error(str(e), 500)
 
-# ------------------------------------------------ #
+# ---------------- REMOVE BACKGROUND ---------------- #
 
 @app.route("/removeBg", methods=["POST"])
 def remove_background():
@@ -108,22 +127,21 @@ def remove_background():
         file = request.files["image"]
         filename = secure_filename(file.filename)
 
-        input_image = Image.open(file)
+        img = Image.open(file)
 
-        # 🔥 rembg prefers RGB
-        if input_image.mode != "RGB":
-            input_image = input_image.convert("RGB")
+        if img.mode != "RGB":
+            img = img.convert("RGB")
 
-        output_image = remove(input_image)
+        output = remove(img)
 
-        output_io = io.BytesIO()
-        output_image.save(output_io, format="PNG")
-        output_io.seek(0)
+        out_io = io.BytesIO()
+        output.save(out_io, format="PNG")
+        out_io.seek(0)
 
         base = os.path.splitext(filename)[0]
 
         return send_file(
-            output_io,
+            out_io,
             mimetype="image/png",
             as_attachment=True,
             download_name=f"{base}_no_bg.png",
@@ -132,7 +150,7 @@ def remove_background():
     except Exception as e:
         return error(str(e), 500)
 
-# ---------------- RUN ---------------- #
+# ---------------- RUN (LOCAL ONLY) ---------------- #
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
