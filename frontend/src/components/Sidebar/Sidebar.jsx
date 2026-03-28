@@ -1,8 +1,21 @@
-
 import React, { useState } from "react";
-import { FileText, Image, Eraser, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  FileText,
+  Image,
+  FileImage,
+  Eraser,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-const Sidebar = ({ activeTab, onTabChange, isMobileMenuOpen, isMobile, onClose }) => {
+const Sidebar = ({
+  activeTab,
+  onTabChange,
+  isMobileMenuOpen,
+  isMobile,
+  onClose,
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSidebar = () => {
@@ -21,6 +34,12 @@ const Sidebar = ({ activeTab, onTabChange, isMobileMenuOpen, isMobile, onClose }
       label: "Image to WebP",
       icon: <Image className="w-5 h-5" />,
       description: "Convert images to WebP format",
+    },
+    {
+      id: "image-to-jpg",
+      label: "Image to JPG",
+      icon: <FileImage className="w-5 h-5" />,
+      description: "Convert images to JPG format",
     },
     {
       id: "remove-bg",
@@ -43,11 +62,11 @@ const Sidebar = ({ activeTab, onTabChange, isMobileMenuOpen, isMobile, onClose }
       {/* Sidebar */}
       <aside
         className={`
-          ${isMobile ? 'fixed' : 'sticky'} 
+          ${isMobile ? "fixed" : "sticky"} 
           top-0 left-0 h-screen bg-white
           text-blue-500 transition-all duration-300 ease-in-out z-50
-          ${isMobile && !isMobileMenuOpen ? '-translate-x-full' : 'translate-x-0'}
-          ${!isMobile && isCollapsed ? 'w-20' : 'w-80'}
+          ${isMobile && !isMobileMenuOpen ? "-translate-x-full" : "translate-x-0"}
+          ${!isMobile && isCollapsed ? "w-20" : "w-80"}
           flex flex-col shadow-xl
         `}
       >
@@ -102,12 +121,13 @@ const Sidebar = ({ activeTab, onTabChange, isMobileMenuOpen, isMobile, onClose }
                     if (isMobile) onClose();
                   }}
                   className={`
-                    w-full flex ${isCollapsed ? 'flex-col' : 'flex-row'} items-center gap-3 p-3 rounded-lg transition-all
-                    ${activeTab === item.id 
-                      ? 'bg-blue-600 text-white shadow-lg' 
-                      : 'hover:bg-slate-700 text-slate-300'
+                    w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-all
+                    ${
+                      activeTab === item.id
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "hover:bg-slate-700 text-slate-300"
                     }
-                    ${isCollapsed ? 'justify-center' : ''}
+                    ${isCollapsed ? "justify-center" : ""}
                   `}
                   title={isCollapsed ? item.label : ""}
                 >

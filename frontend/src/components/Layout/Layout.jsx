@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../Sidebar/Sidebar";
 import PdfPng from "../../pages/PdfPng";
 import ImageWebp from "../../pages/ImageWbp";
+import ImageJpg from "../../pages/ImageJpg";
 import RemoveBg from "../../pages/RemoveBg";
 import { Menu } from "lucide-react";
 
@@ -40,6 +41,8 @@ const Layout = () => {
         return <PdfPng />;
       case "image-to-webp":
         return <ImageWebp />;
+      case "image-to-jpeg":
+        return <ImageJpg />;
       case "remove-bg":
         return <RemoveBg />;
       default:
@@ -68,14 +71,18 @@ const Layout = () => {
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <h1 className="text-lg font-semibold text-blue-400">FileConverter</h1>
+              <h1 className="text-lg font-semibold text-blue-400">
+                FileConverter
+              </h1>
               <div className="w-10"></div> {/* Spacer for alignment */}
             </div>
           </header>
         )}
 
         {/* Content Area */}
-        <div className="min-h-full flex justify-center items-center">{renderContent()}</div>
+        <div className="min-h-full flex justify-center items-center">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );
