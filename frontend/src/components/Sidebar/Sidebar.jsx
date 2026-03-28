@@ -57,7 +57,7 @@ const Sidebar = ({ activeTab, onTabChange, isMobileMenuOpen, isMobile, onClose }
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="w-6 h-6 text-blue-400" />
-                <h1 className="text-xl font-bold">FileConverter</h1>
+                <h1 className="text-xl font-bold">pdfToPng</h1>
               </div>
               <button
                 onClick={onClose}
@@ -79,7 +79,7 @@ const Sidebar = ({ activeTab, onTabChange, isMobileMenuOpen, isMobile, onClose }
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="w-6 h-6 text-blue-400" />
-                <h1 className="text-xl font-bold">FileConverter</h1>
+                <h1 className="text-xl font-bold">pdfToPng</h1>
               </div>
               <button
                 onClick={toggleSidebar}
