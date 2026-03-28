@@ -110,6 +110,39 @@ def convert_to_webp():
     except Exception as e:
         return error(str(e), 500)
 
+# ---------------- IMAGE → JPEG ---------------- #
+
+@app.route("/convertJpeg", methods=["POST"])
+def convert_to_jpeg():
+    try:
+        if "image" not in request.files:
+            return error("No image provided")
+
+        file = request.files["image"]
+        filename = secure_filename(file.filename)
+
+        img = Image.open(file)
+
+        # JPEG does not support alpha; normalize to RGB.
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+
+        out = io.BytesIO()
+        img.save(out, format="JPEG", quality=90, optimize=True)
+        out.seek(0)
+
+        base = os.path.splitext(filename)[0]
+
+        return send_file(
+            out,
+            mimetype="image/jpeg",
+            as_attachment=True,
+            download_name=f"{base}.jpg"
+        )
+
+    except Exception as e:
+        return error(str(e), 500)
+
 # ---------------- REMOVE BACKGROUND ---------------- #
 
 @app.route("/removeBg", methods=["POST"])
