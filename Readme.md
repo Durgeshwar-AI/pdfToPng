@@ -5,6 +5,7 @@ This project is a small full‑stack web app for doing simple, local file manipu
 - Convert PDF (first page) to PNG
 - Convert images to WebP
 - Remove the background from images
+- Convert images to JPG
 
 The backend is a Flask API and the frontend is a React app (Vite).
 
@@ -60,11 +61,14 @@ Available endpoints:
 - `POST /convertPng` – Convert first page of a PDF to PNG
 - `POST /convertWebP` – Convert an image to WebP
 - `POST /removeBg` – Remove the background from an image
+- `POST /convertJpeg` – Convert an image to JPG
 
 All endpoints:
 
 - Process the file in memory
 - Do **not** persist any data on the server
+
+Note: The frontend includes an "Image to JPG" tool that posts image files to `/convertJpeg` to produce a JPG download. As with all endpoints, conversions are performed in memory and no files are written to disk.
 
 ### 3. Frontend setup
 
