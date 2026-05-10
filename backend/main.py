@@ -1,6 +1,7 @@
 import fitz  # PyMuPDF
 import io
 import os
+import gc
 
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
@@ -148,34 +149,48 @@ def convert_to_jpeg():
 @app.route("/removeBg", methods=["POST"])
 def remove_bg():
     try:
-        if "image" not in request.files:
-            return error("No image provided")
+        file = request.files.get("image")
 
-        file = request.files["image"]
+        if not file or file.filename == "":
+            return error("No image provided", 400)
+
         filename = secure_filename(file.filename)
+        base = os.path.splitext(filename)[0]
 
-        img = Image.open(file)
+        # Read image bytes directly (lower memory usage)
+        input_bytes = file.read()
 
-        if img.mode != "RGB":
-            img = img.convert("RGB")
+        # Remove background directly from bytes
+        output_bytes = remove(input_bytes)
 
-        output = remove(img)
+        # Optional compression / optimization
+        img = Image.open(io.BytesIO(output_bytes))
 
         out = io.BytesIO()
-        output.save(out, format="PNG")
+
+        img.save(
+            out,
+            format="PNG",
+            optimize=True
+        )
+
         out.seek(0)
 
-        base = os.path.splitext(filename)[0]
+        # Cleanup memory
+        img.close()
+        gc.collect()
 
         return send_file(
             out,
             mimetype="image/png",
             as_attachment=True,
-            download_name=f"{base}_no_bg.png"
+            download_name=f"{base}_no_bg.png",
+            max_age=0
         )
 
     except Exception as e:
-        return error(str(e), 500)
+        gc.collect()
+        return error(f"Background removal failed: {str(e)}", 500)
 
 # ---------------- LOCAL RUN ---------------- #
 
