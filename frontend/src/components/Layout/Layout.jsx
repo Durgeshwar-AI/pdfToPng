@@ -41,7 +41,7 @@ const Layout = () => {
         return <PdfPng />;
       case "image-to-webp":
         return <ImageWebp />;
-      case "image-to-jpeg":
+      case "image-to-jpg":
         return <ImageJpg />;
       case "remove-bg":
         return <RemoveBg />;

@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 
-function ImageJpeg() {
+function ImageJpg() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -46,21 +46,30 @@ function ImageJpeg() {
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!dropAreaRef.current.contains(e.relatedTarget)) {
+    const related = e.relatedTarget || e.toElement || null;
+    if (!dropAreaRef.current) {
+      setIsDragging(false);
+      return;
+    }
+    if (!related || !dropAreaRef.current.contains(related)) {
       setIsDragging(false);
     }
   };
 
-  const handleDrop = useCallback((e) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (
+      e.dataTransfer &&
+      e.dataTransfer.files &&
+      e.dataTransfer.files.length > 0
+    ) {
       processFile(e.dataTransfer.files[0]);
       e.dataTransfer.clearData();
     }
-  }, []);
+  };
 
   const handleAreaClick = (e) => {
     if (
@@ -233,4 +242,4 @@ function ImageJpeg() {
   );
 }
 
-export default ImageJpeg;
+export default ImageJpg;
