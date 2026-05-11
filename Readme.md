@@ -33,6 +33,84 @@ If you contribute to this repository, you must respect all the rules above.
 
 ---
 
+## Project Structure
+
+```
+pdfToPng/
+├── backend/
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── app/
+│   │   └── __init__.py
+│   ├── blueprints/
+│   │   ├── __init__.py
+│   │   ├── image.py
+│   │   ├── pdf.py
+│   │   └── removebg.py
+│   └── utils/
+│       ├── __init__.py
+│       └── helpers.py
+├── frontend/
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── README.md
+│   ├── public/
+│   └── src/
+│       ├── main.jsx
+│       ├── App.jsx
+│       ├── App.css
+│       ├── index.css
+│       ├── components/
+│       │   ├── Layout/
+│       │   │   └── Layout.jsx
+│       │   └── Sidebar/
+│       │       └── Sidebar.jsx
+│       └── pages/
+│           ├── PdfPng.jsx
+│           ├── ImageWbp.jsx
+│           ├── ImageJpg.jsx
+│           └── RemoveBg.jsx
+├── CONTRIBUTING.md
+├── LICENSE
+└── README.md
+```
+
+### Folder Descriptions
+
+**Backend** (`backend/`)
+
+- `main.py` – Entry point for the Flask server; initializes the app and registers blueprints
+- `requirements.txt` – Python dependencies for the backend
+- `app/` – Flask app configuration and initialization
+- `blueprints/` – Modular route handlers for each feature:
+  - `pdf.py` – PDF to PNG conversion endpoint
+  - `image.py` – Image format conversions (WebP, JPG)
+  - `removebg.py` – Background removal endpoint
+- `utils/` – Helper functions and utilities used across blueprints
+
+**Frontend** (`frontend/`)
+
+- `package.json` – Node.js dependencies and scripts
+- `vite.config.js` – Vite bundler configuration
+- `eslint.config.js` – ESLint linting rules
+- `index.html` – HTML entry point
+- `src/` – React source code:
+  - `main.jsx` – React app entry point
+  - `App.jsx` – Root React component
+  - `components/` – Reusable UI components:
+    - `Layout/` – Main page layout wrapper
+    - `Sidebar/` – Navigation sidebar
+  - `pages/` – Page components for each feature:
+    - `PdfPng.jsx` – PDF to PNG converter page
+    - `ImageWbp.jsx` – Image to WebP converter page
+    - `ImageJpg.jsx` – Image to JPG converter page
+    - `RemoveBg.jsx` – Background removal page
+- `public/` – Static assets
+
+---
+
 ## Getting Started
 
 ### 1. Clone the repository
