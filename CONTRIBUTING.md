@@ -7,12 +7,10 @@ To keep the project simple, safe, and privacy‑friendly, all contributions **mu
 ## Core Rules
 
 1. **No data may be stored in the backend.**
-
    - The server may only process files in memory for the duration of a request.
    - Do **not** write user files or metadata to disk, databases, caches, object storage, or logs.
 
 2. **No external APIs.**
-
    - Do not call third‑party web APIs, SaaS products, or remote microservices.
    - All processing must be implemented locally using libraries installed in this project.
 
@@ -27,7 +25,7 @@ If a pull request violates any of these rules, it will not be merged.
 1. **Fork** the repository and create a new branch for your change.
 2. **Set up** the project locally (see `README.md` for detailed steps).
 3. **Implement** your change, keeping the rules above in mind.
-4. **Add or update documentation** in `README.md` if you introduce a new feature.
+4. **Update documentation** in `README.md` if you introduce a new feature or change existing functionality. README updates are **required** for PR acceptance.
 5. **Run the app** (backend and frontend) to ensure everything works.
 6. **Open a Pull Request** with a clear description:
    - What feature or bugfix you are adding
@@ -37,7 +35,6 @@ If a pull request violates any of these rules, it will not be merged.
 ## Code Style & Guidelines
 
 - **Backend (Python / Flask)**
-
   - Keep handlers small and focused on one responsibility.
   - Do all processing in memory; avoid temporary files unless absolutely required, and never keep them after the request.
   - Validate inputs and return clear error messages.
