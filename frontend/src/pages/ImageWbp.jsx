@@ -1,31 +1,57 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 function ImageWbp() {
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
   const dropAreaRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     processFile(selectedFile);
   };
 
+  const handleClear = (e) => {
+    e.stopPropagation();
+    setFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setStatusMessage("");
+  };
+
   const processFile = (selectedFile) => {
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
-      setFile(selectedFile);
-      setStatusMessage(
-        `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`
-      );
-    } else if (selectedFile) {
-      setStatusMessage(
-        "Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)"
-      );
-      setTimeout(() => setStatusMessage(""), 3000);
+    if (selectedFile) {
+      if (selectedFile.type.startsWith("image/") || selectedFile.type === "application/pdf") {
+        setFile(selectedFile);
+        if (selectedFile.type.startsWith("image/")) {
+          const url = URL.createObjectURL(selectedFile);
+          setPreviewUrl(url);
+        } else {
+          setPreviewUrl(null);
+        }
+        setStatusMessage(
+          `File "${selectedFile.name}" selected (${(
+            selectedFile.size / 1024
+          ).toFixed(1)} KB)`
+        );
+      } else {
+        setStatusMessage(
+          "Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)"
+        );
+        setTimeout(() => setStatusMessage(""), 3000);
+      }
     }
   };
 
@@ -150,38 +176,6 @@ function ImageWbp() {
           onDrop={handleDrop}
           onClick={handleAreaClick}
         >
-          <div className="text-[2.5rem] text-[#4361ee] mb-4">
-            <svg
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="2"
-                ry="2"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <circle
-                cx="8.5"
-                cy="8.5"
-                r="1.5"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <path
-                d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
-          </div>
           <input
             type="file"
             accept="image/*"
@@ -192,19 +186,118 @@ function ImageWbp() {
           />
           <label
             htmlFor="image-input"
-            className="flex flex-col items-center text-xl text-[#4b5563] cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e]"
+            className="flex flex-col items-center text-xl text-[#4b5563] cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e] w-full"
           >
             {file ? (
-              <div
-                className="bg-[#f0f9ff] px-4 py-2 rounded-lg mt-3 text-[#0369a1] font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] max-w-full overflow-hidden text-ellipsis whitespace-nowrap break-all"
-                title={file.name}
-              >
-                {file.name.length > 25
-                  ? `${file.name.substring(0, 22)}...`
-                  : file.name}
+              <div className="relative group w-full flex flex-col items-center">
+                <div className="relative">
+                  {previewUrl ? (
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="max-h-48 max-w-full rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center p-4">
+                      <svg
+                        width="64"
+                        height="64"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="text-red-500"
+                      >
+                        <path
+                          d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14 2V8H20"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <text
+                          x="12"
+                          y="17"
+                          textAnchor="middle"
+                          fill="currentColor"
+                          fontSize="6"
+                          fontWeight="bold"
+                          style={{ fontSize: "5px" }}
+                        >
+                          PDF
+                        </text>
+                      </svg>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleClear}
+                    className="absolute -top-3 -right-3 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-all duration-200 hover:scale-110 z-10"
+                    aria-label="Remove file"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  className="bg-[#f0f9ff] px-4 py-2 rounded-lg mt-4 text-[#0369a1] font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+                  title={file.name}
+                >
+                  {file.name.length > 30
+                    ? `${file.name.substring(0, 27)}...`
+                    : file.name}
+                </div>
               </div>
             ) : (
               <>
+                <div className="text-[2.5rem] text-[#4361ee] mb-4">
+                  <svg
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                    <circle
+                      cx="8.5"
+                      cy="8.5"
+                      r="1.5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                    <path
+                      d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </div>
                 Choose image file or drag & drop here
                 <div className="text-[0.95rem] text-[#6b7280] mt-3">
                   Supports PNG, JPG, JPEG, GIF, BMP, and more
