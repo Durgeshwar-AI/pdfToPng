@@ -11,6 +11,7 @@ pdf_bp = Blueprint("pdf", __name__)
 
 @pdf_bp.route("/convertPng", methods=["POST"])
 def convert_pdf_to_png():
+    doc = None
     try:
         if "file" not in request.files:
             return error("No file provided")
@@ -38,8 +39,6 @@ def convert_pdf_to_png():
         img_io = io.BytesIO(pix.tobytes("png"))
         img_io.seek(0)
 
-        doc.close()
-
         return send_file(
             img_io,
             mimetype="image/png",
@@ -51,3 +50,11 @@ def convert_pdf_to_png():
         import traceback
         traceback.print_exc()
         return error(str(e), 500)
+    finally:
+        # Always close the PyMuPDF document to release native resources
+        if doc is not None:
+            try:
+                doc.close()
+            except Exception:
+                pass
+        safe_gc_collect()

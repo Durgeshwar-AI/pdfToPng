@@ -1,4 +1,5 @@
 import io
+import os
 
 from flask import Blueprint, request, send_file
 from PIL import Image
@@ -19,7 +20,8 @@ def remove_bg():
             return error("No image provided", 400)
 
         filename = secure_filename(file.filename)
-        base = filename.rsplit('.', 1)[0]
+        # secure_filename strips all non-ASCII chars; fall back to a safe default
+        base = os.path.splitext(filename)[0] if filename else "converted"
 
         input_bytes = file.read()
 
