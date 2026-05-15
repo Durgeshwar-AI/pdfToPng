@@ -18,13 +18,41 @@ def send_file_and_cleanup(filename, **kwargs):
     """
     Sends a file and deletes it after the request is completed.
     """
-    @after_this_request
-    def cleanup(response):
-        try:
-            if os.path.exists(filename):
-                os.remove(filename)
-        except Exception:
-            pass
-        return response
+    # Support bytes or file-like objects to avoid touching disk
+    try:
+        # Lazy import to avoid unused import when not needed
+        from io import BytesIO
 
-    return send_file(filename, **kwargs)
+        # If raw bytes are passed, wrap in BytesIO and send directly
+        if isinstance(filename, (bytes, bytearray)):
+            bio = BytesIO(filename)
+            bio.seek(0)
+            return send_file(bio, **kwargs)
+
+        # If a file-like object is passed, ensure it's at start and send
+        if hasattr(filename, "read"):
+            try:
+                filename.seek(0)
+            except Exception:
+                pass
+            return send_file(filename, **kwargs)
+
+        # Otherwise treat as a filesystem path and schedule cleanup
+        filepath = filename
+
+        @after_this_request
+        def cleanup(response):
+            try:
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+            except Exception:
+                pass
+            return response
+
+        return send_file(filepath, **kwargs)
+    except Exception:
+        # Fallback: attempt to send as path
+        try:
+            return send_file(filename, **kwargs)
+        except Exception:
+            raise

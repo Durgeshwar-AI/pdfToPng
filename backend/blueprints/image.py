@@ -1,5 +1,5 @@
 import os
-import tempfile
+from io import BytesIO
 
 from flask import Blueprint, request
 from PIL import Image
@@ -12,7 +12,6 @@ image_bp = Blueprint("image", __name__)
 
 @image_bp.route("/convertWebP", methods=["POST"])
 def convert_to_webp():
-    temp_webp_path = None
     img = None
     try:
         if "image" not in request.files:
@@ -27,15 +26,15 @@ def convert_to_webp():
             if img.mode not in ("RGB", "RGBA"):
                 img = img.convert("RGBA")
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".webp") as temp_webp:
-                temp_webp_path = temp_webp.name
-            
-            img.save(temp_webp_path, format="WEBP", quality=85, method=6)
+            buf = BytesIO()
+            img.save(buf, format="WEBP", quality=85, method=6)
+            buf.seek(0)
+            data = buf.getvalue()
 
             base = os.path.splitext(filename)[0]
 
             return send_file_and_cleanup(
-                temp_webp_path,
+                data,
                 mimetype="image/webp",
                 as_attachment=True,
                 download_name=f"{base}.webp",
@@ -45,14 +44,11 @@ def convert_to_webp():
                 img.close()
 
     except Exception as e:
-        if temp_webp_path and os.path.exists(temp_webp_path):
-            os.remove(temp_webp_path)
         return error(str(e), 500)
 
 
 @image_bp.route("/convertJpeg", methods=["POST"])
 def convert_to_jpeg():
-    temp_jpeg_path = None
     img = None
     try:
         if "image" not in request.files:
@@ -67,15 +63,15 @@ def convert_to_jpeg():
             if img.mode != "RGB":
                 img = img.convert("RGB")
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_jpeg:
-                temp_jpeg_path = temp_jpeg.name
-            
-            img.save(temp_jpeg_path, format="JPEG", quality=90, optimize=True)
+            buf = BytesIO()
+            img.save(buf, format="JPEG", quality=90, optimize=True)
+            buf.seek(0)
+            data = buf.getvalue()
 
             base = os.path.splitext(filename)[0]
 
             return send_file_and_cleanup(
-                temp_jpeg_path,
+                data,
                 mimetype="image/jpeg",
                 as_attachment=True,
                 download_name=f"{base}.jpg",
@@ -85,14 +81,11 @@ def convert_to_jpeg():
                 img.close()
 
     except Exception as e:
-        if temp_jpeg_path and os.path.exists(temp_jpeg_path):
-            os.remove(temp_jpeg_path)
         return error(str(e), 500)
 
 
 @image_bp.route("/compress", methods=["POST"])
 def compress_image():
-    temp_output_path = None
     img = None
     try:
         if "image" not in request.files:
@@ -117,15 +110,15 @@ def compress_image():
             extension = ".jpg" if img_format == "JPEG" else ".webp"
             mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as temp_out:
-                temp_output_path = temp_out.name
-            
-            img.save(temp_output_path, format=img_format, quality=quality, optimize=True)
+            buf = BytesIO()
+            img.save(buf, format=img_format, quality=quality, optimize=True)
+            buf.seek(0)
+            data = buf.getvalue()
 
             base = os.path.splitext(filename)[0]
 
             return send_file_and_cleanup(
-                temp_output_path,
+                data,
                 mimetype=mimetype,
                 as_attachment=True,
                 download_name=f"{base}_compressed{extension}",
@@ -135,6 +128,4 @@ def compress_image():
                 img.close()
 
     except Exception as e:
-        if temp_output_path and os.path.exists(temp_output_path):
-            os.remove(temp_output_path)
         return error(str(e), 500)
