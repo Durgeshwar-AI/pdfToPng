@@ -164,7 +164,7 @@ export default function RotateFlip() {
                   className="w-full rounded-xl border border-gray-200 object-contain max-h-64"
                 />
                 
-                  href={resultUrl}
+                  <a href={resultUrl}
                   download={`transformed.${resultExt}`}
                   className="mt-4 px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                 >
