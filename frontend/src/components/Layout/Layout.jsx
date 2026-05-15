@@ -88,30 +88,4 @@ const Layout = () => {
   );
 };
 
-export default Layout;        {isMobile && (
-          <header className="bg-white shadow-sm sticky top-0 z-30">
-            <div className="flex items-center justify-between p-4">
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <h1 className="text-lg font-semibold text-blue-400">
-                FileConverter
-              </h1>
-              <div className="w-10"></div> {/* Spacer for alignment */}
-            </div>
-          </header>
-        )}
-
-        {/* Content Area */}
-        <div className="min-h-full flex justify-center items-center">
-          {renderContent()}
-        </div>
-      </main>
-    </div>
-  );
-};
-
 export default Layout;
