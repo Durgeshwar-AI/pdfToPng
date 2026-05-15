@@ -88,3 +88,53 @@ def convert_to_jpeg():
         if temp_jpeg_path and os.path.exists(temp_jpeg_path):
             os.remove(temp_jpeg_path)
         return error(str(e), 500)
+
+
+@image_bp.route("/compress", methods=["POST"])
+def compress_image():
+    temp_output_path = None
+    img = None
+    try:
+        if "image" not in request.files:
+            return error("No image provided")
+
+        file = request.files["image"]
+        quality = request.form.get("quality", 70, type=int)
+        
+        # Clamp quality between 1 and 100
+        quality = max(1, min(100, quality))
+        
+        filename = secure_filename(file.filename)
+        img = Image.open(file)
+
+        try:
+            # Determine format - if it's not a format that supports quality, 
+            # we'll convert to JPEG for the best compression results
+            img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
+            if img_format == "JPEG" and img.mode != "RGB":
+                img = img.convert("RGB")
+            
+            extension = ".jpg" if img_format == "JPEG" else ".webp"
+            mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as temp_out:
+                temp_output_path = temp_out.name
+            
+            img.save(temp_output_path, format=img_format, quality=quality, optimize=True)
+
+            base = os.path.splitext(filename)[0]
+
+            return send_file_and_cleanup(
+                temp_output_path,
+                mimetype=mimetype,
+                as_attachment=True,
+                download_name=f"{base}_compressed{extension}",
+            )
+        finally:
+            if img:
+                img.close()
+
+    except Exception as e:
+        if temp_output_path and os.path.exists(temp_output_path):
+            os.remove(temp_output_path)
+        return error(str(e), 500)
