@@ -4,7 +4,7 @@ import PdfPng from "../../pages/PdfPng";
 import ImageWebp from "../../pages/ImageWbp";
 import ImageJpg from "../../pages/ImageJpg";
 import RemoveBg from "../../pages/RemoveBg";
-import RotateFlip from "../../pages/RotateFlip";
+import ImageCompress from "../../pages/ImageCompress";
 import { Menu } from "lucide-react";
 
 const Layout = () => {
@@ -45,8 +45,8 @@ const Layout = () => {
         return <ImageJpg />;
       case "remove-bg":
         return <RemoveBg />;
-      case "rotate-flip":
-        return <RotateFlip />;
+      case "image-compress":
+        return <ImageCompress />;
       default:
         return <PdfPng />;
     }
