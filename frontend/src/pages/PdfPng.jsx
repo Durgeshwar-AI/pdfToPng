@@ -160,7 +160,7 @@ const PdfPng = () => {
       <h1 className="text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         PDF to PNG Converter
       </h1>
-      <p className="mt-4 mb-6 text-[0.95rem] text-[#6b7280]">Use it for single page pdf only</p>
+      <p className="mt-4 mb-6 text-[0.95rem] text-[#6b7280]">Convert your PDF pages to high-quality PNG images</p>
       <form
         onSubmit={handleSubmit}
         className="w-full flex flex-col items-center"
