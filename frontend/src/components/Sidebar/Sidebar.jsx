@@ -55,6 +55,12 @@ const Sidebar = ({
       icon: <Sliders className="w-5 h-5" />,
       description: "Compress images with quality control",
     },
+    {
+      id: "rotate-flip",
+      label: "Rotate & Flip",
+      icon: <RotateCcw className="w-5 h-5" />,
+      description: "Rotate or flip your images",
+    },
   ];
 
   return (

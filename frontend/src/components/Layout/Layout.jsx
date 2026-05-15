@@ -47,6 +47,8 @@ const Layout = () => {
         return <RemoveBg />;
       case "image-compress":
         return <ImageCompress />;
+      case "rotate-flip":
+        return <RotateFlip />;
       default:
         return <PdfPng />;
     }
