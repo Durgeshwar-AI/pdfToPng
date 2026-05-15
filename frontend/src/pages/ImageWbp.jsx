@@ -46,7 +46,7 @@ function ImageWbp() {
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!dropAreaRef.current.contains(e.relatedTarget)) {
+    if (!dropAreaRef.current || !dropAreaRef.current.contains(e.relatedTarget)) {
       setIsDragging(false);
     }
   };
@@ -186,12 +186,12 @@ function ImageWbp() {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            id="image-input"
+            id="webp-image-input"
             ref={fileInputRef}
             className="hidden"
           />
           <label
-            htmlFor="image-input"
+            htmlFor="webp-image-input"
             className="flex flex-col items-center text-xl text-[#4b5563] cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e]"
           >
             {file ? (
