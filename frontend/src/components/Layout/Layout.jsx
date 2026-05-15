@@ -19,7 +19,6 @@ const Layout = () => {
         setIsMobileMenuOpen(false);
       }
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -62,7 +61,6 @@ const Layout = () => {
         isMobile={isMobile}
         onClose={closeMobileMenu}
       />
-
       <main className="flex-1 overflow-y-auto">
         {/* Mobile Header */}
         {isMobile && (
@@ -81,7 +79,6 @@ const Layout = () => {
             </div>
           </header>
         )}
-
         {/* Content Area */}
         <div className="min-h-full flex justify-center items-center">
           {renderContent()}

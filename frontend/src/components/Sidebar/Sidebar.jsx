@@ -4,6 +4,7 @@ import {
   Image,
   FileImage,
   Eraser,
+  RotateCcw,
   X,
   Sliders,
   ChevronLeft,
