@@ -2,125 +2,59 @@ import React, { useCallback, useRef, useState, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import JSZip from "jszip";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { useFileUpload } from "../hooks/useFileUpload";
+import FileUploadArea from "../components/FileUploadArea";
 
 // Set worker source for PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const PdfPng = () => {
-  const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
   const [scale, setScale] = useState(2.0); // Default scale (2x)
   const [pageMode, setPageMode] = useState("all"); // all, single, range
   const [pageRange, setPageRange] = useState("");
   const [numPages, setNumPages] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
-  const dropAreaRef = useRef(null);
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+  const validateFile = useCallback(async (selectedFile) => {
+    if (selectedFile && selectedFile.type === "application/pdf") {
+      // Load PDF to get total pages
+      try {
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        setNumPages(pdf.numPages);
+      } catch (err) {
+        console.error("Error loading PDF info:", err);
       }
+      return {
+        isValid: true,
+        message: `File "${selectedFile.name}" selected (${(
+          selectedFile.size / 1024
+        ).toFixed(1)} KB)`,
+      };
+    }
+    return {
+      isValid: false,
+      message: "Error: Please select a PDF file",
     };
-  }, [previewUrl]);
-
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    processFile(selectedFile);
-  };
-
-  const handleClear = (e) => {
-    e.stopPropagation();
-    setFile(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    setStatusMessage("");
-  };
-
-  const processFile = async (selectedFile) => {
-    if (selectedFile) {
-      if (
-        selectedFile.type === "application/pdf" ||
-        selectedFile.type.startsWith("image/")
-      ) {
-        setFile(selectedFile);
-        if (selectedFile.type.startsWith("image/")) {
-          const url = URL.createObjectURL(selectedFile);
-          setPreviewUrl(url);
-          setNumPages(0);
-        } else {
-          setPreviewUrl(null);
-          // Load PDF to get total pages
-          try {
-            const arrayBuffer = await selectedFile.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            setNumPages(pdf.numPages);
-          } catch (err) {
-            console.error("Error loading PDF info:", err);
-          }
-        }
-        setStatusMessage(
-          `File "${selectedFile.name}" selected (${(
-            selectedFile.size / 1024
-          ).toFixed(1)} KB)`
-        );
-      } else {
-        setStatusMessage("Error: Please select a PDF file");
-        setTimeout(() => setStatusMessage(""), 3000);
-      }
-    }
-  };
-
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isDragging) {
-      setIsDragging(true);
-    }
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!dropAreaRef.current.contains(e.relatedTarget)) {
-      setIsDragging(false);
-    }
-  };
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFile(e.dataTransfer.files[0]);
-      e.dataTransfer.clearData();
-    }
   }, []);
 
-  const handleAreaClick = (e) => {
-    // Prevent triggering when clicking on the label which already has a htmlFor attribute
-    if (
-      e.target.tagName.toLowerCase() !== "label" &&
-      !e.target.closest("label")
-    ) {
-      fileInputRef.current.click();
-    }
-  };
+  const {
+    file,
+    loading,
+    setLoading,
+    isDragging,
+    statusMessage,
+    setStatusMessage,
+    previewUrl,
+    fileInputRef,
+    dropAreaRef,
+    handleFileChange,
+    handleClear,
+    handleDragEnter,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleAreaClick,
+  } = useFileUpload(validateFile);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -231,155 +165,62 @@ const PdfPng = () => {
         onSubmit={handleSubmit}
         className="w-full flex flex-col items-center"
       >
-        <div
-          ref={dropAreaRef}
-          className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-all duration-300 flex flex-col items-center select-none ${
-            isDragging
-              ? "border-[#3b82f6] bg-[#ebf5ff] scale-[1.02]"
-              : "border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
-          }`}
-          onDragEnter={handleDragEnter}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={handleAreaClick}
-        >
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileChange}
-            id="file-input"
-            ref={fileInputRef}
-            className="hidden"
-          />
-          <label
-            htmlFor="file-input"
-            className="flex flex-col items-center text-xl text-[#4b5563] cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e] w-full"
-          >
-            {file ? (
-              <div className="relative group w-full flex flex-col items-center">
-                <div className="relative">
-                  {previewUrl ? (
-                    <img
-                      src={previewUrl}
-                      alt="Preview"
-                      className="max-h-48 max-w-full rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center p-4">
-                      <svg
-                        width="64"
-                        height="64"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="text-red-500"
-                      >
-                        <path
-                          d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14 2V8H20"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <text
-                          x="12"
-                          y="17"
-                          textAnchor="middle"
-                          fill="currentColor"
-                          fontSize="6"
-                          fontWeight="bold"
-                          style={{ fontSize: "5px" }}
-                        >
-                          PDF
-                        </text>
-                      </svg>
-                    </div>
-                  )}
-                  <button
-                    onClick={handleClear}
-                    className="absolute -top-3 -right-3 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-all duration-200 hover:scale-110 z-10"
-                    aria-label="Remove file"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-                <div
-                  className="bg-[#f0f9ff] px-4 py-2 rounded-lg mt-4 text-[#0369a1] font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
-                  title={file.name}
-                >
-                  {file.name.length > 30
-                    ? `${file.name.substring(0, 27)}...`
-                    : file.name}
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="text-[2.5rem] text-[#4361ee] mb-4">
-                  <svg
-                    width="64"
-                    height="64"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M14 2V8H20"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M12 18V12"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M9 15L12 12L15 15"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-                Choose PDF file or drag & drop here
-                <div className="text-[0.95rem] text-[#6b7280] mt-3">
-                  Click to browse or drop your PDF file
-                </div>
-              </>
-            )}
-          </label>
-        </div>
+        <FileUploadArea
+          file={file}
+          previewUrl={previewUrl}
+          isDragging={isDragging}
+          fileInputRef={fileInputRef}
+          dropAreaRef={dropAreaRef}
+          handleFileChange={handleFileChange}
+          handleClear={handleClear}
+          handleDragEnter={handleDragEnter}
+          handleDragOver={handleDragOver}
+          handleDragLeave={handleDragLeave}
+          handleDrop={handleDrop}
+          handleAreaClick={handleAreaClick}
+          accept=".pdf"
+          inputId="file-input"
+          defaultIcon={
+            <svg
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14 2V8H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12 18V12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9 15L12 12L15 15"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          }
+          defaultText="Choose PDF file or drag & drop here"
+          supportText="Click to browse or drop your PDF file"
+        />
 
         {file && (
           <div className="w-full space-y-6 mb-8 text-left bg-white/50 p-6 rounded-xl border border-[#c7d2fe] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
