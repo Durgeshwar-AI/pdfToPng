@@ -1,16 +1,21 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import JSZip from "jszip";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 // Set worker source for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const PdfPng = () => {
+  const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [scale, setScale] = useState(2.0); // Default scale (2x)
   const [pageMode, setPageMode] = useState("all"); // all, single, range
   const [pageRange, setPageRange] = useState("");
   const [numPages, setNumPages] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   const dropAreaRef = useRef(null);
 

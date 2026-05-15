@@ -1,7 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 function RemoveBg() {
+  const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   const dropAreaRef = useRef(null);
 
