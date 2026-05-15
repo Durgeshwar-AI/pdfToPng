@@ -5,6 +5,7 @@ import ImageWebp from "../../pages/ImageWbp";
 import ImageJpg from "../../pages/ImageJpg";
 import RemoveBg from "../../pages/RemoveBg";
 import ImageCompress from "../../pages/ImageCompress";
+import RotateFlip from "../../pages/RotateFlip";
 import { Menu } from "lucide-react";
 
 const Layout = () => {
