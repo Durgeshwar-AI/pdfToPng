@@ -4,6 +4,7 @@ import PdfPng from "../../pages/PdfPng";
 import ImageWebp from "../../pages/ImageWbp";
 import ImageJpg from "../../pages/ImageJpg";
 import RemoveBg from "../../pages/RemoveBg";
+import RotateFlip from "../../pages/RotateFlip";
 import { Menu } from "lucide-react";
 
 const Layout = () => {
@@ -18,7 +19,6 @@ const Layout = () => {
         setIsMobileMenuOpen(false);
       }
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -45,6 +45,8 @@ const Layout = () => {
         return <ImageJpg />;
       case "remove-bg":
         return <RemoveBg />;
+      case "rotate-flip":
+        return <RotateFlip />;
       default:
         return <PdfPng />;
     }
@@ -59,7 +61,6 @@ const Layout = () => {
         isMobile={isMobile}
         onClose={closeMobileMenu}
       />
-
       <main className="flex-1 overflow-y-auto">
         {/* Mobile Header */}
         {isMobile && (
@@ -78,7 +79,6 @@ const Layout = () => {
             </div>
           </header>
         )}
-
         {/* Content Area */}
         <div className="min-h-full flex justify-center items-center">
           {renderContent()}

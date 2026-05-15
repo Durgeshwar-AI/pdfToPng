@@ -4,6 +4,7 @@ import {
   Image,
   FileImage,
   Eraser,
+  RotateCcw,
   X,
   ChevronLeft,
   ChevronRight,
@@ -46,6 +47,12 @@ const Sidebar = ({
       label: "Remove Background",
       icon: <Eraser className="w-5 h-5" />,
       description: "Remove background from images",
+    },
+    {
+      id: "rotate-flip",
+      label: "Rotate & Flip",
+      icon: <RotateCcw className="w-5 h-5" />,
+      description: "Rotate or flip your images",
     },
   ];
 
