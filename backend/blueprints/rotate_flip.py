@@ -1,91 +1,56 @@
-import React, { useState, useEffect } from "react";
-import Sidebar from "../Sidebar/Sidebar";
-import PdfPng from "../../pages/PdfPng";
-import ImageWebp from "../../pages/ImageWbp";
-import ImageJpg from "../../pages/ImageJpg";
-import RemoveBg from "../../pages/RemoveBg";
-import RotateFlip from "../../pages/RotateFlip";
-import { Menu } from "lucide-react";
+from flask import Blueprint, request, jsonify, send_file
+from PIL import Image
+import io
 
-const Layout = () => {
-  const [activeTab, setActiveTab] = useState("pdf-to-png");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+rotate_flip_bp = Blueprint("rotate_flip", __name__)
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-      if (window.innerWidth > 768) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+ALLOWED_ACTIONS = {"rotate_left", "rotate_right", "flip_h", "flip_v"}
+ALLOWED_FORMATS = {"PNG", "JPEG", "WEBP"}
 
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-  };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+@rotate_flip_bp.route("/rotateFlip", methods=["POST"])
+def rotate_flip():
+    if "image" not in request.files:
+        return jsonify({"error": "No image provided"}), 400
 
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+    file   = request.files["image"]
+    action = request.form.get("action", "")
+    fmt    = request.form.get("format", "PNG").upper()
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "pdf-to-png":
-        return <PdfPng />;
-      case "image-to-webp":
-        return <ImageWebp />;
-      case "image-to-jpg":
-        return <ImageJpg />;
-      case "remove-bg":
-        return <RemoveBg />;
-      case "rotate-flip":
-        return <RotateFlip />;
-      default:
-        return <PdfPng />;
-    }
-  };
+    if fmt == "JPG":
+        fmt = "JPEG"
 
-  return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        isMobileMenuOpen={isMobileMenuOpen}
-        isMobile={isMobile}
-        onClose={closeMobileMenu}
-      />
-      <main className="flex-1 overflow-y-auto">
-        {/* Mobile Header */}
-        {isMobile && (
-          <header className="bg-white shadow-sm sticky top-0 z-30">
-            <div className="flex items-center justify-between p-4">
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-              <h1 className="text-lg font-semibold text-blue-400">
-                FileConverter
-              </h1>
-              <div className="w-10"></div> {/* Spacer for alignment */}
-            </div>
-          </header>
-        )}
-        {/* Content Area */}
-        <div className="min-h-full flex justify-center items-center">
-          {renderContent()}
-        </div>
-      </main>
-    </div>
-  );
-};
+    if action not in ALLOWED_ACTIONS:
+        return jsonify({"error": f"Invalid action: {action}"}), 400
+    if fmt not in ALLOWED_FORMATS:
+        return jsonify({"error": f"Unsupported format: {fmt}"}), 400
 
-export default Layout;
+    try:
+        img = Image.open(io.BytesIO(file.read())).convert("RGBA")
+
+        if action == "rotate_left":
+            img = img.rotate(90, expand=True)
+        elif action == "rotate_right":
+            img = img.rotate(-90, expand=True)
+        elif action == "flip_h":
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        elif action == "flip_v":
+            img = img.transpose(Image.FLIP_TOP_BOTTOM)
+
+        # JPEG has no alpha channel — composite onto white background
+        if fmt == "JPEG" and img.mode == "RGBA":
+            bg = Image.new("RGB", img.size, (255, 255, 255))
+            bg.paste(img, mask=img.split()[3])
+            img = bg
+
+        output = io.BytesIO()
+        img.save(output, format=fmt)
+        output.seek(0)
+
+        mime = "image/jpeg" if fmt == "JPEG" else f"image/{fmt.lower()}"
+        ext  = "jpg"        if fmt == "JPEG" else fmt.lower()
+        return send_file(output, mimetype=mime,
+                         download_name=f"transformed.{ext}")
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
