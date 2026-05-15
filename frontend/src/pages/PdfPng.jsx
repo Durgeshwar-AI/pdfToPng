@@ -12,6 +12,7 @@ const PdfPng = () => {
   const [scale, setScale] = useState(2.0); // Default scale (2x)
   const [pageMode, setPageMode] = useState("all"); // all, single, range
   const [pageRange, setPageRange] = useState("");
+  const [singlePage, setSinglePage] = useState("1");
   const [numPages, setNumPages] = useState(0);
 
   const validateFile = useCallback(async (selectedFile) => {
@@ -76,7 +77,11 @@ const PdfPng = () => {
       if (pageMode === "all") {
         pagesToRender = Array.from({ length: totalPages }, (_, i) => i + 1);
       } else if (pageMode === "single") {
-        pagesToRender = [1];
+        const pageNum = parseInt(singlePage);
+        if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+          throw new Error(`Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`);
+        }
+        pagesToRender = [pageNum];
       } else if (pageMode === "range") {
         const ranges = pageRange.split(",").map((r) => r.trim());
         ranges.forEach((r) => {
@@ -160,7 +165,7 @@ const PdfPng = () => {
       <h1 className="text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         PDF to PNG Converter
       </h1>
-      <p className="mt-4 mb-6 text-[0.95rem] text-[#6b7280]">Use it for single page pdf only</p>
+      <p className="mt-4 mb-6 text-[0.95rem] text-[#6b7280]">Convert PDF pages to high-quality PNG images</p>
       <form
         onSubmit={handleSubmit}
         className="w-full flex flex-col items-center"
@@ -272,6 +277,23 @@ const PdfPng = () => {
                 ))}
               </div>
 
+              {pageMode === "single" && (
+                <div className="animate-in zoom-in-95 duration-200">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-[#6b7280] font-medium">Page:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max={numPages}
+                      value={singlePage}
+                      onChange={(e) => setSinglePage(e.target.value)}
+                      className="w-24 p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-all bg-white text-[#1a1a2e] font-bold text-center"
+                    />
+                    <span className="text-xs text-[#94a3b8]">of {numPages}</span>
+                  </div>
+                </div>
+              )}
+
               {pageMode === "range" && (
                 <div className="animate-in zoom-in-95 duration-200">
                   <input
@@ -282,7 +304,7 @@ const PdfPng = () => {
                     className="w-full p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-all bg-white placeholder:text-[#94a3b8] text-[#1a1a2e] font-medium"
                   />
                   <p className="mt-2 text-[11px] text-[#6b7280]">
-                    Enter page numbers or ranges separated by commas
+                    Enter page numbers or ranges (e.g., 1-5, 8, 10-12)
                   </p>
                 </div>
               )}
