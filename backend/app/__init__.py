@@ -42,6 +42,10 @@ def create_app():
             response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
         return response
 
+    @app.route("/", methods=["GET", "HEAD"])
+    def home():
+        return {"message": "Server running"}, 200
+    
     # Health check endpoint to verify server + CORS headers quickly
     @app.route("/health", methods=["GET", "OPTIONS"])
     def _health():
