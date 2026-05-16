@@ -2,10 +2,12 @@
 
 This project is a small full‑stack web app for doing simple, local file manipulations:
 
-- Convert PDF (first page) to PNG
+- Convert PDF pages to PNG (single page, range, or all pages)
 - Convert images to WebP
-- Remove the background from images
 - Convert images to JPG
+- Compress images with adjustable quality
+- Rotate or flip images
+- Remove the background from images
 
 The backend is a Flask API and the frontend is a React app (Vite).
 
@@ -46,7 +48,8 @@ pdfToPng/
 │   │   ├── __init__.py
 │   │   ├── image.py
 │   │   ├── pdf.py
-│   │   └── removebg.py
+│   │   ├── removebg.py
+│   │   └── rotate_flip.py
 │   └── utils/
 │       ├── __init__.py
 │       └── helpers.py
@@ -67,11 +70,16 @@ pdfToPng/
 │       │   │   └── Layout.jsx
 │       │   └── Sidebar/
 │       │       └── Sidebar.jsx
+│       ├── hooks/
+│       │   └── useFileUpload.js
 │       └── pages/
+│           ├── LandingPage.jsx
 │           ├── PdfPng.jsx
 │           ├── ImageWbp.jsx
 │           ├── ImageJpg.jsx
-│           └── RemoveBg.jsx
+│           ├── ImageCompress.jsx
+│           ├── RemoveBg.jsx
+│           └── RotateFlip.jsx
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
@@ -86,8 +94,9 @@ pdfToPng/
 - `app/` – Flask app configuration and initialization
 - `blueprints/` – Modular route handlers for each feature:
   - `pdf.py` – PDF to PNG conversion endpoint
-  - `image.py` – Image format conversions (WebP, JPG)
+  - `image.py` – Image format conversions and compression (WebP, JPG, compress)
   - `removebg.py` – Background removal endpoint
+  - `rotate_flip.py` – Rotate/flip endpoint
 - `utils/` – Helper functions and utilities used across blueprints
 
 **Frontend** (`frontend/`)
@@ -103,10 +112,13 @@ pdfToPng/
     - `Layout/` – Main page layout wrapper
     - `Sidebar/` – Navigation sidebar
   - `pages/` – Page components for each feature:
+    - `LandingPage.jsx` – Main landing page
     - `PdfPng.jsx` – PDF to PNG converter page
     - `ImageWbp.jsx` – Image to WebP converter page
     - `ImageJpg.jsx` – Image to JPG converter page
+    - `ImageCompress.jsx` – Image compression page
     - `RemoveBg.jsx` – Background removal page
+    - `RotateFlip.jsx` – Rotate/flip page
 - `public/` – Static assets
 
 ---
@@ -140,13 +152,16 @@ Available endpoints:
 - `POST /convertWebP` – Convert an image to WebP
 - `POST /removeBg` – Remove the background from an image
 - `POST /convertJpeg` – Convert an image to JPG
+- `POST /compress` – Compress an image with a quality setting
+- `POST /rotateFlip` – Rotate or flip an image
+- `GET /health` – Health check
 
 All endpoints:
 
 - Process the file in memory
 - Do **not** persist any data on the server
 
-Note: The frontend includes an "Image to JPG" tool that posts image files to `/convertJpeg` to produce a JPG download. As with all endpoints, conversions are performed in memory and no files are written to disk.
+Note: The PDF to PNG tool runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server‑side PDF conversion, but the UI uses client‑side rendering by default.
 
 ### 3. Frontend setup
 
@@ -167,6 +182,8 @@ Make sure your frontend API calls target `http://localhost:5000` for the backend
 ## Contributing
 
 Contributions are welcome! Before opening an issue or pull request, please read `CONTRIBUTING.md`.
+
+If this project helped you, please star the repo on GitHub.
 
 Key points:
 
