@@ -6,6 +6,7 @@ import {
   Eraser,
   RotateCcw,
   X,
+  Sliders,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -47,6 +48,12 @@ const Sidebar = ({
       label: "Remove Background",
       icon: <Eraser className="w-5 h-5" />,
       description: "Remove background from images",
+    },
+    {
+      id: "image-compress",
+      label: "Image Compressor",
+      icon: <Sliders className="w-5 h-5" />,
+      description: "Compress images with quality control",
     },
     {
       id: "rotate-flip",
