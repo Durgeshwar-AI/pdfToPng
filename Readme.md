@@ -162,6 +162,30 @@ By default, Vite will start the frontend at `http://localhost:5173`.
 
 Make sure your frontend API calls target `http://localhost:5000` for the backend.
 
+## Running with Docker (Recommended)
+
+The easiest way to get started is using Docker and Docker Compose. This ensures all dependencies (including system tools like `poppler-utils`) are correctly installed.
+
+### 1. Prerequisites
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### 2. Run the application
+From the root directory, run:
+
+```bash
+docker-compose up --build
+```
+
+- **Frontend**: http://localhost:5173
+- **Backend**: http://localhost:5000
+- **Health Check**: http://localhost:5000/health
+
+### 3. Development Workflow
+The `docker-compose.yml` is configured for development:
+- **Hot Reloading**: Changes in `backend/` or `frontend/` will automatically reload the application.
+- **Persistent Models**: The `rembg` AI models are stored in a Docker volume called `rembg_models` to avoid re-downloading on every restart.
+
 ---
 
 ## Contributing
