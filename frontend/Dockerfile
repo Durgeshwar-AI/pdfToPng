@@ -1,23 +1,21 @@
-# Stage 1: Build stage
-FROM node:20-slim AS build
-
+# Stage 1: Base stage
+FROM node:20-slim AS base
 WORKDIR /app
-
-# Install dependencies
 COPY package*.json ./
 RUN npm install
-
-# Copy source and build
 COPY . .
+
+# Stage 2: Development stage
+FROM base AS development
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
+
+# Stage 3: Build stage
+FROM base AS build
 RUN npm run build
 
-# Stage 2: Production stage
-FROM nginx:alpine
-
-# Copy built assets from build stage
+# Stage 4: Production stage
+FROM nginx:alpine AS production
 COPY --from=build /app/dist /usr/share/nginx/html
-
-# Expose port 80
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
