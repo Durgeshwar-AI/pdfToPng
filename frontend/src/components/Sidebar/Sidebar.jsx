@@ -30,6 +30,18 @@ const Sidebar = ({
       description: "Convert PDF files to PNG images",
     },
     {
+      id: "image-compress",
+      label: "Image Compressor",
+      icon: <Sliders className="w-5 h-5" />,
+      description: "Compress images with quality control",
+    },
+    {
+      id: "image-upscale",
+      label: "AI Upscaler",
+      icon: <Sliders className="w-5 h-5 text-purple-500" />,
+      description: "Increase image resolution",
+    },
+    {
       id: "image-to-webp",
       label: "Image to WebP",
       icon: <Image className="w-5 h-5" />,
