@@ -35,7 +35,7 @@ export const useFileUpload = (validateFile) => {
     setStatusMessage("");
   }, [previewUrl]);
 
-  const processFile = useCallback((selectedFile) => {
+  const processFile = useCallback(async (selectedFile) => {
     if (!selectedFile) return;
 
     // 10MB limit
@@ -46,7 +46,7 @@ export const useFileUpload = (validateFile) => {
       return;
     }
 
-    const validation = validateFile(selectedFile);
+    const validation = await validateFile(selectedFile);
     if (validation.isValid) {
       setFile(selectedFile);
       if (selectedFile.type.startsWith("image/")) {

@@ -3,30 +3,51 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+    restart: always
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - rembg_models:/root/.u2net
     ports:
       - "5000:5000"
     environment:
-      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGINS=http://localhost:5173
       - FLASK_ENV=development
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - redis
+    restart: always
 
   worker:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     command: celery -A utils.celery_utils.celery worker --loglevel=info
     environment:
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - redis
+    restart: always
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "80:80"
+      - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:5000
+    command: npm run dev -- --host
     depends_on:
       - backend
+    restart: always
+
+volumes:
+  rembg_models:
