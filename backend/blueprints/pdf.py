@@ -51,3 +51,35 @@ def convert_pdf_to_png():
         import traceback
         traceback.print_exc()
         return error(str(e), 500)
+
+
+@pdf_bp.route("/convertPngAsync", methods=["POST"])
+def convert_pdf_to_png_async():
+    if "file" not in request.files:
+        return error("No file provided")
+    
+    file = request.files["file"]
+    import base64
+    from blueprints.tasks import long_pdf_to_png
+    
+    # Convert file to b64 for task transport
+    file_content_b64 = base64.b64encode(file.read()).decode('utf-8')
+    
+    task = long_pdf_to_png.delay(file_content_b64, file.filename)
+    return {"task_id": task.id}, 202
+
+
+@pdf_bp.route("/status/<task_id>", methods=["GET"])
+def get_status(task_id):
+    from utils.celery_utils import celery
+    task = celery.AsyncResult(task_id)
+    
+    response = {
+        'state': task.state,
+        'status': str(task.info)
+    }
+    
+    if task.state == 'SUCCESS':
+        response['result'] = task.result
+        
+    return response

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../Sidebar/Sidebar";
 import PdfPng from "../../pages/PdfPng";
+import PdfPngAsync from "../../pages/PdfPngAsync";
 import ImageWebp from "../../pages/ImageWbp";
 import ImageJpg from "../../pages/ImageJpg";
 import RemoveBg from "../../pages/RemoveBg";
@@ -39,6 +40,8 @@ const Layout = () => {
     switch (activeTab) {
       case "pdf-to-png":
         return <PdfPng />;
+      case "pdf-to-png-async":
+        return <PdfPngAsync />;
       case "image-to-webp":
         return <ImageWebp />;
       case "image-to-jpg":

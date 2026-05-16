@@ -1,0 +1,32 @@
+services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - FLASK_ENV=development
+    depends_on:
+      - redis
+
+  worker:
+    build: ./backend
+    command: celery -A utils.celery_utils.celery worker --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
