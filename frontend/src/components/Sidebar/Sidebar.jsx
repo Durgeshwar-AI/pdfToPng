@@ -26,6 +26,24 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       description: "Convert PDF to PNG",
     },
     {
+      id: "image-compress",
+      label: "Image Compressor",
+      icon: <Sliders className="w-5 h-5" />,
+      description: "Compress images with quality control",
+    },
+    {
+      id: "image-ocr",
+      label: "Text Extraction (OCR)",
+      icon: <FileText className="w-5 h-5 text-yellow-500" />,
+      description: "Extract text from images",
+    },
+    {
+      id: "image-batch",
+      label: "Batch Converter",
+      icon: <Sliders className="w-5 h-5 text-green-500" />,
+      description: "Convert multiple images to ZIP",
+    },
+    {
       id: "image-to-webp",
       label: "Image to WebP",
       icon: <Image className="w-5 h-5" />,
