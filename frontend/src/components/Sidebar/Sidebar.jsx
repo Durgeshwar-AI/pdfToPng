@@ -26,6 +26,12 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       description: "Convert PDF to PNG",
     },
     {
+      id: "pdf-to-png-async",
+      label: "PDF to PNG (Async)",
+      icon: <FileText className="w-5 h-5 text-orange-500" />,
+      description: "Background processing for large PDFs",
+    },
+    {
       id: "image-to-webp",
       label: "Image to WebP",
       icon: <Image className="w-5 h-5" />,
