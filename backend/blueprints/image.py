@@ -1,8 +1,9 @@
 import os
+import tempfile
 from io import BytesIO
 
 from flask import Blueprint, request
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 from utils.helpers import error, send_file_and_cleanup
 from werkzeug.utils import secure_filename
@@ -44,6 +45,55 @@ def convert_to_webp():
                 img.close()
 
     except Exception as e:
+        return error(str(e), 500)
+
+
+@image_bp.route("/upscale", methods=["POST"])
+def upscale_image():
+    temp_output_path = None
+    img = None
+    try:
+        if "image" not in request.files:
+            return error("No image provided")
+
+        file = request.files["image"]
+        scale_factor = request.form.get("scale", 2, type=int)
+        
+        # Limit scale factor
+        scale_factor = max(1, min(4, scale_factor))
+        
+        filename = secure_filename(file.filename)
+        img = Image.open(file)
+
+        try:
+            # Upscale using LANCZOS (High quality)
+            new_size = (img.width * scale_factor, img.height * scale_factor)
+            upscaled = img.resize(new_size, resample=Image.Resampling.LANCZOS)
+            
+            # Apply Sharpness Enhancement
+            enhancer = ImageEnhance.Sharpness(upscaled)
+            upscaled = enhancer.enhance(1.5) # Slight boost
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_out:
+                temp_output_path = temp_out.name
+            
+            upscaled.save(temp_output_path, format="PNG", optimize=True)
+
+            base = os.path.splitext(filename)[0]
+
+            return send_file_and_cleanup(
+                temp_output_path,
+                mimetype="image/png",
+                as_attachment=True,
+                download_name=f"{base}_upscaled_{scale_factor}x.png",
+            )
+        finally:
+            if img:
+                img.close()
+
+    except Exception as e:
+        if temp_output_path and os.path.exists(temp_output_path):
+            os.remove(temp_output_path)
         return error(str(e), 500)
 
 

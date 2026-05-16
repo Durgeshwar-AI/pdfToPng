@@ -8,6 +8,7 @@ import ImageJpg from "./pages/ImageJpg";
 import RemoveBg from "./pages/RemoveBg";
 import RotateFlip from "./pages/RotateFlip";
 import ImageCompress from "./pages/ImageCompress";
+import ImageUpscale from "./pages/ImageUpscale";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/remove-bg" element={<RemoveBg />} />
         <Route path="/rotate-flip" element={<RotateFlip />} />
         <Route path="/image-compress" element={<ImageCompress />} />
+        <Route path="/image-upscale" element={<ImageUpscale />} />
       </Route>
     </Routes>
   );
