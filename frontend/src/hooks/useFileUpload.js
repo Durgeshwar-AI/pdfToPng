@@ -38,6 +38,14 @@ export const useFileUpload = (validateFile) => {
   const processFile = useCallback((selectedFile) => {
     if (!selectedFile) return;
 
+    // 10MB limit
+    const MAX_SIZE = 10 * 1024 * 1024;
+    if (selectedFile.size > MAX_SIZE) {
+      setStatusMessage("Error: File size exceeds 10MB limit");
+      setTimeout(() => setStatusMessage(""), 5000);
+      return;
+    }
+
     const validation = validateFile(selectedFile);
     if (validation.isValid) {
       setFile(selectedFile);
