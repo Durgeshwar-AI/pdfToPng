@@ -5,6 +5,7 @@ from flask import Blueprint, request
 from PIL import Image
 from rembg import remove
 
+from utils.file_handling import temp_upload_file
 from utils.helpers import error, safe_gc_collect, send_file_and_cleanup
 from werkzeug.utils import secure_filename
 
@@ -13,7 +14,6 @@ remove_bp = Blueprint("removebg", __name__)
 
 @remove_bp.route("/removeBg", methods=["POST"])
 def remove_bg():
-    img = None
     try:
         file = request.files.get("image")
 
@@ -23,34 +23,18 @@ def remove_bg():
         filename = secure_filename(file.filename)
         base = filename.rsplit('.', 1)[0]
 
-        # Read uploaded file bytes into memory
-        input_bytes = file.read()
+        with temp_upload_file(file) as temp_path:
+            with Image.open(temp_path) as img:
+                # rembg.remove can take a PIL Image and returns a PIL Image
+                output_img = remove(img)
 
-        output_bytes = remove(input_bytes)
+            out = io.BytesIO()
+            output_img.save(out, format="PNG", optimize=True)
+            data = out.getvalue()
+            
+            output_img.close()
 
-        # Clean up input bytes reference
-        del input_bytes
         safe_gc_collect()
-
-        img = Image.open(io.BytesIO(output_bytes))
-
-        # Save processed image to memory buffer
-        buf = io.BytesIO()
-        try:
-            img.save(buf, format="PNG", optimize=True)
-            buf.seek(0)
-            data = buf.getvalue()
-        finally:
-            if img:
-                img.close()
-                img = None
-
-        # Free output bytes
-        try:
-            del output_bytes
-            safe_gc_collect()
-        except Exception:
-            pass
 
         return send_file_and_cleanup(
             data,
