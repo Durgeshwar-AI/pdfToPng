@@ -1,8 +1,26 @@
+import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout/Layout";
+import LandingPage from "./pages/LandingPage";
+import PdfPng from "./pages/PdfPng";
+import ImageWebp from "./pages/ImageWbp";
+import ImageJpg from "./pages/ImageJpg";
+import RemoveBg from "./pages/RemoveBg";
 
 function App() {
-  return <Layout />;
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      
+      {/* All tools share the Layout with the Sidebar */}
+      <Route element={<Layout />}>
+        <Route path="/pdf-to-png" element={<PdfPng />} />
+        <Route path="/image-to-webp" element={<ImageWebp />} />
+        <Route path="/image-to-jpg" element={<ImageJpg />} />
+        <Route path="/remove-bg" element={<RemoveBg />} />
+      </Route>
+    </Routes>
+  );
 }
 
 export default App;

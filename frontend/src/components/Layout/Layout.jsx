@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../Sidebar/Sidebar";
-import PdfPng from "../../pages/PdfPng";
-import ImageWebp from "../../pages/ImageWbp";
-import ImageJpg from "../../pages/ImageJpg";
-import RemoveBg from "../../pages/RemoveBg";
-import ImageCompress from "../../pages/ImageCompress";
-import RotateFlip from "../../pages/RotateFlip";
+import { Outlet, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 
 const Layout = () => {
-  const [activeTab, setActiveTab] = useState("pdf-to-png");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  const location = useLocation();
+  const activePath = location.pathname.substring(1); 
 
   useEffect(() => {
     const handleResize = () => {
@@ -24,10 +21,6 @@ const Layout = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-  };
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -36,30 +29,10 @@ const Layout = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "pdf-to-png":
-        return <PdfPng />;
-      case "image-to-webp":
-        return <ImageWebp />;
-      case "image-to-jpg":
-        return <ImageJpg />;
-      case "remove-bg":
-        return <RemoveBg />;
-      case "image-compress":
-        return <ImageCompress />;
-      case "rotate-flip":
-        return <RotateFlip />;
-      default:
-        return <PdfPng />;
-    }
-  };
-
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
+        activeTab={activePath}
         isMobileMenuOpen={isMobileMenuOpen}
         isMobile={isMobile}
         onClose={closeMobileMenu}
@@ -76,15 +49,15 @@ const Layout = () => {
                 <Menu className="w-6 h-6" />
               </button>
               <h1 className="text-lg font-semibold text-blue-400">
-                FileConverter
+                pdfToPng
               </h1>
-              <div className="w-10"></div> {/* Spacer for alignment */}
+              <div className="w-10"></div>
             </div>
           </header>
         )}
         {/* Content Area */}
-        <div className="min-h-full flex justify-center items-center">
-          {renderContent()}
+        <div className="min-h-full flex justify-center items-center py-8">
+          <Outlet />
         </div>
       </main>
     </div>
