@@ -4,6 +4,8 @@ import PdfPng from "../../pages/PdfPng";
 import ImageWebp from "../../pages/ImageWbp";
 import ImageJpg from "../../pages/ImageJpg";
 import RemoveBg from "../../pages/RemoveBg";
+import ImageOcr from "../../pages/ImageOcr";
+import ImageBatch from "../../pages/ImageBatch";
 import { Menu } from "lucide-react";
 
 const Layout = () => {
@@ -45,6 +47,10 @@ const Layout = () => {
         return <ImageJpg />;
       case "remove-bg":
         return <RemoveBg />;
+      case "image-ocr":
+        return <ImageOcr />;
+      case "image-batch":
+        return <ImageBatch />;
       default:
         return <PdfPng />;
     }
