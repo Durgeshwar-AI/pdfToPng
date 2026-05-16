@@ -8,6 +8,7 @@ import {
   RotateCcw,
   X,
   Sliders,
+  Expand,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -54,6 +55,12 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       label: "Image Compressor",
       icon: <Sliders className="w-5 h-5" />,
       description: "Compress images",
+    },
+    {
+      id: "image-resize",
+      label: "Image Resize",
+      icon: <Expand className="w-5 h-5" />,
+      description: "Resize images",
     },
   ];
 
