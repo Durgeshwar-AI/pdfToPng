@@ -17,24 +17,9 @@ const Layout = () => {
         setIsMobileMenuOpen(false);
       }
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // 2. NEW: Dynamic Document Title Effect
-  useEffect(() => {
-    const pageTitles = {
-      "": "pdfToPng — Free, Private & Local File Tools",
-      "pdf-to-png": "PDF to PNG — Free File Tools", 
-      "image-to-webp": "Image to WebP — Free File Tools",
-      "image-to-jpg": "Image to JPG — Free File Tools",
-      "remove-bg": "Remove Background — Free File Tools",
-    };
-
-    // Set the title based on the path, or fallback to the default
-    document.title = pageTitles[activePath] || "pdfToPng — Free File Tools";
-  }, [activePath]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -52,7 +37,6 @@ const Layout = () => {
         isMobile={isMobile}
         onClose={closeMobileMenu}
       />
-
       <main className="flex-1 overflow-y-auto">
         {/* Mobile Header */}
         {isMobile && (
@@ -71,7 +55,6 @@ const Layout = () => {
             </div>
           </header>
         )}
-
         {/* Content Area */}
         <div className="min-h-full flex justify-center items-center py-8">
           <Outlet />

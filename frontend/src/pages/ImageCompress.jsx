@@ -1,8 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
+import { Sliders, Zap, ShieldCheck, Maximize } from "lucide-react";
 
-function ImageJpg() {
+function ImageCompress() {
+  const [quality, setQuality] = useState(70);
+
   const validateFile = useCallback((selectedFile) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
@@ -37,6 +40,12 @@ function ImageJpg() {
     handleAreaClick,
   } = useFileUpload(validateFile);
 
+  const presets = [
+    { name: "Max Compression", quality: 20, icon: <Zap className="w-4 h-4" /> },
+    { name: "Web Optimized", quality: 60, icon: <Maximize className="w-4 h-4" /> },
+    { name: "High Quality", quality: 90, icon: <ShieldCheck className="w-4 h-4" /> },
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -48,10 +57,11 @@ function ImageJpg() {
     setLoading(true);
     const formData = new FormData();
     formData.append("image", file);
+    formData.append("quality", quality);
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/convertJpeg`,
+        `${import.meta.env.VITE_API_URL}/compress`,
         {
           method: "POST",
           body: formData,
@@ -60,13 +70,19 @@ function ImageJpg() {
 
       if (response.ok) {
         const blob = await response.blob();
-
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
+        
+        // Keep original extension if it's JPEG or WebP, otherwise use .jpg
+        let extension = file.name.split('.').pop().toLowerCase();
+        if (!["jpg", "jpeg", "webp"].includes(extension)) {
+          extension = "jpg";
+        }
+        
         const filename = file.name.replace(
-          /\.(png|jpg|jpeg|gif|bmp|tiff|svg|webp)$/i,
-          ".jpg",
+          /\.[^.]+$/,
+          `_compressed.${extension}`
         );
         a.download = filename;
 
@@ -75,15 +91,15 @@ function ImageJpg() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
 
-        setStatusMessage("Success! Your JPEG file has been downloaded.");
+        setStatusMessage(`Success! Image compressed with ${quality}% quality.`);
         setTimeout(() => setStatusMessage(""), 5000);
       } else {
         const error = await response.json();
-        setStatusMessage(`Error: ${error.error || "Conversion failed"}`);
+        setStatusMessage(`Error: ${error.error || "Compression failed"}`);
         setTimeout(() => setStatusMessage(""), 5000);
       }
     } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to convert file"}`);
+      setStatusMessage(`Error: ${error.message || "Failed to compress file"}`);
       setTimeout(() => setStatusMessage(""), 5000);
     } finally {
       setLoading(false);
@@ -91,14 +107,12 @@ function ImageJpg() {
   };
 
   return (
-    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div className="w-full max-w-[700px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
       <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
-        Image to JPG Converter
+        Image Compressor
       </h1>
-      <form
-        onSubmit={handleSubmit}
-        className="w-full flex flex-col items-center"
-      >
+      
+      <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
         <FileUploadArea
           file={file}
           previewUrl={previewUrl}
@@ -113,42 +127,57 @@ function ImageJpg() {
           handleDrop={handleDrop}
           handleAreaClick={handleAreaClick}
           accept="image/*"
-          inputId="image-input"
-          defaultIcon={
-            <svg
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="2"
-                ry="2"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <circle
-                cx="8.5"
-                cy="8.5"
-                r="1.5"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <path
-                d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
-          }
-          defaultText="Choose image file or drag & drop here"
-          supportText="Supports PNG, JPG, JPEG, GIF, BMP, and more"
+          inputId="compress-input"
+          defaultIcon={<Sliders className="w-16 h-16" />}
+          defaultText="Upload image for compression"
+          supportText="Adjust quality and reduce file size"
         />
+
+        {file && (
+          <div className="w-full max-w-[500px] mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-blue-500" />
+                Compression Quality: {quality}%
+              </label>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                quality < 30 ? "bg-red-100 text-red-600" : 
+                quality < 70 ? "bg-yellow-100 text-yellow-600" : 
+                "bg-green-100 text-green-600"
+              }`}>
+                {quality < 30 ? "Low" : quality < 70 ? "Medium" : "High"}
+              </span>
+            </div>
+            
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={quality}
+              onChange={(e) => setQuality(parseInt(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mb-6"
+            />
+
+            <div className="grid grid-cols-3 gap-3">
+              {presets.map((p) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  onClick={() => setQuality(p.quality)}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-lg text-[10px] font-bold transition-all border ${
+                    quality === p.quality 
+                      ? "bg-blue-50 border-blue-200 text-blue-600" 
+                      : "bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  {p.icon}
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={!file || loading}
@@ -157,12 +186,13 @@ function ImageJpg() {
           {loading ? (
             <>
               <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
-              Converting...
+              Compressing...
             </>
           ) : (
-            "Convert to JPG"
+            "Compress Image"
           )}
         </button>
+        
         {statusMessage && (
           <p className="mt-6 text-[0.95rem] text-[#4b5563]">{statusMessage}</p>
         )}
@@ -171,4 +201,4 @@ function ImageJpg() {
   );
 }
 
-export default ImageJpg;
+export default ImageCompress;

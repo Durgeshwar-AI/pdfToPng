@@ -5,7 +5,9 @@ import {
   Image,
   FileImage,
   Eraser,
+  RotateCcw,
   X,
+  Sliders,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
