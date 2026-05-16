@@ -13,7 +13,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      
+
       {/* All tools share the Layout with the Sidebar */}
       <Route element={<Layout />}>
         <Route path="/pdf-to-png" element={<PdfPng />} />

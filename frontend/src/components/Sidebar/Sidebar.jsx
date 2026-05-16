@@ -12,24 +12,49 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-const Sidebar = ({
-  activeTab,
-  isMobileMenuOpen,
-  isMobile,
-  onClose,
-}) => {
+const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   const menuItems = [
-    { id: "pdf-to-png", label: "PDF to PNG", icon: <FileText className="w-5 h-5" />, description: "Convert PDF to PNG" },
-    { id: "image-to-webp", label: "Image to WebP", icon: <Image className="w-5 h-5" />, description: "Convert to WebP" },
-    { id: "image-to-jpg", label: "Image to JPG", icon: <FileImage className="w-5 h-5" />, description: "Convert to JPG" },
-    { id: "remove-bg", label: "Remove Background", icon: <Eraser className="w-5 h-5" />, description: "Remove background" },
-    { id: "rotate-flip", label: "Rotate & Flip", icon: <RotateCcw className="w-5 h-5" />, description: "Rotate or flip images" },
-    { id: "image-compress", label: "Image Compressor", icon: <Sliders className="w-5 h-5" />, description: "Compress images" },
+    {
+      id: "pdf-to-png",
+      label: "PDF to PNG",
+      icon: <FileText className="w-5 h-5" />,
+      description: "Convert PDF to PNG",
+    },
+    {
+      id: "image-to-webp",
+      label: "Image to WebP",
+      icon: <Image className="w-5 h-5" />,
+      description: "Convert to WebP",
+    },
+    {
+      id: "image-to-jpg",
+      label: "Image to JPG",
+      icon: <FileImage className="w-5 h-5" />,
+      description: "Convert to JPG",
+    },
+    {
+      id: "remove-bg",
+      label: "Remove Background",
+      icon: <Eraser className="w-5 h-5" />,
+      description: "Remove background",
+    },
+    {
+      id: "rotate-flip",
+      label: "Rotate & Flip",
+      icon: <RotateCcw className="w-5 h-5" />,
+      description: "Rotate or flip images",
+    },
+    {
+      id: "image-compress",
+      label: "Image Compressor",
+      icon: <Sliders className="w-5 h-5" />,
+      description: "Compress images",
+    },
   ];
 
   const handleNavigation = (id) => {
@@ -40,7 +65,10 @@ const Sidebar = ({
   return (
     <>
       {isMobile && isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-white bg-opacity-50 z-40" onClick={onClose} />
+        <div
+          className="fixed inset-0 bg-white bg-opacity-50 z-40"
+          onClick={onClose}
+        />
       )}
 
       <aside
@@ -56,7 +84,10 @@ const Sidebar = ({
         <div className="p-4 border-b border-slate-700">
           <div className="flex items-center justify-between">
             {(!isCollapsed || isMobile) && (
-              <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Link
+                to="/"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
                 <FileText className="w-6 h-6 text-blue-400" />
                 <h1 className="text-xl font-bold">pdfToPng</h1>
               </Link>
@@ -65,7 +96,13 @@ const Sidebar = ({
               onClick={isMobile ? onClose : toggleSidebar}
               className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${isCollapsed && !isMobile ? "mx-auto" : ""}`}
             >
-              {isMobile ? <X className="w-5 h-5" /> : isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+              {isMobile ? (
+                <X className="w-5 h-5" />
+              ) : isCollapsed ? (
+                <ChevronRight className="w-5 h-5" />
+              ) : (
+                <ChevronLeft className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -87,7 +124,9 @@ const Sidebar = ({
                   {!isCollapsed && (
                     <div className="flex-1 text-left">
                       <div className="font-medium">{item.label}</div>
-                      <div className="text-xs opacity-75 mt-0.5">{item.description}</div>
+                      <div className="text-xs opacity-75 mt-0.5">
+                        {item.description}
+                      </div>
                     </div>
                   )}
                 </button>
