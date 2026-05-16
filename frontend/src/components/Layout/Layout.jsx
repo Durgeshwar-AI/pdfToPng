@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../Sidebar/Sidebar";
-import { Outlet, useLocation } from "react-router-dom";
+import PdfPng from "../../pages/PdfPng";
+import ImageWebp from "../../pages/ImageWbp";
+import ImageJpg from "../../pages/ImageJpg";
+import RemoveBg from "../../pages/RemoveBg";
+import ImageCompress from "../../pages/ImageCompress";
+import RotateFlip from "../../pages/RotateFlip";
+import ImageBase64 from "../../pages/ImageBase64";
 import { Menu } from "lucide-react";
 
 const Layout = () => {
@@ -27,6 +33,27 @@ const Layout = () => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "pdf-to-png":
+        return <PdfPng />;
+      case "image-to-webp":
+        return <ImageWebp />;
+      case "image-to-jpg":
+        return <ImageJpg />;
+      case "remove-bg":
+        return <RemoveBg />;
+      case "image-compress":
+        return <ImageCompress />;
+      case "rotate-flip":
+        return <RotateFlip />;
+      case "image-to-base64":
+        return <ImageBase64 />;
+      default:
+        return <PdfPng />;
+    }
   };
 
   return (
