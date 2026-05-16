@@ -8,6 +8,8 @@ import ImageJpg from "./pages/ImageJpg";
 import RemoveBg from "./pages/RemoveBg";
 import RotateFlip from "./pages/RotateFlip";
 import ImageCompress from "./pages/ImageCompress";
+import ImageOcr from "./pages/ImageOcr";
+import ImageBatch from "./pages/ImageBatch";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
         <Route path="/remove-bg" element={<RemoveBg />} />
         <Route path="/rotate-flip" element={<RotateFlip />} />
         <Route path="/image-compress" element={<ImageCompress />} />
+        <Route path="/image-ocr" element={<ImageOcr />} />
+        <Route path="/image-batch" element={<ImageBatch />} />
       </Route>
     </Routes>
   );
