@@ -7,6 +7,7 @@ import {
   RotateCcw,
   X,
   Sliders,
+  Code,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -60,6 +61,12 @@ const Sidebar = ({
       label: "Rotate & Flip",
       icon: <RotateCcw className="w-5 h-5" />,
       description: "Rotate or flip your images",
+    },
+    {
+      id: "image-to-base64",
+      label: "Image to Base64",
+      icon: <Code className="w-5 h-5" />,
+      description: "Convert image to Base64 Data URI",
     },
   ];
 

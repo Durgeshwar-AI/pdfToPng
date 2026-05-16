@@ -6,6 +6,7 @@ import ImageJpg from "../../pages/ImageJpg";
 import RemoveBg from "../../pages/RemoveBg";
 import ImageCompress from "../../pages/ImageCompress";
 import RotateFlip from "../../pages/RotateFlip";
+import ImageBase64 from "../../pages/ImageBase64";
 import { Menu } from "lucide-react";
 
 const Layout = () => {
@@ -50,6 +51,8 @@ const Layout = () => {
         return <ImageCompress />;
       case "rotate-flip":
         return <RotateFlip />;
+      case "image-to-base64":
+        return <ImageBase64 />;
       default:
         return <PdfPng />;
     }
