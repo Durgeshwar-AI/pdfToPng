@@ -2,7 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { 
   FileText, Image, FileImage, Eraser, Shield, Zap, 
-  HardDrive, ArrowRight, Github, Sparkles, Lock, Globe, Star
+  HardDrive, ArrowRight, Github, Sparkles, Lock, Globe, Star,
+  RotateCcw, Sliders
 } from "lucide-react";
 
 const FeatureCard = ({ icon, title, description, gradient, index }) => (
@@ -90,13 +91,32 @@ const tools = [
     gradient: "from-purple-500/10 to-pink-500/10",
     iconGradient: "from-purple-500 to-pink-500",
   }
+  ,
+  {
+    id: "rotate-flip",
+    name: "Rotate & Flip",
+    icon: <RotateCcw className="w-8 h-8" />,
+    description: "Rotate or flip images quickly with lossless transforms.",
+    path: "/rotate-flip",
+    gradient: "from-indigo-500/10 to-violet-500/10",
+    iconGradient: "from-indigo-500 to-violet-500",
+  },
+  {
+    id: "image-compress",
+    name: "Image Compressor",
+    icon: <Sliders className="w-8 h-8" />,
+    description: "Reduce image size with adjustable quality settings — runs locally or transiently on the server.",
+    path: "/image-compress",
+    gradient: "from-rose-500/10 to-pink-500/10",
+    iconGradient: "from-rose-500 to-pink-500",
+  }
 ];
 
 const features = [
   {
     icon: <Lock className="w-7 h-7 text-blue-600" />,
     title: "100% Private",
-    description: "Zero server uploads — all processing happens locally in your browser",
+    description: "Privacy-first: files are not persistently stored. Processing happens locally when possible; any server-side work is transient and never retained.",
     gradient: "from-cyan-500 to-blue-500"
   },
   {
@@ -108,7 +128,7 @@ const features = [
   {
     icon: <HardDrive className="w-7 h-7 text-teal-500" />,
     title: "No Storage Limits",
-    description: "Process massive files instantly — no file size restrictions",
+    description: "We do not persist user files — no data storage at any cost.",
     gradient: "from-emerald-500 to-teal-500"
   }
 ];
@@ -150,7 +170,7 @@ const LandingPage = () => {
         <section className="max-w-6xl mx-auto px-6 pt-20 pb-24 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-slate-200 mb-8 animate-fade-in-up">
             <Shield className="w-4 h-4 text-emerald-500" />
-            <span className="text-sm font-medium text-slate-600">100% Local Processing — Your Files Never Leave Your Device</span>
+            <span className="text-sm font-medium text-slate-600">Privacy-First — Files Are Not Stored</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 animate-fade-in-up animation-delay-200">
@@ -158,9 +178,9 @@ const LandingPage = () => {
             <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">File Tools</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400">
-            Convert, optimize, and edit your files instantly — right in your browser. 
-            <span className="block text-lg text-slate-500 mt-2 font-medium">No uploads. No servers. No privacy concerns. Just fast, free tools.</span>
+            <p className="text-xl md:text-2xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400">
+            Convert, optimize, and edit your files with privacy as a priority. Tools run locally when possible; for operations that require a server, files are sent only transiently and are not stored.
+            <span className="block text-lg text-slate-500 mt-2 font-medium">No storage. No data leaks. Fast, private tools.</span>
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-5 animate-fade-in-up animation-delay-600">
@@ -177,7 +197,7 @@ const LandingPage = () => {
           </div>
 
           <div className="mt-16 flex flex-wrap justify-center gap-8 text-sm font-medium text-slate-500">
-            {['Zero file uploads', 'Client-side processing', '100% open source'].map((text, i) => (
+            {['No persistent storage', 'Client-side by default', 'Open source & auditable'].map((text, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                 <span>{text}</span>
@@ -223,10 +243,10 @@ const LandingPage = () => {
               <div className="text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
                   <Globe className="w-5 h-5 text-emerald-500" />
-                  <span className="text-emerald-600 text-sm font-bold tracking-wide uppercase">100% Client-Side Processing</span>
+                  <span className="text-emerald-600 text-sm font-bold tracking-wide uppercase">Privacy-First Processing</span>
                 </div>
                 <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2">Your privacy is our priority</h3>
-                <p className="text-slate-600 font-medium">Open source, transparent, and completely serverless</p>
+                <p className="text-slate-600 font-medium">Open source, auditable, and designed to avoid persistent storage of your files.</p>
               </div>
               <div className="flex items-center gap-2 bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-200">
                 <div className="flex gap-1">
@@ -250,7 +270,7 @@ const LandingPage = () => {
             <span className="text-xl font-bold text-slate-900">pdfToPng</span>
           </Link>
           <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
-            <Lock className="w-4 h-4" /> Built for Privacy — No files leave your device
+            <Lock className="w-4 h-4" /> Built for Privacy — No storage; files are deleted immediately after processing
           </p>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-slate-500">Made with</span>

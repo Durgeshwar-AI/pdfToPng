@@ -28,6 +28,8 @@ const Sidebar = ({
     { id: "image-to-webp", label: "Image to WebP", icon: <Image className="w-5 h-5" />, description: "Convert to WebP" },
     { id: "image-to-jpg", label: "Image to JPG", icon: <FileImage className="w-5 h-5" />, description: "Convert to JPG" },
     { id: "remove-bg", label: "Remove Background", icon: <Eraser className="w-5 h-5" />, description: "Remove background" },
+    { id: "rotate-flip", label: "Rotate & Flip", icon: <RotateCcw className="w-5 h-5" />, description: "Rotate or flip images" },
+    { id: "image-compress", label: "Image Compressor", icon: <Sliders className="w-5 h-5" />, description: "Compress images" },
   ];
 
   const handleNavigation = (id) => {
