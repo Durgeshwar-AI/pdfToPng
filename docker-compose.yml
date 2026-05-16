@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - rembg_models:/root/.u2net
+    ports:
+      - "5000:5000"
+    environment:
+      - ALLOWED_ORIGINS=http://localhost:5173
+      - FLASK_ENV=development
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    command: npm run dev -- --host
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  rembg_models:

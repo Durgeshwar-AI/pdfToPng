@@ -1,33 +1,29 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
   FileText,
   Image,
   FileImage,
   Eraser,
+  RotateCcw,
   X,
+  Sliders,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 
-const Sidebar = ({
-  activeTab,
-  onTabChange,
-  isMobileMenuOpen,
-  isMobile,
-  onClose,
-}) => {
+const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const navigate = useNavigate();
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   const menuItems = [
     {
       id: "pdf-to-png",
       label: "PDF to PNG",
       icon: <FileText className="w-5 h-5" />,
-      description: "Convert PDF files to PNG images",
+      description: "Convert PDF to PNG",
     },
     {
       id: "image-compress",
@@ -51,25 +47,41 @@ const Sidebar = ({
       id: "image-to-webp",
       label: "Image to WebP",
       icon: <Image className="w-5 h-5" />,
-      description: "Convert images to WebP format",
+      description: "Convert to WebP",
     },
     {
       id: "image-to-jpg",
       label: "Image to JPG",
       icon: <FileImage className="w-5 h-5" />,
-      description: "Convert images to JPG format",
+      description: "Convert to JPG",
     },
     {
       id: "remove-bg",
       label: "Remove Background",
       icon: <Eraser className="w-5 h-5" />,
-      description: "Remove background from images",
+      description: "Remove background",
+    },
+    {
+      id: "rotate-flip",
+      label: "Rotate & Flip",
+      icon: <RotateCcw className="w-5 h-5" />,
+      description: "Rotate or flip images",
+    },
+    {
+      id: "image-compress",
+      label: "Image Compressor",
+      icon: <Sliders className="w-5 h-5" />,
+      description: "Compress images",
     },
   ];
 
+  const handleNavigation = (id) => {
+    navigate(`/${id}`);
+    if (isMobile) onClose();
+  };
+
   return (
     <>
-      {/* Mobile Overlay */}
       {isMobile && isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-white bg-opacity-50 z-40"
@@ -77,7 +89,6 @@ const Sidebar = ({
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           ${isMobile ? "fixed" : "sticky"} 
@@ -88,63 +99,41 @@ const Sidebar = ({
           flex flex-col shadow-xl
         `}
       >
-        {/* Header */}
         <div className="p-4 border-b border-slate-700">
-          {isMobile ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
+            {(!isCollapsed || isMobile) && (
+              <Link
+                to="/"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
                 <FileText className="w-6 h-6 text-blue-400" />
                 <h1 className="text-xl font-bold">pdfToPng</h1>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-              >
+              </Link>
+            )}
+            <button
+              onClick={isMobile ? onClose : toggleSidebar}
+              className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${isCollapsed && !isMobile ? "mx-auto" : ""}`}
+            >
+              {isMobile ? (
                 <X className="w-5 h-5" />
-              </button>
-            </div>
-          ) : isCollapsed ? (
-            <div className="flex flex-col items-center gap-3">
-              <button
-                onClick={toggleSidebar}
-                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-              >
+              ) : isCollapsed ? (
                 <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="w-6 h-6 text-blue-400" />
-                <h1 className="text-xl font-bold">pdfToPng</h1>
-              </div>
-              <button
-                onClick={toggleSidebar}
-                className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-              >
+              ) : (
                 <ChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
-          )}
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Menu Items */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => {
-                    onTabChange(item.id);
-                    if (isMobile) onClose();
-                  }}
+                  onClick={() => handleNavigation(item.id)}
                   className={`
                     w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-all
-                    ${
-                      activeTab === item.id
-                        ? "bg-blue-600 text-white shadow-lg"
-                        : "hover:bg-slate-700 text-slate-300"
-                    }
+                    ${activeTab === item.id ? "bg-blue-600 text-white shadow-lg" : "hover:bg-slate-50 text-slate-600"}
                     ${isCollapsed ? "justify-center" : ""}
                   `}
                   title={isCollapsed ? item.label : ""}
@@ -163,15 +152,6 @@ const Sidebar = ({
             ))}
           </ul>
         </nav>
-
-        {/* Footer */}
-        {!isCollapsed && !isMobile && (
-          <div className="p-4 border-t border-slate-700">
-            <p className="text-sm text-slate-400 text-center">
-              Convert your files easily
-            </p>
-          </div>
-        )}
       </aside>
     </>
   );
