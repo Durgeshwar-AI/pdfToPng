@@ -16,6 +16,8 @@ import {
   Star,
   RotateCcw,
   Sliders,
+  Gauge,
+  Info,
 } from "lucide-react";
 
 const FeatureCard = ({ icon, title, description, gradient, index }) => (
@@ -135,6 +137,26 @@ const tools = [
     path: "/image-compress",
     gradient: "from-rose-500/10 to-pink-500/10",
     iconGradient: "from-rose-500 to-pink-500",
+  },
+  {
+    id: "image-dpi",
+    name: "Image DPI Converter",
+    icon: <Gauge className="w-8 h-8" />,
+    description:
+      "Change the DPI of your images for print-ready output. Supports JPEG, PNG, TIFF, BMP and WebP.",
+    path: "/image-dpi",
+    gradient: "from-cyan-500/10 to-sky-500/10",
+    iconGradient: "from-cyan-500 to-sky-500",
+  },
+  {
+    id: "image-metadata",
+    name: "Metadata Viewer",
+    icon: <Info className="w-8 h-8" />,
+    description:
+      "View, copy and strip hidden EXIF metadata from your images to protect your privacy.",
+    path: "/image-metadata",
+    gradient: "from-violet-500/10 to-purple-500/10",
+    iconGradient: "from-violet-500 to-purple-500",
   },
 ];
 
