@@ -347,20 +347,26 @@ def check_dpi():
 
             img = Image.open(file.stream)
 
-            dpi_x, dpi = get_safe_dpi(img)
+            try:
+                dpi_x, dpi = get_safe_dpi(img)
 
-            results.append({
-                "filename": file.filename,
-                "dpi": (
-                    list(dpi)
-                    if isinstance(dpi, tuple)
-                    else [dpi_x, dpi_x]
-                ),
-                "width_px": img.size[0],
-                "height_px": img.size[1],
-                "format": img.format,
-                "mode": img.mode,
-            })
+                results.append({
+                    "filename": file.filename,
+                    "dpi": (
+                        list(dpi)
+                        if isinstance(dpi, tuple)
+                        else [dpi_x, dpi_x]
+                    ),
+                    "width_px": img.size[0],
+                    "height_px": img.size[1],
+                    "format": img.format,
+                    "mode": img.mode,
+                })
+            finally:
+                try:
+                    img.close()
+                except Exception:
+                    pass
 
         except Exception as e:
 
