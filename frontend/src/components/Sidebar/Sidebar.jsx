@@ -9,6 +9,7 @@ import {
   Sliders,
   ChevronLeft,
   ChevronRight,
+  Palette,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -44,6 +45,12 @@ const Sidebar = ({
       description: "Convert images to JPG format",
     },
     {
+      id: "image-to-grayscale",
+      label: "Image to Grayscale",
+      icon: <Palette className="w-5 h-5" />,
+      description: "Convert images to grayscale",
+    },
+    {
       id: "remove-bg",
       label: "Remove Background",
       icon: <Eraser className="w-5 h-5" />,
@@ -65,7 +72,6 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isMobile && isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-white bg-opacity-50 z-40"
@@ -73,7 +79,6 @@ const Sidebar = ({
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           ${isMobile ? "fixed" : "sticky"} 
@@ -84,7 +89,6 @@ const Sidebar = ({
           flex flex-col shadow-xl
         `}
       >
-        {/* Header */}
         <div className="p-4 border-b border-slate-700">
           {isMobile ? (
             <div className="flex items-center justify-between">
@@ -124,7 +128,6 @@ const Sidebar = ({
           )}
         </div>
 
-        {/* Menu Items */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {menuItems.map((item) => (
@@ -160,7 +163,6 @@ const Sidebar = ({
           </ul>
         </nav>
 
-        {/* Footer */}
         {!isCollapsed && !isMobile && (
           <div className="p-4 border-t border-slate-700">
             <p className="text-sm text-slate-400 text-center">
