@@ -1,12 +1,13 @@
 import React, {useState} from "react";
 import { Link } from "react-router-dom";
-import {FaBars, FaTimes} from 'react-icons/fa'
+// import {FaBars, FaTimes} from 'react-icons/fa'
 import {
   FileText,
   Image,
   FileImage,
   Eraser,
   Shield,
+  Menu,
   Zap,
   HardDrive,
   ArrowRight,
@@ -16,6 +17,7 @@ import {
   Globe,
   Star,
   RotateCcw,
+  X,
   Sliders,
 } from "lucide-react";
 
@@ -191,7 +193,8 @@ const handleNavClick = (itemName) => {
 
       {/* Navbar */}
 
-      <nav className="fixed z-9999 p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
+      <nav className="fixed top-0 left-0 z-[9999] w-full bg-white/50 backdrop-blur shadow-sm  ">
+        <div className="max-w-7xl mx-auto px-6 h-19 flex justify-between items-center"> 
         <a href = "#home" className="group flex items-center gap-2">
         {/* Logo */}
           <div className="relative">
@@ -202,12 +205,12 @@ const handleNavClick = (itemName) => {
             pdfToPng
           </span>
         </a>
-        <div className ="hidden lg:flex items-center space-x-6">
+        <div className ="hidden lg:flex items-center space-x-6 ">
           {navItems.map((item) =>(
             <a key = {item.name}
             href = {item.link}
             onClick = {() => handleNavClick(item.name)}
-                  className={`relative text-sm font-semibold transition-colors duration-300 hover:text-purple-600 ${
+                  className={`relative text-md font-semibold transition-colors duration-300 hover:text-purple-600 py-2 px-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:bg-purple-100 hover:text-purple-600 hover:scale-105 ${
         activeSection === item.name.toLowerCase()
           ? "text-purple-600"
           : "text-slate-700"
@@ -232,14 +235,44 @@ const handleNavClick = (itemName) => {
         {/* For Mobile */}
         <div className ="flex lg:hidden items-center space-x-4 px-2">
           <button onClick = {()=> setIsMenuOpen(!isMenuOpen)}> 
-            
+            {isMenuOpen ? (
+              <X />) : (<Menu/>)
+            }
           </button>
         </div>
+        {isMenuOpen && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-80 bg-white shadow-lg text-center rounded-xl p-6 flex flex-col gap-4 lg:hidden">
+            {navItems.map((item) => (
+              <a 
+              key = {item.name}
+              href = {item.link}
+              onClick = {() => handleNavClick(item.name)}
+              className={`py-3 rounded-xl text-lg font-semibold transition-all duration-300 hover:bg-purple-100 hover:text-purple-600 hover:scale-105 ${
+              activeSection === item.name.toLowerCase()
+              ? "text-purple-600 bg-purple-50"
+              : "text-slate-700"
+              }`}>
+                  {item.name}
+              </a>
+            ))}
+          <a
+          href="https://github.com/Durgeshwar-AI/pdfToPng"
+          target="_blank"
+          rel="noreferrer"
+          className="group flex mx-auto items-center w-16 gap-2 px-5 py-2.5 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md hover:border-slate-300 transition-all duration-300 hover:scale-105"
+        >
+          <Github className="w-5 h-5 text-slate-600 group-hover:text-slate-900 transition-colors" />
+
+        </a>
+          </div>
+        ) }
+        </div>
       </nav>
+      
 
       <main className="relative z-10">
         {/* Hero Section */}
-        <section id = "home" className="max-w-6xl mx-auto px-6 pt-20 pb-24 text-center">
+        <section id = "home" className="max-w-6xl mx-auto px-6 pt-30 pb-24 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-slate-200 mb-8 animate-fade-in-up">
             <Shield className="w-4 h-4 text-emerald-500" />
             <span className="text-sm font-medium text-slate-600">
