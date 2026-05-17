@@ -8,7 +8,7 @@ const Layout = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const location = useLocation();
-  const activePath = location.pathname.substring(1) || "pdf-to-png";
+  const activePath = location.pathname.substring(1);
 
   useEffect(() => {
     const handleResize = () => {
