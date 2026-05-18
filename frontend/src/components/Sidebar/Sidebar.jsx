@@ -29,6 +29,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       icon: <FileText className="w-5 h-5" />,
       description: "Convert PDF to PNG",
     },
+    {
       id: "pdf-to-png-async",
       label: "PDF to PNG (Async)",
       icon: <FileText className="w-5 h-5 text-orange-500" />,
@@ -45,6 +46,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       label: "AI Upscaler",
       icon: <Sliders className="w-5 h-5 text-purple-500" />,
       description: "Increase image resolution",
+    },
     {
       id: "image-to-webp",
       label: "Image to WebP",
