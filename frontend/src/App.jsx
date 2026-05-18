@@ -9,14 +9,19 @@ import ImageJpg from "./pages/ImageJpg";
 import RemoveBg from "./pages/RemoveBg";
 import RotateFlip from "./pages/RotateFlip";
 import ImageCompress from "./pages/ImageCompress";
+import ImageResize from "./pages/ImageResize";
+import ImageUpscale from "./pages/ImageUpscale";
+import ImageDpi from "./pages/ImageDpi";
+import ImageMetadata from "./pages/ImageMetadata";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<LandingPage />} /> 
 
       {/* All tools share the Layout with the Sidebar */}
       <Route element={<Layout />}>
+      
         <Route path="/pdf-to-png" element={<PdfPng />} />
         <Route path="/pdf-to-png-async" element={<PdfPngAsync />} />
         <Route path="/image-to-webp" element={<ImageWebp />} />
@@ -24,6 +29,10 @@ function App() {
         <Route path="/remove-bg" element={<RemoveBg />} />
         <Route path="/rotate-flip" element={<RotateFlip />} />
         <Route path="/image-compress" element={<ImageCompress />} />
+        <Route path="/image-resize" element={<ImageResize />} />
+        <Route path="/image-upscale" element={<ImageUpscale />} />
+        <Route path="/image-dpi" element={<ImageDpi />} />
+        <Route path="/image-metadata" element={<ImageMetadata />} />
       </Route>
     </Routes>
   );

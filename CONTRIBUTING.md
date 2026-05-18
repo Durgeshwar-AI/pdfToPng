@@ -32,6 +32,7 @@ If a pull request violates any of these rules, it will not be merged.
    - What feature or bugfix you are adding
    - How it works
    - Any limitations or follow‑up ideas
+8. **Consider starring the repo** to show support.
 
 Pull requests must reference an existing issue. PRs opened without an issue may be asked to create one before review.
 

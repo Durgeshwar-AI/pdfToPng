@@ -51,3 +51,4 @@ services:
 
 volumes:
   rembg_models:
+  rembg_models:
