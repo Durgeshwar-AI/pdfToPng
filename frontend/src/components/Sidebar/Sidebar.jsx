@@ -8,6 +8,7 @@ import {
   RotateCcw,
   X,
   Sliders,
+  Expand,
   Gauge,
   Info,
   Code,
@@ -65,10 +66,10 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       description: "Rotate or flip images",
     },
     {
-      id: "image-compress",
-      label: "Image Compressor",
-      icon: <Sliders className="w-5 h-5" />,
-      description: "Compress images",
+      id: "image-resize",
+      label: "Image Resize",
+      icon: <Expand className="w-5 h-5" />,
+      description: "Resize images",
     },
     {
       id: "image-dpi",

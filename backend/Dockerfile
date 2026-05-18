@@ -19,4 +19,4 @@ COPY . .
 EXPOSE 5000
 
 # Command to run the application
-CMD ["python", "main.py"]
+CMD gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --timeout 120 main:app

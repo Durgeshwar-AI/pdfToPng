@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from "react";
-import * as pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import JSZip from "jszip";
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 
@@ -46,6 +46,7 @@ const PdfPng = () => {
     statusMessage,
     setStatusMessage,
     previewUrl,
+    setPreviewUrl,
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -57,6 +58,9 @@ const PdfPng = () => {
     handleAreaClick,
   } = useFileUpload(validateFile);
 
+  // Note: PDF.js preview generation caused runtime errors in some environments.
+  // We use the object URL embed preview for PDFs (provided by `useFileUpload`).
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -66,7 +70,9 @@ const PdfPng = () => {
     }
 
     setLoading(true);
-    setStatusMessage("Processing PDF... This may take a while for large files.");
+    setStatusMessage(
+      "Processing PDF... This may take a while for large files.",
+    );
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -79,7 +85,9 @@ const PdfPng = () => {
       } else if (pageMode === "single") {
         const pageNum = parseInt(singlePage);
         if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
-          throw new Error(`Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`);
+          throw new Error(
+            `Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`,
+          );
         }
         pagesToRender = [pageNum];
       } else if (pageMode === "range") {
@@ -109,7 +117,9 @@ const PdfPng = () => {
 
       for (let i = 0; i < pagesToRender.length; i++) {
         const pageNum = pagesToRender[i];
-        setStatusMessage(`Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})...`);
+        setStatusMessage(
+          `Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})...`,
+        );
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale });
         const canvas = document.createElement("canvas");
@@ -120,7 +130,7 @@ const PdfPng = () => {
         await page.render({ canvasContext: context, viewport }).promise;
 
         const blob = await new Promise((resolve) =>
-          canvas.toBlob(resolve, "image/png")
+          canvas.toBlob(resolve, "image/png"),
         );
         results.push({ name: `page-${pageNum}.png`, blob });
       }
@@ -147,13 +157,57 @@ const PdfPng = () => {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        setStatusMessage(`Success! ZIP file with ${results.length} pages downloaded.`);
+        setStatusMessage(
+          `Success! ZIP file with ${results.length} pages downloaded.`,
+        );
       }
 
       setTimeout(() => setStatusMessage(""), 5000);
     } catch (error) {
-      console.error(error);
-      setStatusMessage(`Error: ${error.message || "Failed to convert file"}`);
+      console.error("Client-side conversion error:", error);
+      setStatusMessage("Client conversion failed — trying server fallback...");
+
+      // Attempt server-side conversion fallback (/convertPng on same origin, then localhost:5000)
+      try {
+        const form = new FormData();
+        form.append("file", file);
+
+        const tryUrls = ["/convertPng", "http://localhost:5000/convertPng"];
+
+        let response = null;
+        for (const url of tryUrls) {
+          try {
+            response = await fetch(url, { method: "POST", body: form });
+            if (response && response.ok) break;
+          } catch (e) {
+            // continue to next
+            console.warn("Server convert attempt failed:", url, e);
+            response = null;
+          }
+        }
+
+        if (response && response.ok) {
+          const blob = await response.blob();
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = downloadUrl;
+          a.download = file.name.replace(/\.pdf$/i, ".png");
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(downloadUrl);
+          setStatusMessage("Success! PNG downloaded from server fallback.");
+        } else {
+          const msg = response
+            ? await response.text()
+            : "Server conversion unavailable";
+          setStatusMessage(`Error: ${msg}`);
+        }
+      } catch (serverErr) {
+        console.error("Server fallback error:", serverErr);
+        setStatusMessage(`Error: ${error.message || "Failed to convert file"}`);
+      }
+
       setTimeout(() => setStatusMessage(""), 5000);
     } finally {
       setLoading(false);
@@ -165,7 +219,9 @@ const PdfPng = () => {
       <h1 className="text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         PDF to PNG Converter
       </h1>
-      <p className="mt-4 mb-6 text-[0.95rem] text-[#6b7280]">Convert PDF pages to high-quality PNG images</p>
+      <p className="mt-4 mb-6 text-[0.95rem] text-[#6b7280]">
+        Convert PDF pages to high-quality PNG images
+      </p>
       <form
         onSubmit={handleSubmit}
         className="w-full flex flex-col items-center"
@@ -280,7 +336,9 @@ const PdfPng = () => {
               {pageMode === "single" && (
                 <div className="animate-in zoom-in-95 duration-200">
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm text-[#6b7280] font-medium">Page:</span>
+                    <span className="text-sm text-[#6b7280] font-medium">
+                      Page:
+                    </span>
                     <input
                       type="number"
                       min="1"
@@ -289,7 +347,9 @@ const PdfPng = () => {
                       onChange={(e) => setSinglePage(e.target.value)}
                       className="w-24 p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-all bg-white text-[#1a1a2e] font-bold text-center"
                     />
-                    <span className="text-xs text-[#94a3b8]">of {numPages}</span>
+                    <span className="text-xs text-[#94a3b8]">
+                      of {numPages}
+                    </span>
                   </div>
                 </div>
               )}
