@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../Sidebar/Sidebar";
+import PdfPng from "../../pages/PdfPng";
+import ImageWebp from "../../pages/ImageWbp";
+import ImageJpg from "../../pages/ImageJpg";
+import RemoveBg from "../../pages/RemoveBg";
+import ImageUpscale from "../../pages/ImageUpscale";
 import { Outlet, useLocation } from "react-router-dom";
+import ImageCompress from "../../pages/ImageCompress";
+import RotateFlip from "../../pages/RotateFlip";
+import ImageBase64 from "../../pages/ImageBase64";
 import { Menu } from "lucide-react";
 
 const Layout = () => {

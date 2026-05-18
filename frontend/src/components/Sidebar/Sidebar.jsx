@@ -8,6 +8,10 @@ import {
   RotateCcw,
   X,
   Sliders,
+  Expand,
+  Gauge,
+  Info,
+  Code,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -68,10 +72,28 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       description: "Rotate or flip images",
     },
     {
-      id: "image-compress",
-      label: "Image Compressor",
-      icon: <Sliders className="w-5 h-5" />,
-      description: "Compress images",
+      id: "image-resize",
+      label: "Image Resize",
+      icon: <Expand className="w-5 h-5" />,
+      description: "Resize images",
+    },
+    {
+      id: "image-dpi",
+      label: "Image DPI Converter",
+      icon: <Gauge className="w-5 h-5" />,
+      description: "Change image DPI",
+    },
+    {
+      id: "image-metadata",
+      label: "Metadata Viewer",
+      icon: <Info className="w-5 h-5" />,
+      description: "View & strip image metadata",
+    },
+    {
+      id: "image-to-base64",
+      label: "Image to Base64",
+      icon: <Code className="w-5 h-5" />,
+      description: "Convert image to Base64 Data URI",
     },
   ];
 

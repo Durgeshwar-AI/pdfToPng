@@ -22,18 +22,39 @@ export const useFileUpload = (validateFile) => {
     };
   }, [previewUrl]);
 
-  const handleClear = useCallback((e) => {
-    if (e) e.stopPropagation();
-    setFile(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-    setStatusMessage("");
-  }, [previewUrl]);
+  const handleClear = useCallback(
+    (e) => {
+      if (e) e.stopPropagation();
+      setFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      setStatusMessage("");
+    },
+    [previewUrl],
+  );
+
+const processFile = useCallback(
+    async (selectedFile) => {
+      if (!selectedFile) return;
+
+      // 1. From 'main': 10MB file size limit check
+      const MAX_SIZE = 10 * 1024 * 1024;
+      if (selectedFile.size > MAX_SIZE) {
+        setStatusMessage("Error: File size exceeds 10MB limit");
+        setTimeout(() => setStatusMessage(""), 5000);
+        return;
+      }
+
+      // 2. From 'feat/pdf-preview': Async validation
+      const validation = await validateFile(selectedFile);
+
+      if (validation.isValid) {
+        setFile(selectedFile);
 
   const processFile = useCallback(async (selectedFile) => {
     if (!selectedFile) return;
@@ -55,14 +76,13 @@ export const useFileUpload = (validateFile) => {
         const url = URL.createObjectURL(selectedFile);
         setPreviewUrl(url);
       } else {
-        setPreviewUrl(null);
+        // 4. From 'main': Error message timeout for invalid files
+        setStatusMessage(validation.message || "Error: Invalid file type");
+        setTimeout(() => setStatusMessage(""), 3000);
       }
-      setStatusMessage(validation.message || `File "${selectedFile.name}" selected`);
-    } else {
-      setStatusMessage(validation.message || "Error: Invalid file type");
-      setTimeout(() => setStatusMessage(""), 3000);
-    }
-  }, [validateFile, previewUrl]);
+    },
+    [validateFile, previewUrl],
+  );
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -89,16 +109,19 @@ export const useFileUpload = (validateFile) => {
     }
   };
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFile(e.dataTransfer.files[0]);
-      e.dataTransfer.clearData();
-    }
-  }, [processFile]);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        processFile(e.dataTransfer.files[0]);
+        e.dataTransfer.clearData();
+      }
+    },
+    [processFile],
+  );
 
   const handleAreaClick = (e) => {
     // Prevent triggering when clicking on the label/X button
@@ -113,11 +136,15 @@ export const useFileUpload = (validateFile) => {
   };
 
   return {
-    file, setFile,
-    loading, setLoading,
+    file,
+    setFile,
+    loading,
+    setLoading,
     isDragging,
-    statusMessage, setStatusMessage,
+    statusMessage,
+    setStatusMessage,
     previewUrl,
+    setPreviewUrl,
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -127,6 +154,6 @@ export const useFileUpload = (validateFile) => {
     handleDragLeave,
     handleDrop,
     handleAreaClick,
-    processFile
+    processFile,
   };
 };

@@ -1,13 +1,67 @@
 import os
+import tempfile
 from io import BytesIO
 
 from flask import Blueprint, request
-from PIL import Image
+from PIL import Image, ImageEnhance, UnidentifiedImageError
 
 from utils.helpers import error, send_file_and_cleanup
 from werkzeug.utils import secure_filename
 
 image_bp = Blueprint("image", __name__)
+
+
+def _parse_positive_int(value, field_name):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be a positive integer")
+
+    if parsed <= 0:
+        raise ValueError(f"{field_name} must be a positive integer")
+
+    return parsed
+
+
+def _parse_positive_number(value, field_name):
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be a positive number")
+
+    if parsed <= 0:
+        raise ValueError(f"{field_name} must be a positive number")
+
+    return parsed
+
+
+def _convert_to_pixels(value, unit, field_name):
+    if unit == "px":
+        return _parse_positive_int(value, field_name)
+
+    parsed_value = _parse_positive_number(value, field_name)
+    unit_per_inch = 25.4 if unit == "mm" else 2.54
+    pixels = round(parsed_value * 96 / unit_per_inch)
+
+    if pixels <= 0:
+        raise ValueError(f"{field_name} must convert to a positive pixel value")
+
+    return pixels
+
+
+def _convert_alpha_to_rgb(img):
+    if img.mode in ("RGBA", "LA") or (
+        img.mode == "P" and "transparency" in img.info
+    ):
+        rgba_image = img.convert("RGBA")
+        background = Image.new("RGB", rgba_image.size, (255, 255, 255))
+        background.paste(rgba_image, mask=rgba_image.getchannel("A"))
+        return background
+
+    if img.mode != "RGB":
+        return img.convert("RGB")
+
+    return img
 
 
 @image_bp.route("/convertWebP", methods=["POST"])

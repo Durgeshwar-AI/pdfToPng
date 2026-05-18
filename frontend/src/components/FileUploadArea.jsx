@@ -18,7 +18,7 @@ const FileUploadArea = ({
   defaultIcon,
   defaultText,
   supportText,
-  pdfIcon
+  pdfIcon,
 }) => {
   return (
     <div
@@ -50,11 +50,21 @@ const FileUploadArea = ({
           <div className="relative group w-full flex flex-col items-center">
             <div className="relative">
               {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="max-h-48 max-w-full rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-                />
+                file && file.type === "application/pdf" ? (
+                  <embed
+                    src={previewUrl}
+                    type="application/pdf"
+                    className="w-full h-96 rounded-lg shadow-md object-contain"
+                    style={{ maxHeight: "560px" }}
+                  />
+                ) : (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-96 rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                    style={{ maxHeight: "560px" }}
+                  />
+                )
               ) : (
                 <div className="flex flex-col items-center p-4">
                   {pdfIcon || (
