@@ -25,9 +25,16 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
   const menuItems = [
     {
       id: "pdf-to-png",
+      
       label: "PDF to PNG",
       icon: <FileText className="w-5 h-5" />,
       description: "Convert PDF to PNG",
+    },
+    {
+    id: "image-to-pdf",
+    label: "Image to PDF",
+    icon: <FileImage className="w-5 h-5" />,
+    description: "Convert images into PDF",
     },
     {
       id: "image-compress",
