@@ -1,102 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  FileText,
-  Image,
-  FileImage,
-  Eraser,
-  RotateCcw,
-  X,
-  Sliders,
-  Expand,
-  Gauge,
-  Info,
-  Code,
-  Palette,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
+
+import { menuItems } from "../../data/SidebarData.jsx";
 
 const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
-
-  const menuItems = [
-    {
-      id: "pdf-to-png",
-      label: "PDF to PNG",
-      icon: <FileText className="w-5 h-5" />,
-      description: "Convert PDF to PNG",
-    },
-    {
-      id: "image-compress",
-      label: "Image Compressor",
-      icon: <Sliders className="w-5 h-5" />,
-      description: "Compress images with quality control",
-    },
-    {
-      id: "image-upscale",
-      label: "AI Upscaler",
-      icon: <Sliders className="w-5 h-5 text-purple-500" />,
-      description: "Increase image resolution",
-    },
-    {
-      id: "image-to-webp",
-      label: "Image to WebP",
-      icon: <Image className="w-5 h-5" />,
-      description: "Convert to WebP",
-    },
-    {
-      id: "image-to-jpg",
-      label: "Image to JPG",
-      icon: <FileImage className="w-5 h-5" />,
-      description: "Convert to JPG",
-    },
-    {
-      id: "image-to-grayscale",
-      label: "Image to Grayscale",
-      icon: <Palette className="w-5 h-5" />,
-      description: "Convert images to grayscale",
-    },
-    {
-      id: "remove-bg",
-      label: "Remove Background",
-      icon: <Eraser className="w-5 h-5" />,
-      description: "Remove background",
-    },
-    {
-      id: "rotate-flip",
-      label: "Rotate & Flip",
-      icon: <RotateCcw className="w-5 h-5" />,
-      description: "Rotate or flip images",
-    },
-    {
-      id: "image-resize",
-      label: "Image Resize",
-      icon: <Expand className="w-5 h-5" />,
-      description: "Resize images",
-    },
-    {
-      id: "image-dpi",
-      label: "Image DPI Converter",
-      icon: <Gauge className="w-5 h-5" />,
-      description: "Change image DPI",
-    },
-    {
-      id: "image-metadata",
-      label: "Metadata Viewer",
-      icon: <Info className="w-5 h-5" />,
-      description: "View & strip image metadata",
-    },
-    {
-      id: "image-to-base64",
-      label: "Image to Base64",
-      icon: <Code className="w-5 h-5" />,
-      description: "Convert image to Base64 Data URI",
-    },
-  ];
 
   const handleNavigation = (id) => {
     navigate(`/${id}`);
@@ -107,7 +19,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
     <>
       {isMobile && isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-white bg-opacity-50 z-40"
+          className="fixed inset-0 z-40 bg-white bg-opacity-50"
           onClick={onClose}
         />
       )}
@@ -127,7 +39,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
             {(!isCollapsed || isMobile) && (
               <Link
                 to="/"
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 transition-opacity hover:opacity-80"
               >
                 <FileText className="w-6 h-6 text-blue-400" />
                 <h1 className="text-xl font-bold">pdfToPng</h1>
@@ -161,7 +73,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                   `}
                   title={isCollapsed ? item.label : ""}
                 >
-                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className="shrink-0">{item.icon}</span>
                   {!isCollapsed && (
                     <div className="flex-1 text-left">
                       <div className="font-medium">{item.label}</div>
