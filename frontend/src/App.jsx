@@ -19,29 +19,27 @@ import ImageDpi from "./pages/ImageDpi";
 import ImageGrayScale from "./pages/ImageGrayScale";
 import ImageMetadata from "./pages/ImageMetadata";
 import ImageBase64 from "./pages/ImageBase64";
+import NotFound from './pages/NotFound';
 import ErrorBoundary from "./ErrorBoundary";
 
 function App() {
   return (
     <ErrorBoundary>
       <Routes>
+        {/* The Landing Page has its own clean view */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* All tools share the Layout with the Sidebar */}
+        {/* All application tools share the Layout with the Sidebar */}
         <Route element={<Layout />}>
           <Route path="/pdf-to-png" element={<PdfPng />} />
           <Route path="/pdf-to-word" element={<PdfDocx />} />
-
           <Route path="/image-to-pdf" element={<ImagePdf />} />
           <Route path="/pdf-merge" element={<PdfMerge />} />
           <Route path="/pdf-sign" element={<PdfSign />} />
-
+          
           <Route path="/image-to-webp" element={<ImageWebp />} />
           <Route path="/image-to-jpg" element={<ImageJpg />} />
-          <Route
-            path="/image-to-grayscale"
-            element={<ImageGrayScale />}
-          />
+          <Route path="/image-to-grayscale" element={<ImageGrayScale />} />
           <Route path="/remove-bg" element={<RemoveBg />} />
           <Route path="/rotate-flip" element={<RotateFlip />} />
           <Route path="/image-compress" element={<ImageCompress />} />
@@ -50,10 +48,13 @@ function App() {
           <Route path="/image-dpi" element={<ImageDpi />} />
           <Route path="/image-metadata" element={<ImageMetadata />} />
           <Route path="/image-to-base64" element={<ImageBase64 />} />
+          
+          {/* Catch-all route placed precisely at the bottom of the layout block */}
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </ErrorBoundary>
   );
 }
 
-export default App;
+export default App; 
