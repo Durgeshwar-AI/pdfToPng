@@ -68,19 +68,40 @@ function ImageResize() {
     formData.append("maintainAspectRatio", String(maintainAspectRatio));
   };
 
-  const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
-    if (!areValidDimensions()) {
-      setStatusMessage(
-        maintainAspectRatio
-          ? `Please enter a valid positive width in ${unit}`
-          : `Please enter valid positive width and height values in ${unit}`,
-      );
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 3000);
-      return false;
-    }
-    return true;
-  };
+ 
+const getValidationError = (dimensions, maintainAspectRatio, unit) => {
+  const width = Number(dimensions.width);
+  const height = Number(dimensions.height);
+
+ 
+  if (!String(dimensions.width).trim()) return `Please enter a width in ${unit}.`;
+  if (width <= 0) return `Width must be greater than 0 ${unit}.`;
+
+
+  if (!maintainAspectRatio) {
+    if (!String(dimensions.height).trim()) return `Please enter a height in ${unit}.`;
+    if (height <= 0) return `Height must be greater than 0 ${unit}.`;
+  }
+
+  return null; 
+};
+
+
+const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
+  const errorMessage = getValidationError(dimensions, maintainAspectRatio, unit);
+
+  if (errorMessage) {
+    setStatusMessage(errorMessage);
+    setStatusType("error");
+    
+   
+    setTimeout(() => setStatusMessage(""), 3000);
+    
+    return false;
+  }
+
+  return true;
+};
 
   const extraFields = ({ file }) => {
     if (!file) return null;
