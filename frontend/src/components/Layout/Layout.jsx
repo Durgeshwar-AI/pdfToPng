@@ -53,7 +53,7 @@ const Layout = () => {
           </header>
         )}
 
-        <div className="min-h-full flex justify-center items-center py-8">
+        <div className="min-h-full flex justify-center items-start py-8 px-4">
           <Outlet />
         </div>
       </main>

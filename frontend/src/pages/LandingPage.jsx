@@ -1,9 +1,4 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-// import {FaBars, FaTimes} from 'react-icons/fa'
-
-import FeatureCard from "../components/Landing/FeatureCard";
-import ToolCard from "../components/Landing/ToolCard";
+import React from "react";
 import Navbar from "../components/Landing/Navbar";
 import HeroSection from "../components/Landing/HeroSection";
 import FeatureSection from "../components/Landing/FeatureSection";
@@ -12,11 +7,6 @@ import TrustBanner from "../components/Landing/TrustBanner";
 import Footer from "../components/Landing/Footer";
 
 const LandingPage = () => {
-  const handleNavClick = (itemName) => {
-    setActiveSection(itemName.toLowerCase());
-    setIsMenuOpen(false);
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-purple-100 selection:text-purple-900 overflow-x-hidden">
       {/* Animated Background Gradients */}

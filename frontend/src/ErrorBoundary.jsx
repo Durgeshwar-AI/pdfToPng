@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -6,7 +6,7 @@ class ErrorBoundary extends React.Component {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
@@ -20,12 +20,25 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return (
-        <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
+        <div
+          style={{
+            padding: "2rem",
+            textAlign: "center",
+            fontFamily: "system-ui, sans-serif",
+          }}
+        >
           <h2>Oops! Something went wrong.</h2>
-          <p>We're sorry for the inconvenience. Please try refreshing the page.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            style={{ padding: '10px 20px', cursor: 'pointer', marginTop: '10px', fontSize: '16px' }}
+          <p>
+            We're sorry for the inconvenience. Please try refreshing the page.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: "10px 20px",
+              cursor: "pointer",
+              marginTop: "10px",
+              fontSize: "16px",
+            }}
           >
             Refresh Page
           </button>
@@ -33,7 +46,7 @@ class ErrorBoundary extends React.Component {
       );
     }
 
-    return this.props.children; 
+    return this.props.children;
   }
 }
 

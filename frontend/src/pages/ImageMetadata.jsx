@@ -17,7 +17,8 @@ export default function ImageMetadata() {
     }
     return {
       isValid: false,
-      message: "Error: Please select an image file (PNG, JPG, JPEG, WEBP, etc.)",
+      message:
+        "Error: Please select an image file (PNG, JPG, JPEG, WEBP, etc.)",
     };
   }, []);
 
@@ -26,13 +27,21 @@ export default function ImageMetadata() {
     setCopiedKey(null);
   };
 
-  const handleViewMetadata = async ({ file, formData, setStatusMessage, setLoading, setStatusType }) => {
+  const handleViewMetadata = async ({
+    formData,
+    setStatusMessage,
+    setLoading,
+    setStatusType,
+  }) => {
     setMetadata(null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/view-metadata`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/view-metadata`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       const data = await response.json();
       if (!response.ok) {
         setStatusMessage(`Error: ${data.error || "Failed to read metadata"}`);
@@ -56,19 +65,27 @@ export default function ImageMetadata() {
     }
   };
 
-  const handleStripMetadata = async (file, setLoading, setStatusMessage, setStatusType) => {
+  const handleStripMetadata = async (
+    file,
+    setLoading,
+    setStatusMessage,
+    setStatusType,
+  ) => {
     if (!file) return;
     setLoading(true);
     setStatusMessage("");
-    
+
     const formData = new FormData();
     formData.append("image", file);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/strip-metadata`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/strip-metadata`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       if (!response.ok) {
         const data = await response.json();
@@ -110,7 +127,13 @@ export default function ImageMetadata() {
     setTimeout(() => setCopiedKey(null), 1500);
   };
 
-  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
+  const extraContent = ({
+    file,
+    loading,
+    setLoading,
+    setStatusMessage,
+    setStatusType,
+  }) => {
     if (!metadata) return null;
 
     const keys = Object.keys(metadata);
@@ -118,9 +141,18 @@ export default function ImageMetadata() {
     return (
       <div className="w-full mt-8 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-[#1a1a2e]">Image Metadata</h3>
+          <h3 className="text-lg font-semibold text-[#1a1a2e]">
+            Image Metadata
+          </h3>
           <button
-            onClick={() => handleStripMetadata(file, setLoading, setStatusMessage, setStatusType)}
+            onClick={() =>
+              handleStripMetadata(
+                file,
+                setLoading,
+                setStatusMessage,
+                setStatusType,
+              )
+            }
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-red-600 hover:to-rose-700 transition-all cursor-pointer disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
           >
@@ -152,9 +184,10 @@ export default function ImageMetadata() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {keys.map((key) => {
-                    const value = typeof metadata[key] === "object"
-                      ? JSON.stringify(metadata[key])
-                      : String(metadata[key]);
+                    const value =
+                      typeof metadata[key] === "object"
+                        ? JSON.stringify(metadata[key])
+                        : String(metadata[key]);
 
                     return (
                       <tr key={key} className="hover:bg-gray-50/50">
