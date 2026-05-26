@@ -127,7 +127,7 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
                 className={`flex flex-col items-center gap-1 p-3 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
                   isActive
                     ? "bg-blue-50 border-blue-200 text-blue-600"
-                    : "bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-300"
+                    : "bg-gray-50 border-gray-100 text-gray-800 hover:border-gray-300"
                 }`}
               >
                 <span>{preset.name}</span>
@@ -163,7 +163,7 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
             <span className="block text-sm font-semibold text-gray-700">
               Keep aspect ratio
             </span>
-            <span className="block text-xs text-gray-500">
+            <span className="block text-xs text-gray-800">
               Height will be auto-calculated from the width in {unit}.
             </span>
           </div>
@@ -195,7 +195,7 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
               value={dimensions.height}
               onChange={(e) => handleDimensionChange("height", e.target.value)}
               disabled={maintainAspectRatio}
-              className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed"
             />
             {maintainAspectRatio && (
               <span className="block mt-2 text-xs text-gray-500">

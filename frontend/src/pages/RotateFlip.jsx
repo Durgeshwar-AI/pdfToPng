@@ -67,7 +67,7 @@ export default function RotateFlip() {
 
         {/* Title */}
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Rotate & Flip</h1>
-        <p className="text-gray-500 mb-8 text-sm">
+        <p className="text-gray-800 mb-8 text-sm">
           All processing is done in memory — no data is stored on the server.
         </p>
 
@@ -76,7 +76,7 @@ export default function RotateFlip() {
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => inputRef.current.click()}
-          className="w-full border-2 border-dashed border-blue-300 rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all mb-6"
+          className="w-full border-2 border-dashed border-blue-300 rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors mb-6"
         >
           <input
             ref={inputRef}
@@ -91,8 +91,8 @@ export default function RotateFlip() {
             </p>
           ) : (
             <>
-              <p className="text-gray-500 font-medium">Click or drag & drop an image here</p>
-              <p className="text-gray-400 text-sm mt-1">PNG · JPEG · WEBP</p>
+              <p className="text-gray-800 font-medium">Click or drag & drop an image here</p>
+              <p className="text-gray-700 text-sm mt-1">PNG · JPEG · WEBP</p>
             </>
           )}
         </div>
@@ -122,10 +122,10 @@ export default function RotateFlip() {
               key={id}
               onClick={() => transform(id)}
               disabled={!file || loading}
-              className={`flex flex-col items-center justify-center gap-1 p-4 rounded-xl border text-sm font-medium transition-all
+              className={`flex flex-col items-center justify-center gap-1 p-4 rounded-xl border text-sm font-medium transition-colors
                 ${file && !loading
                   ? "border-blue-300 text-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md cursor-pointer"
-                  : "border-gray-200 text-gray-300 cursor-not-allowed"
+                  : "border-gray-200 text-gray-600 cursor-not-allowed"
                 }`}
             >
               <span className="text-2xl">{icon}</span>
@@ -147,7 +147,7 @@ export default function RotateFlip() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {preview && (
               <div className="flex flex-col items-center">
-                <p className="text-gray-500 text-sm font-medium mb-2">Original</p>
+                <p className="text-gray-800 text-sm font-medium mb-2">Original</p>
                 <img
                   src={preview}
                   alt="original"
@@ -157,7 +157,7 @@ export default function RotateFlip() {
             )}
             {resultUrl && (
               <div className="flex flex-col items-center">
-                <p className="text-gray-500 text-sm font-medium mb-2">Result</p>
+                <p className="text-gray-800 text-sm font-medium mb-2">Result</p>
                 <img
                   src={resultUrl}
                   alt="result"

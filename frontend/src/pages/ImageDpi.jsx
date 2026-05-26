@@ -117,7 +117,7 @@ export default function ImageDpi() {
               key={p}
               type="button"
               onClick={() => setDpi(p)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors duration-200 cursor-pointer ${
                 dpi === p
                   ? "bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white border-transparent shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
                   : "bg-white text-[#4361ee] border-[#c7d2fe] hover:border-[#4361ee]"
@@ -178,7 +178,7 @@ export default function ImageDpi() {
             type="button"
             onClick={() => handleCheckDpi(file, setLoading, setStatusMessage, setStatusType)}
             disabled={loading}
-            className="flex-1 py-3.5 px-6 border-2 border-[#4361ee] text-[#4361ee] bg-white rounded-lg text-base font-semibold transition-all duration-300 hover:enabled:bg-[#eef2ff] hover:enabled:-translate-y-0.5 disabled:border-[#cbd5e1] disabled:text-[#94a3b8] disabled:cursor-not-allowed cursor-pointer"
+            className="flex-1 py-3.5 px-6 border-2 border-[#4361ee] text-[#4361ee] bg-white rounded-lg text-base font-semibold transition-colors duration-300 hover:enabled:bg-[#eef2ff] hover:enabled:-translate-y-0.5 disabled:border-[#cbd5e1] disabled:text-[#94a3b8] disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? "Checking…" : "Check DPI"}
           </button>

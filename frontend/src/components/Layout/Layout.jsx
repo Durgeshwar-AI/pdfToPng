@@ -36,22 +36,25 @@ const Layout = () => {
       />
 
       <main className="flex-1 overflow-y-auto">
-        {isMobile && (
-          <header className="bg-white shadow-sm sticky top-0 z-30">
-            <div className="flex items-center justify-between p-4">
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
+       {isMobile && (
+  <header className="bg-white shadow-sm sticky top-0 z-30">
+    <div className="flex items-center justify-between p-4">
+      <button
+        onClick={toggleMobileMenu}
+        aria-label="Open navigation menu"
+        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
 
-              <h1 className="text-lg font-semibold text-blue-400">pdfToPng</h1>
+      <h1 className="text-lg font-semibold text-blue-700">
+        pdfToPng
+      </h1>
 
-              <div className="w-10" />
-            </div>
-          </header>
-        )}
+      <div className="w-10" />
+    </div>
+  </header>
+)}
 
         <div className="min-h-full flex justify-center items-center py-8">
           <Outlet />

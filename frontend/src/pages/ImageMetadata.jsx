@@ -130,7 +130,7 @@ export default function ImageMetadata() {
         </div>
 
         {keys.length === 0 ? (
-          <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center text-sm text-gray-500">
+          <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center text-sm text-gray-800">
             No metadata found in this image.
           </div>
         ) : (
@@ -139,13 +139,13 @@ export default function ImageMetadata() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-1/3">
+                    <th className="px-4 py-3 text-xs font-bold text-gray-800 uppercase tracking-wider w-1/3">
                       Tag / Field
                     </th>
-                    <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-xs font-bold text-gray-800 uppercase tracking-wider">
                       Value
                     </th>
-                    <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16 text-center">
+                    <th className="px-4 py-3 text-xs font-bold text-gray-800 uppercase tracking-wider w-16 text-center">
                       Action
                     </th>
                   </tr>
@@ -167,7 +167,7 @@ export default function ImageMetadata() {
                         <td className="px-4 py-3 text-center">
                           <button
                             onClick={() => copyToClipboard(key, value)}
-                            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-700 hover:text-gray-600 transition-colors cursor-pointer"
                             title="Copy tag and value"
                           >
                             {copiedKey === key ? (

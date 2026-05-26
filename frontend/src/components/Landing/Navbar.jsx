@@ -75,7 +75,7 @@ useEffect(() => {
           href="https://github.com/Durgeshwar-AI/pdfToPng"
           target="_blank"
           rel="noreferrer"
-          className="group flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md hover:border-slate-300 transition-all duration-300 hover:scale-105"
+          className="group flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md hover:border-slate-300 transition-all duration-300 hover:scale-[1.02]"
         >
           <Github className="w-5 h-5 text-slate-600 group-hover:text-slate-900 transition-colors" />
           <span className="text-slate-600 group-hover:text-slate-900 font-medium transition-colors hidden sm:inline">
@@ -85,13 +85,16 @@ useEffect(() => {
         </div>
 
         {/* For Mobile */}
-        <div className="flex lg:hidden items-center space-x-4 px-2">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)}> 
-            {isMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
+<div className="flex lg:hidden items-center space-x-4 px-2">
+  <button
+    onClick={() => setIsMenuOpen(!isMenuOpen)}
+    aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+  >
+    {isMenuOpen ? <X /> : <Menu />}
+  </button>
+</div>
 
-        <div className={`fixed inset-x-4 top-20 z-50 lg:hidden rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-xl shadow-2xl p-4 flex flex-col gap-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] transform ${isMenuOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-6 scale-95 pointer-events-none"}`}>
+        <div className={`fixed inset-x-4 top-20 z-50 lg:hidden rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-md shadow-2xl p-4 flex flex-col gap-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] transform ${isMenuOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-6 scale-95 pointer-events-none"}`}>
             {navItems.map((item) => (
               <a 
                 key={item.name}
@@ -99,7 +102,7 @@ useEffect(() => {
                 onClick={() => handleMobileNavClick(item.name)}
                 className={`w-full py-3 px-4 rounded-xl text-base font-semibold text-gray-700 transition-colors duration-200 hover:bg-purple-100 hover:text-purple-600 active:scale-[0.98] ${
                   activeSection === item.name.toLowerCase()
-                    ? "text-purple-600 bg-purple-50"
+                    ? "text-purple-700 bg-purple-100"
                     : "text-slate-700"
                 }`}
               >
@@ -112,7 +115,8 @@ useEffect(() => {
             href="https://github.com/Durgeshwar-AI/pdfToPng"
             target="_blank"
             rel="noreferrer"
-            className="group flex mx-auto items-center w-16 gap-2 px-5 py-2.5 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md hover:border-slate-300 transition-all duration-300 hover:scale-105"
+            aria-label="Open GitHub repository"
+            className="group flex mx-auto items-center w-16 gap-2 px-5 py-2.5 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md hover:border-slate-300 transition-colors duration-300 hover:scale-105"
           >
             <Github className="w-5 h-5 text-slate-600 group-hover:text-slate-900 transition-colors" />
 
