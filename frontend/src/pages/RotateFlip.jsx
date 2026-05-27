@@ -1,4 +1,8 @@
 import { useState, useRef } from "react";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const ACTIONS = [
   { id: "rotate_left",  label: "Rotate Left",     icon: "↺" },
@@ -15,17 +19,40 @@ export default function RotateFlip() {
   const [file, setFile]           = useState(null);
   const [preview, setPreview]     = useState(null);
   const [format, setFormat]       = useState("PNG");
+  const [fileMode, setFileMode]   = useState("image");
+  const [scope, setScope]         = useState("all");
+  const [pages, setPages]         = useState("");
+  const [totalPages, setTotalPages] = useState(null);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(null);
   const [resultUrl, setResultUrl] = useState(null);
   const [resultExt, setResultExt] = useState("png");
   const inputRef = useRef();
 
-  const pickFile = (f) => {
+  const pickFile = async (f) => {
     if (!f) return;
+
     setFile(f);
     setResultUrl(null);
     setError(null);
+    setScope("all");
+    setPages("");
+    setTotalPages(null);
+
+    if (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")) {
+      setFileMode("pdf");
+      setPreview(null);
+      try {
+        const bytes = await f.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+        setTotalPages(pdf.numPages);
+      } catch {
+        setError("Unable to read PDF page count.");
+      }
+      return;
+    }
+
+    setFileMode("image");
     setPreview(URL.createObjectURL(f));
   };
 
@@ -36,24 +63,43 @@ export default function RotateFlip() {
 
   const transform = async (action) => {
     if (!file || loading) return;
+    if (fileMode === "pdf" && scope === "selection" && !pages.trim()) {
+      setError("Enter pages like 1,3,7 or 1-10 for selected-page mode.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResultUrl(null);
 
     const fd = new FormData();
-    fd.append("image", file);
-    fd.append("action", action);
-    fd.append("format", format);
+    let endpoint = `${API}/rotateFlip`;
+
+    if (fileMode === "pdf") {
+      endpoint = `${API}/rotateFlipPdf`;
+      fd.append("file", file);
+      fd.append("action", action);
+      fd.append("scope", scope);
+      if (scope === "selection") fd.append("pages", pages.trim());
+    } else {
+      fd.append("image", file);
+      fd.append("action", action);
+      fd.append("format", format);
+    }
 
     try {
-      const res = await fetch(`${API}/rotateFlip`, { method: "POST", body: fd });
+      const res = await fetch(endpoint, { method: "POST", body: fd });
       if (!res.ok) {
         const { error: msg } = await res.json();
         throw new Error(msg ?? "Transformation failed");
       }
       const blob = await res.blob();
       setResultUrl(URL.createObjectURL(blob));
-      setResultExt(format === "JPEG" ? "jpg" : format.toLowerCase());
+      if (fileMode === "pdf") {
+        setResultExt("pdf");
+      } else {
+        setResultExt(format === "JPEG" ? "jpg" : format.toLowerCase());
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -81,7 +127,7 @@ export default function RotateFlip() {
           <input
             ref={inputRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept="application/pdf,image/png,image/jpeg,image/webp"
             className="hidden"
             onChange={(e) => pickFile(e.target.files[0])}
           />
@@ -91,29 +137,67 @@ export default function RotateFlip() {
             </p>
           ) : (
             <>
-              <p className="text-gray-500 font-medium">Click or drag & drop an image here</p>
-              <p className="text-gray-400 text-sm mt-1">PNG · JPEG · WEBP</p>
+              <p className="text-gray-500 font-medium">Click or drag & drop a PDF or image here</p>
+              <p className="text-gray-400 text-sm mt-1">PDF · PNG · JPEG · WEBP</p>
             </>
           )}
         </div>
 
-        {/* Output format */}
-        <div className="flex items-center gap-6 mb-6">
-          <span className="text-gray-700 font-medium">Output format:</span>
-          {FORMATS.map((f) => (
-            <label key={f} className="flex items-center gap-2 cursor-pointer">
+        {fileMode === "image" && (
+          <div className="flex items-center gap-6 mb-6">
+            <span className="text-gray-700 font-medium">Output format:</span>
+            {FORMATS.map((f) => (
+              <label key={f} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="format"
+                  value={f}
+                  checked={format === f}
+                  onChange={() => setFormat(f)}
+                  className="accent-blue-500"
+                />
+                <span className="text-gray-700">{f}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {fileMode === "pdf" && file && (
+          <div className="mb-6 p-4 rounded-xl border border-blue-200 bg-blue-50">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <span className="text-sm font-medium text-gray-700">
+                Apply action to:
+                {typeof totalPages === "number" ? ` (Total pages: ${totalPages})` : ""}
+              </span>
+              <div className="flex rounded-lg border border-blue-200 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setScope("all")}
+                  className={`px-3 py-1.5 text-sm ${scope === "all" ? "bg-blue-600 text-white" : "bg-white text-blue-700"}`}
+                >
+                  All pages
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScope("selection")}
+                  className={`px-3 py-1.5 text-sm ${scope === "selection" ? "bg-blue-600 text-white" : "bg-white text-blue-700"}`}
+                >
+                  Selected pages
+                </button>
+              </div>
+            </div>
+
+            {scope === "selection" && (
               <input
-                type="radio"
-                name="format"
-                value={f}
-                checked={format === f}
-                onChange={() => setFormat(f)}
-                className="accent-blue-500"
+                type="text"
+                value={pages}
+                onChange={(e) => setPages(e.target.value)}
+                placeholder="e.g. 1,3,7 or 1-10 or 1-3,7,10-12"
+                className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
-              <span className="text-gray-700">{f}</span>
-            </label>
-          ))}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -129,7 +213,7 @@ export default function RotateFlip() {
                 }`}
             >
               <span className="text-2xl">{icon}</span>
-              {label}
+              {fileMode === "pdf" ? `${label} (${scope === "all" ? "All" : "Selected"})` : label}
             </button>
           ))}
         </div>
@@ -158,14 +242,20 @@ export default function RotateFlip() {
             {resultUrl && (
               <div className="flex flex-col items-center">
                 <p className="text-gray-500 text-sm font-medium mb-2">Result</p>
-                <img
-                  src={resultUrl}
-                  alt="result"
-                  className="w-full rounded-xl border border-gray-200 object-contain max-h-64"
-                />
+                {fileMode === "pdf" ? (
+                  <div className="w-full rounded-xl border border-gray-200 p-6 bg-gray-50 text-center text-gray-600 text-sm">
+                    PDF transformation complete. Download your file below.
+                  </div>
+                ) : (
+                  <img
+                    src={resultUrl}
+                    alt="result"
+                    className="w-full rounded-xl border border-gray-200 object-contain max-h-64"
+                  />
+                )}
                 
                   <a href={resultUrl}
-                  download={`transformed.${resultExt}`}
+                  download={`transformed_${fileMode}.${resultExt}`}
                   className="mt-4 px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   ⬇ Download
