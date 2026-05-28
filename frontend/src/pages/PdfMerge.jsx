@@ -1,261 +1,342 @@
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
+import { PDFDocument } from "pdf-lib";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
+import { GripVertical, ChevronUp, ChevronDown, X, FilePlus, Loader2 } from "lucide-react";
 
-function MergePdf() {
-  const [files, setFiles] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
+// Renders a single page of a PDF file into a base64 thumbnail string
+async function renderPageThumbnail(file, pageNumber, scale = 0.3) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(pageNumber);
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+  return canvas.toDataURL("image/png");
+}
+
+function PdfMerge() {
+  // Each item: { id, file, pageNumber, totalPages, thumbnail, sourceName }
+  const [pages, setPages] = useState([]);
+  const [loadingFiles, setLoadingFiles] = useState(false);
+  const [merging, setMerging] = useState(false);
+  const [statusMsg, setStatusMsg] = useState("");
   const [statusType, setStatusType] = useState("info"); // info | success | error
-  const inputRef = useRef(null);
 
-  const addFiles = (incoming) => {
-    const pdfs = Array.from(incoming).filter(
+  // Drag state
+  const dragIndex = useRef(null);
+  const dragOverIndex = useRef(null);
+  const [draggingId, setDraggingId] = useState(null);
+
+  const showStatus = (msg, type = "info", autoClear = true) => {
+    setStatusMsg(msg);
+    setStatusType(type);
+    if (autoClear) setTimeout(() => setStatusMsg(""), 4000);
+  };
+
+  // When user picks files, render all pages into thumbnail cards
+  const handleFileChange = useCallback(async (e) => {
+    const selectedFiles = Array.from(e.target.files).filter(
       (f) => f.type === "application/pdf"
     );
-    if (pdfs.length === 0) {
-      setStatusMessage("Only PDF files are accepted.");
-      setStatusType("error");
-      return;
-    }
-    setStatusMessage("");
-    setFiles((prev) => {
-      const existingNames = new Set(prev.map((f) => f.name));
-      const unique = pdfs.filter((f) => !existingNames.has(f.name));
-      return [...prev, ...unique];
-    });
-  };
+    if (!selectedFiles.length) return;
 
-  const onDrop = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    addFiles(e.dataTransfer.files);
+    setLoadingFiles(true);
+    showStatus(`Loading ${selectedFiles.length} PDF(s)...`, "info", false);
+
+    const newPages = [];
+    for (const file of selectedFiles) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const totalPages = pdf.numPages;
+
+        for (let p = 1; p <= totalPages; p++) {
+          showStatus(`Reading "${file.name}" - page ${p}/${totalPages}...`, "info", false);
+          const thumbnail = await renderPageThumbnail(file, p, 0.35);
+          newPages.push({
+            id: `${file.name}-${p}-${Date.now()}-${Math.random()}`,
+            file,
+            pageNumber: p,
+            totalPages,
+            thumbnail,
+            sourceName: file.name.replace(/\.pdf$/i, ""),
+          });
+        }
+      } catch (err) {
+        console.error(`Failed to load ${file.name}:`, err);
+        showStatus(`Error reading "${file.name}" - is it a valid PDF?`, "error");
+      }
+    }
+
+    setPages((prev) => [...prev, ...newPages]);
+    setLoadingFiles(false);
+    showStatus(`${newPages.length} page(s) loaded. Drag or use arrows to reorder.`, "success");
+    // reset input so same file can be re-added
+    e.target.value = "";
   }, []);
 
-  const onDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
+  // Remove a single page card
+  const removePage = (index) => {
+    setPages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const onDragLeave = () => setIsDragging(false);
-
-  const removeFile = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+  // Move a page up or down by one step
+  const movePage = (index, direction) => {
+    const target = index + direction;
+    if (target < 0 || target >= pages.length) return;
+    const updated = [...pages];
+    [updated[index], updated[target]] = [updated[target], updated[index]];
+    setPages(updated);
   };
 
-  const moveFile = (index, direction) => {
-    setFiles((prev) => {
-      const next = [...prev];
-      const target = index + direction;
-      if (target < 0 || target >= next.length) return prev;
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
+  // Drag handlers
+  const handleDragStart = (index, id) => {
+    dragIndex.current = index;
+    setDraggingId(id);
   };
 
-  const handleMerge = async () => {
-    if (files.length < 2) {
-      setStatusMessage("Please add at least 2 PDF files to merge.");
-      setStatusType("error");
+  const handleDragEnter = (index) => {
+    dragOverIndex.current = index;
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // required to allow drop
+  };
+
+  const handleDrop = () => {
+    const from = dragIndex.current;
+    const to = dragOverIndex.current;
+    if (from === null || to === null || from === to) {
+      setDraggingId(null);
       return;
     }
-    setStatusMessage("");
-    setIsLoading(true);
-    setStatusType("info");
+    const updated = [...pages];
+    const [moved] = updated.splice(from, 1);
+    updated.splice(to, 0, moved);
+    setPages(updated);
+    dragIndex.current = null;
+    dragOverIndex.current = null;
+    setDraggingId(null);
+  };
+
+  const handleDragEnd = () => {
+    dragIndex.current = null;
+    dragOverIndex.current = null;
+    setDraggingId(null);
+  };
+
+  // Final merge - assembles pages in current display order
+  const handleMerge = async () => {
+    if (pages.length < 2) {
+      showStatus("Please add at least 2 pages to merge.", "error");
+      return;
+    }
+    setMerging(true);
+    showStatus("Merging pages...", "info", false);
 
     try {
-      const formData = new FormData();
-      files.forEach((f) => formData.append("files", f));
+      const mergedPdf = await PDFDocument.create();
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/merge-pdf`,
-        { method: "POST", body: formData }
-      );
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Merge failed. Please try again.");
+      // Group pages by their source File object to avoid re-loading same file multiple times
+      const fileCache = new Map();
+      for (const pageItem of pages) {
+        if (!fileCache.has(pageItem.file)) {
+          const arrayBuffer = await pageItem.file.arrayBuffer();
+          const loaded = await PDFDocument.load(arrayBuffer);
+          fileCache.set(pageItem.file, loaded);
+        }
       }
 
-      const blob = await res.blob();
+      for (const pageItem of pages) {
+        const sourcePdf = fileCache.get(pageItem.file);
+        const [copiedPage] = await mergedPdf.copyPages(sourcePdf, [pageItem.pageNumber - 1]);
+        mergedPdf.addPage(copiedPage);
+      }
+
+      const mergedBytes = await mergedPdf.save();
+      const blob = new Blob([mergedBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = "merged.pdf";
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-
-      setStatusMessage("PDFs merged successfully! File downloaded.");
-      setStatusType("success");
-      setFiles([]);
+      showStatus(`✓ merged.pdf downloaded - ${pages.length} pages combined.`, "success");
     } catch (err) {
-      setStatusMessage(`Error: ${err.message}`);
-      setStatusType("error");
+      console.error(err);
+      showStatus("Error while merging. Please try again.", "error");
     } finally {
-      setIsLoading(false);
-      setTimeout(() => setStatusMessage(""), 5000);
+      setMerging(false);
     }
   };
 
+  const clearAll = () => {
+    setPages([]);
+    setStatusMsg("");
+  };
+
+  // Status bar color
+  const statusColors = {
+    info: "bg-blue-50 text-blue-700 border-blue-200",
+    success: "bg-green-50 text-green-700 border-green-200",
+    error: "bg-red-50 text-red-700 border-red-200",
+  };
+
   return (
-    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-      
-      {/* Title — matches ToolPageTemplate exactly */}
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
-        Merge PDFs
-      </h1>
-
-      {/* Drop Zone */}
-      <div
-        className={`w-full border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-6
-          ${isDragging
-            ? "border-[#4361ee] bg-blue-50"
-            : "border-gray-300 bg-[#fafbfc] hover:border-[#4361ee] hover:bg-blue-50"
-          }`}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onClick={() => inputRef.current?.click()}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept="application/pdf"
-          multiple
-          className="hidden"
-          onChange={(e) => addFiles(e.target.files)}
-        />
-
-        {/* Upload icon */}
-        <svg className="w-16 h-16 text-[#4361ee] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round" />
-          <polyline points="14,2 14,8 20,8" strokeLinecap="round" strokeLinejoin="round" />
-          <line x1="12" y1="18" x2="12" y2="12" strokeLinecap="round" />
-          <line x1="9" y1="15" x2="15" y2="15" strokeLinecap="round" />
-        </svg>
-
-        <p className="text-[#1a1a2e] font-semibold text-lg">
-          {isDragging ? "Drop your PDFs here" : "Choose PDF files or drag & drop here"}
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-[#1a1a2e]">Merge PDFs</h1>
+        <p className="text-[#64748b] mt-1 text-sm">
+          Add PDFs, arrange individual pages in any order, then download the merged file.
         </p>
-        <p className="text-gray-400 text-sm">Click to browse or drop your PDF files</p>
-        <span className="mt-2 text-xs bg-gray-100 text-gray-500 rounded-full px-3 py-1 font-medium">
-          PDF only · Multiple files supported
-        </span>
       </div>
 
-      {/* File List */}
-      {files.length > 0 && (
-        <div className="w-full mb-6 flex flex-col gap-2">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-semibold text-gray-600">
-              {files.length} file{files.length !== 1 ? "s" : ""} selected
-            </span>
+      {/* Upload area */}
+      <label className="flex items-center justify-center gap-3 w-full h-28 border-2 border-dashed border-[#4361ee] rounded-2xl cursor-pointer bg-[#f8faff] hover:bg-[#eef2ff] transition-all mb-4 group">
+        {loadingFiles ? (
+          <Loader2 size={20} className="text-[#4361ee] animate-spin" />
+        ) : (
+          <FilePlus size={20} className="text-[#4361ee] group-hover:scale-110 transition-transform" />
+        )}
+        <div>
+          <p className="text-[#4361ee] font-semibold text-sm">
+            {loadingFiles ? "Loading pages..." : pages.length > 0 ? "+ Add more PDFs" : "Click to add PDF files"}
+          </p>
+          <p className="text-[#94a3b8] text-xs mt-0.5">
+            Each PDF's pages will appear below for individual reordering
+          </p>
+        </div>
+        <input
+          type="file"
+          multiple
+          accept=".pdf,application/pdf"
+          onChange={handleFileChange}
+          disabled={loadingFiles}
+          className="hidden"
+        />
+      </label>
+
+      {/* Status message */}
+      {statusMsg && (
+        <div className={`text-sm px-4 py-2.5 rounded-xl border mb-4 font-medium ${statusColors[statusType]}`}>
+          {statusMsg}
+        </div>
+      )}
+
+      {/* Page list */}
+      {pages.length > 0 && (
+        <>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-[#1a1a2e]">
+              {pages.length} page{pages.length !== 1 ? "s" : ""} - drag or use arrows to set final order
+            </p>
             <button
-              onClick={() => setFiles([])}
-              className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
+              onClick={clearAll}
+              className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
             >
               Clear all
             </button>
           </div>
 
-          <ul className="flex flex-col gap-2">
-            {files.map((file, i) => (
+          <ul className="space-y-2 mb-6">
+            {pages.map((pageItem, index) => (
               <li
-                key={file.name}
-                className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm"
+                key={pageItem.id}
+                draggable
+                onDragStart={() => handleDragStart(index, pageItem.id)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center gap-3 bg-white border rounded-xl px-3 py-2 shadow-sm transition-all
+                  ${draggingId === pageItem.id
+                    ? "opacity-40 scale-95 border-[#4361ee]"
+                    : "border-[#e2e8f0] hover:border-[#4361ee] cursor-grab active:cursor-grabbing"
+                  }`}
               >
-                {/* Order badge */}
-                <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#4361ee] to-[#7209b7] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                  {i + 1}
+                {/* Drag handle */}
+                <GripVertical size={16} className="text-[#cbd5e1] shrink-0" />
+
+                {/* Position badge */}
+                <span className="text-xs font-bold text-white bg-[#4361ee] rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                  {index + 1}
                 </span>
 
-                {/* File icon */}
-                <svg className="w-4 h-4 text-[#4361ee] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="14,2 14,8 20,8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                {/* Page thumbnail */}
+                <img
+                  src={pageItem.thumbnail}
+                  alt={`Page ${pageItem.pageNumber}`}
+                  className="w-10 h-14 object-cover rounded border border-[#e2e8f0] shrink-0 bg-gray-50"
+                  draggable={false}
+                />
 
-                {/* Name */}
-                <span className="flex-1 text-sm text-gray-700 text-left truncate" title={file.name}>
-                  {file.name}
-                </span>
-
-                {/* Size */}
-                <span className="text-xs text-gray-400 flex-shrink-0">
-                  {(file.size / 1024).toFixed(1)} KB
-                </span>
-
-                {/* Controls */}
-                <div className="flex gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => moveFile(i, -1)}
-                    disabled={i === 0}
-                    className="w-6 h-6 border border-gray-200 rounded text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    title="Move up"
-                  >▲</button>
-                  <button
-                    onClick={() => moveFile(i, 1)}
-                    disabled={i === files.length - 1}
-                    className="w-6 h-6 border border-gray-200 rounded text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    title="Move down"
-                  >▼</button>
-                  <button
-                    onClick={() => removeFile(i)}
-                    className="w-6 h-6 rounded text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    title="Remove"
-                  >✕</button>
+                {/* Labels */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#1a1a2e] truncate">
+                    {pageItem.sourceName}
+                  </p>
+                  <p className="text-xs text-[#94a3b8]">
+                    Page {pageItem.pageNumber} of {pageItem.totalPages}
+                  </p>
                 </div>
+
+                {/* Up / Down */}
+                <div className="flex flex-col gap-0.5 shrink-0">
+                  <button
+                    onClick={() => movePage(index, -1)}
+                    disabled={index === 0}
+                    title="Move up"
+                    className="p-1 rounded hover:bg-[#f1f5f9] disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronUp size={14} className="text-[#64748b]" />
+                  </button>
+                  <button
+                    onClick={() => movePage(index, 1)}
+                    disabled={index === pages.length - 1}
+                    title="Move down"
+                    className="p-1 rounded hover:bg-[#f1f5f9] disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronDown size={14} className="text-[#64748b]" />
+                  </button>
+                </div>
+
+                {/* Remove */}
+                <button
+                  onClick={() => removePage(index)}
+                  title="Remove this page"
+                  className="p-1.5 rounded-lg hover:bg-red-50 transition-all shrink-0"
+                >
+                  <X size={14} className="text-red-400" />
+                </button>
               </li>
             ))}
           </ul>
-        </div>
-      )}
 
-      {/* Merge Button — matches ToolPageTemplate button exactly */}
-      <button
-        onClick={handleMerge}
-        disabled={files.length < 2 || isLoading}
-        className="bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 border-none rounded-lg cursor-pointer text-lg font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] tracking-wide w-full max-w-[300px] mx-auto hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 active:enabled:shadow-[0_2px_8px_rgba(59,130,246,0.2)] disabled:bg-gradient-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
-      >
-        {isLoading ? (
-          <>
-            <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin"></span>
-            Merging...
-          </>
-        ) : (
-          <>
-            Merge PDFs
-            {files.length >= 2 && (
-              <span className="bg-white/30 rounded-full px-2 py-0.5 text-xs font-bold">
-                {files.length}
+          {/* Merge button */}
+          <button
+            onClick={handleMerge}
+            disabled={pages.length < 2 || merging || loadingFiles}
+            className="w-full py-3.5 px-6 bg-[#4361ee] hover:bg-[#3451d1] active:bg-[#2a41b8] disabled:bg-[#94a3b8] disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
+          >
+            {merging ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                Merging {pages.length} pages...
               </span>
+            ) : (
+              `Merge ${pages.length} page${pages.length !== 1 ? "s" : ""} → Download PDF`
             )}
-          </>
-        )}
-      </button>
-
-      {/* Hint when only 1 file */}
-      {files.length === 1 && (
-        <p className="mt-3 text-xs text-[#4361ee]">
-          Add at least one more PDF to enable merging.
-        </p>
-      )}
-
-      {/* Status message — matches ToolPageTemplate exactly */}
-      {statusMessage && (
-        <p className={`mt-6 text-[0.95rem] ${
-          statusType === "success"
-            ? "text-green-600"
-            : statusType === "error"
-            ? "text-red-500"
-            : "text-[#4b5563]"
-        }`}>
-          {statusMessage}
-        </p>
+          </button>
+        </>
       )}
     </div>
   );
 }
 
-export default MergePdf;
+export default PdfMerge;
