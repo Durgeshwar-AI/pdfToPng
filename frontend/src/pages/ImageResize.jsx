@@ -3,7 +3,10 @@ import ToolPageTemplate from "../components/ToolPageTemplate";
 import { Expand, Image as ImageIcon } from "lucide-react";
 
 function ImageResize() {
-  const [dimensions, setDimensions] = useState({ width: "1280", height: "720" });
+  const [dimensions, setDimensions] = useState({
+    width: "1280",
+    height: "720",
+  });
   const [unit, setUnit] = useState("px");
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(false);
 
@@ -18,7 +21,8 @@ function ImageResize() {
     }
     return {
       isValid: false,
-      message: "Error: Please select an image file (PNG, JPG, JPEG, WEBP, etc.)",
+      message:
+        "Error: Please select an image file (PNG, JPG, JPEG, WEBP, etc.)",
     };
   }, []);
 
@@ -28,29 +32,6 @@ function ImageResize() {
     { name: "Large", width: 1920, height: 1080 },
     { name: "Square", width: 1080, height: 1080 },
   ];
-
-  const areValidDimensions = () => {
-    const width = unit === "px"
-      ? Number.parseInt(dimensions.width, 10)
-      : Number.parseFloat(dimensions.width);
-    const height = unit === "px"
-      ? Number.parseInt(dimensions.height, 10)
-      : Number.parseFloat(dimensions.height);
-
-    const isValidWidth = unit === "px"
-      ? Number.isInteger(width) && width > 0
-      : Number.isFinite(width) && width > 0;
-
-    if (maintainAspectRatio) {
-      return isValidWidth;
-    }
-
-    const isValidHeight = unit === "px"
-      ? Number.isInteger(height) && height > 0
-      : Number.isFinite(height) && height > 0;
-
-    return isValidWidth && isValidHeight;
-  };
 
   const handleDimensionChange = (field, value) => {
     setDimensions((prev) => ({ ...prev, [field]: value }));
@@ -68,40 +49,41 @@ function ImageResize() {
     formData.append("maintainAspectRatio", String(maintainAspectRatio));
   };
 
- 
-const getValidationError = (dimensions, maintainAspectRatio, unit) => {
-  const width = Number(dimensions.width);
-  const height = Number(dimensions.height);
+  const getValidationError = (dimensions, maintainAspectRatio, unit) => {
+    const width = Number(dimensions.width);
+    const height = Number(dimensions.height);
 
- 
-  if (!String(dimensions.width).trim()) return `Please enter a width in ${unit}.`;
-  if (width <= 0) return `Width must be greater than 0 ${unit}.`;
+    if (!String(dimensions.width).trim())
+      return `Please enter a width in ${unit}.`;
+    if (width <= 0) return `Width must be greater than 0 ${unit}.`;
 
+    if (!maintainAspectRatio) {
+      if (!String(dimensions.height).trim())
+        return `Please enter a height in ${unit}.`;
+      if (height <= 0) return `Height must be greater than 0 ${unit}.`;
+    }
 
-  if (!maintainAspectRatio) {
-    if (!String(dimensions.height).trim()) return `Please enter a height in ${unit}.`;
-    if (height <= 0) return `Height must be greater than 0 ${unit}.`;
-  }
+    return null;
+  };
 
-  return null; 
-};
+  const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
+    const errorMessage = getValidationError(
+      dimensions,
+      maintainAspectRatio,
+      unit,
+    );
 
+    if (errorMessage) {
+      setStatusMessage(errorMessage);
+      setStatusType("error");
 
-const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
-  const errorMessage = getValidationError(dimensions, maintainAspectRatio, unit);
+      setTimeout(() => setStatusMessage(""), 3000);
 
-  if (errorMessage) {
-    setStatusMessage(errorMessage);
-    setStatusType("error");
-    
-   
-    setTimeout(() => setStatusMessage(""), 3000);
-    
-    return false;
-  }
+      return false;
+    }
 
-  return true;
-};
+    return true;
+  };
 
   const extraFields = ({ file }) => {
     if (!file) return null;
@@ -131,7 +113,9 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
                 }`}
               >
                 <span>{preset.name}</span>
-                <span>{preset.width} x {preset.height}</span>
+                <span>
+                  {preset.width} x {preset.height}
+                </span>
               </button>
             );
           })}
@@ -199,7 +183,8 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
             />
             {maintainAspectRatio && (
               <span className="block mt-2 text-xs text-gray-500">
-                Height will be calculated automatically from the original image ratio.
+                Height will be calculated automatically from the original image
+                ratio.
               </span>
             )}
           </label>
@@ -217,17 +202,21 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
       fileFieldName="image"
       modifyFormData={modifyFormData}
       onSubmit={async (context) => {
-        const { file, formData, setStatusMessage, setLoading, setStatusType } = context;
+        const { file, formData, setStatusMessage, setLoading, setStatusType } =
+          context;
         if (!handleBeforeSubmit(setStatusMessage, setStatusType)) {
           setLoading(false);
           return;
         }
 
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/resizeImage`, {
-            method: "POST",
-            body: formData,
-          });
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/resizeImage`,
+            {
+              method: "POST",
+              body: formData,
+            },
+          );
 
           if (response.ok) {
             const blob = await response.blob();
@@ -260,7 +249,9 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
             setStatusType("error");
           }
         } catch (error) {
-          setStatusMessage(`Error: ${error.message || "Failed to resize image"}`);
+          setStatusMessage(
+            `Error: ${error.message || "Failed to resize image"}`,
+          );
           setStatusType("error");
         } finally {
           setLoading(false);

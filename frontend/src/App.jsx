@@ -28,7 +28,10 @@ import ImageGrayScale from "./pages/ImageGrayScale";
 import ImageMetadata from "./pages/ImageMetadata";
 import ImageBase64 from "./pages/ImageBase64";
 import ImageToSVG from "./pages/ImageToSVG";
-import NotFound from './pages/NotFound';
+import About from "./pages/About";
+import Features from "./pages/Features";
+import FAQ from "./pages/FAQ";
+import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./ErrorBoundary";
 
 function App() {
@@ -41,6 +44,10 @@ function App() {
 
         {/* All application tools share the Layout with the Sidebar */}
         <Route element={<Layout />}>
+          <Route path="/about" element={<About />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/faq" element={<FAQ />} />
+
           <Route path="/pdf-to-png" element={<PdfPng />} />
           <Route path="/pdf-to-word" element={<PdfDocx />} />
           <Route path="/docx-to-pdf" element={<DocxPdf />} />
@@ -48,7 +55,7 @@ function App() {
           <Route path="/pdf-merge" element={<PdfMerge />} />
           <Route path="/pdf-split" element={<PdfSplit />} />
           <Route path="/pdf-sign" element={<PdfSign />} />
-          
+
           <Route path="/image-to-webp" element={<ImageWebp />} />
           <Route path="/image-to-jpg" element={<ImageJpg />} />
           <Route path="/image-ocr" element={<ImageOCR />} />
@@ -63,7 +70,7 @@ function App() {
           <Route path="/image-dpi" element={<ImageDpi />} />
           <Route path="/image-metadata" element={<ImageMetadata />} />
           <Route path="/image-to-base64" element={<ImageBase64 />} />
-          
+
           {/* Catch-all route placed precisely at the bottom of the layout block */}
           <Route path="*" element={<NotFound />} />
         </Route>
@@ -72,4 +79,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
