@@ -20,6 +20,7 @@ import ImageOCR from "./pages/ImageOCR";
 import ImageWatermark from "./pages/ImageWatermark";
 import RemoveBg from "./pages/RemoveBg";
 import RotateFlip from "./pages/RotateFlip";
+import PdfRotateFlip from "./pages/PdfRotateFlip";
 import ImageCompress from "./pages/ImageCompress";
 import ImageResize from "./pages/ImageResize";
 import ImageUpscale from "./pages/ImageUpscale";
@@ -47,6 +48,7 @@ function App() {
           <Route path="/image-to-pdf" element={<ImagePdf />} />
           <Route path="/pdf-merge" element={<PdfMerge />} />
           <Route path="/pdf-split" element={<PdfSplit />} />
+          <Route path="/pdf-rotate-flip" element={<PdfRotateFlip />} />
           <Route path="/pdf-sign" element={<PdfSign />} />
           
           <Route path="/image-to-webp" element={<ImageWebp />} />

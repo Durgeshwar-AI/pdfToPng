@@ -60,7 +60,7 @@ export default function RotateFlip() {
     }
   };
 
-  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType, previewUrl }) => {
+  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
     if (!file) return null;
 
     return (
@@ -83,7 +83,6 @@ export default function RotateFlip() {
           ))}
         </div>
 
-        {/* Action buttons */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {ACTIONS.map(({ id, label, icon }) => (
             <button

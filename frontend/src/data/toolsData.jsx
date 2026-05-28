@@ -55,6 +55,16 @@ const tools = [
     iconGradient: "from-sky-500 to-cyan-500",
   },
   {
+    id: "pdf-rotate-flip",
+    name: "PDF Rotate & Flip",
+    icon: <RotateCcw />,
+    description:
+      "Rotate or flip all PDF pages, or only selected pages and ranges (e.g. 1,3,7 or 1-10).",
+    path: "/pdf-rotate-flip",
+    gradient: "from-indigo-500/10 to-violet-500/10",
+    iconGradient: "from-indigo-500 to-violet-500",
+  },
+  {
     id: "pdf-sign",
     name: "PDF Sign",
     icon: <PenTool />,
