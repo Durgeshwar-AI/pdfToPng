@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
-import { useFileUpload } from "../hooks/useFileUpload";
-import FileUploadArea from "../components/FileUploadArea";
+import ToolPageTemplate from "../components/ToolPageTemplate";
 import { Expand, Image as ImageIcon } from "lucide-react";
 
 function ImageResize() {
@@ -17,31 +16,11 @@ function ImageResize() {
         ).toFixed(1)} KB)`,
       };
     }
-
     return {
       isValid: false,
       message: "Error: Please select an image file (PNG, JPG, JPEG, WEBP, etc.)",
     };
   }, []);
-
-  const {
-    file,
-    loading,
-    setLoading,
-    isDragging,
-    statusMessage,
-    setStatusMessage,
-    previewUrl,
-    fileInputRef,
-    dropAreaRef,
-    handleFileChange,
-    handleClear,
-    handleDragEnter,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop,
-    handleAreaClick,
-  } = useFileUpload(validateFile);
 
   const presets = [
     { name: "Small", width: 640, height: 480 },
@@ -82,225 +61,221 @@ function ImageResize() {
     setDimensions({ width: String(width), height: String(height) });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!file) {
-      setStatusMessage("Please select a file first");
-      setTimeout(() => setStatusMessage(""), 3000);
-      return;
-    }
-
-    if (!areValidDimensions()) {
-      setStatusMessage(
-        maintainAspectRatio
-          ? `Please enter a valid positive width in ${unit}`
-          : `Please enter valid positive width and height values in ${unit}`,
-      );
-      setTimeout(() => setStatusMessage(""), 3000);
-      return;
-    }
-
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("image", file);
+  const modifyFormData = (formData) => {
     formData.append("width", dimensions.width);
     formData.append("height", dimensions.height);
     formData.append("unit", unit);
     formData.append("maintainAspectRatio", String(maintainAspectRatio));
+  };
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/resizeImage`, {
-        method: "POST",
-        body: formData,
-      });
+ 
+const getValidationError = (dimensions, maintainAspectRatio, unit) => {
+  const width = Number(dimensions.width);
+  const height = Number(dimensions.height);
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        const extension = file.name.includes(".")
-          ? file.name.slice(file.name.lastIndexOf("."))
-          : ".png";
-        const baseName = file.name.includes(".")
-          ? file.name.replace(/\.[^.]+$/, "")
-          : file.name;
+ 
+  if (!String(dimensions.width).trim()) return `Please enter a width in ${unit}.`;
+  if (width <= 0) return `Width must be greater than 0 ${unit}.`;
 
-        a.href = url;
-        a.download = `${baseName}_resized${extension}`;
 
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+  if (!maintainAspectRatio) {
+    if (!String(dimensions.height).trim()) return `Please enter a height in ${unit}.`;
+    if (height <= 0) return `Height must be greater than 0 ${unit}.`;
+  }
 
-        setStatusMessage(
-          maintainAspectRatio
-            ? `Success! Image resized using width ${dimensions.width} ${unit} with aspect ratio preserved.`
-            : `Success! Image resized to ${dimensions.width} x ${dimensions.height} ${unit}.`,
-        );
-        setTimeout(() => setStatusMessage(""), 5000);
-      } else {
-        const error = await response.json();
-        setStatusMessage(`Error: ${error.error || "Resize failed"}`);
-        setTimeout(() => setStatusMessage(""), 5000);
-      }
-    } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to resize image"}`);
-      setTimeout(() => setStatusMessage(""), 5000);
-    } finally {
-      setLoading(false);
-    }
+  return null; 
+};
+
+
+const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
+  const errorMessage = getValidationError(dimensions, maintainAspectRatio, unit);
+
+  if (errorMessage) {
+    setStatusMessage(errorMessage);
+    setStatusType("error");
+    
+   
+    setTimeout(() => setStatusMessage(""), 3000);
+    
+    return false;
+  }
+
+  return true;
+};
+
+  const extraFields = ({ file }) => {
+    if (!file) return null;
+    return (
+      <div className="w-full max-w-[500px] mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100 text-left">
+        <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-gray-700">
+          <ImageIcon className="w-4 h-4 text-blue-500" />
+          Resize Presets
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
+          {presets.map((preset) => {
+            const isActive =
+              dimensions.width === String(preset.width) &&
+              dimensions.height === String(preset.height) &&
+              unit === "px";
+
+            return (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => applyPreset(preset.width, preset.height)}
+                className={`flex flex-col items-center gap-1 p-3 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                  isActive
+                    ? "bg-blue-50 border-blue-200 text-blue-600"
+                    : "bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                <span>{preset.name}</span>
+                <span>{preset.width} x {preset.height}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Resize Unit
+          </label>
+          <select
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          >
+            <option value="px">Pixels (px)</option>
+            <option value="mm">Millimeters (mm)</option>
+            <option value="cm">Centimeters (cm)</option>
+          </select>
+        </div>
+
+        <label className="flex items-center gap-3 mb-6 rounded-lg border border-gray-200 px-4 py-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={maintainAspectRatio}
+            onChange={(e) => setMaintainAspectRatio(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <div>
+            <span className="block text-sm font-semibold text-gray-700">
+              Keep aspect ratio
+            </span>
+            <span className="block text-xs text-gray-500">
+              Height will be auto-calculated from the width in {unit}.
+            </span>
+          </div>
+        </label>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label className="text-left">
+            <span className="block text-sm font-semibold text-gray-700 mb-2">
+              Width ({unit})
+            </span>
+            <input
+              type="number"
+              min="1"
+              step={unit === "px" ? "1" : "0.1"}
+              value={dimensions.width}
+              onChange={(e) => handleDimensionChange("width", e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+
+          <label className="text-left">
+            <span className="block text-sm font-semibold text-gray-700 mb-2">
+              Height ({unit})
+            </span>
+            <input
+              type="number"
+              min="1"
+              step={unit === "px" ? "1" : "0.1"}
+              value={dimensions.height}
+              onChange={(e) => handleDimensionChange("height", e.target.value)}
+              disabled={maintainAspectRatio}
+              className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+            />
+            {maintainAspectRatio && (
+              <span className="block mt-2 text-xs text-gray-500">
+                Height will be calculated automatically from the original image ratio.
+              </span>
+            )}
+          </label>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="w-full max-w-[700px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
-        Image Resize
-      </h1>
+    <ToolPageTemplate
+      title="Image Resize"
+      accept="image/*"
+      validateFile={validateFile}
+      apiEndpoint="/resizeImage"
+      fileFieldName="image"
+      modifyFormData={modifyFormData}
+      onSubmit={async (context) => {
+        const { file, formData, setStatusMessage, setLoading, setStatusType } = context;
+        if (!handleBeforeSubmit(setStatusMessage, setStatusType)) {
+          setLoading(false);
+          return;
+        }
 
-      <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
-        <FileUploadArea
-          file={file}
-          previewUrl={previewUrl}
-          isDragging={isDragging}
-          fileInputRef={fileInputRef}
-          dropAreaRef={dropAreaRef}
-          handleFileChange={handleFileChange}
-          handleClear={handleClear}
-          handleDragEnter={handleDragEnter}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          handleAreaClick={handleAreaClick}
-          accept="image/*"
-          inputId="resize-input"
-          defaultIcon={<Expand className="w-16 h-16" />}
-          defaultText="Upload image for resizing"
-          supportText="Choose a preset or enter custom dimensions and unit"
-        />
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/resizeImage`, {
+            method: "POST",
+            body: formData,
+          });
 
-        {file && (
-          <div className="w-full max-w-[500px] mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-gray-700">
-              <ImageIcon className="w-4 h-4 text-blue-500" />
-              Resize Presets
-            </div>
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            const extension = file.name.includes(".")
+              ? file.name.slice(file.name.lastIndexOf("."))
+              : ".png";
+            const baseName = file.name.includes(".")
+              ? file.name.replace(/\.[^.]+$/, "")
+              : file.name;
 
-            <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
-              {presets.map((preset) => {
-                const isActive =
-                  dimensions.width === String(preset.width) &&
-                  dimensions.height === String(preset.height);
+            a.href = url;
+            a.download = `${baseName}_resized${extension}`;
 
-                return (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    onClick={() => applyPreset(preset.width, preset.height)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-lg text-xs font-bold transition-all border ${
-                      isActive
-                        ? "bg-blue-50 border-blue-200 text-blue-600"
-                        : "bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-300"
-                    }`}
-                  >
-                    <span>{preset.name}</span>
-                    <span>{preset.width} x {preset.height}</span>
-                  </button>
-                );
-              })}
-            </div>
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
 
-            <div className="mb-6 text-left">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Resize Unit
-              </label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="px">Pixels (px)</option>
-                <option value="mm">Millimeters (mm)</option>
-                <option value="cm">Centimeters (cm)</option>
-              </select>
-            </div>
-
-            <label className="flex items-center gap-3 mb-6 text-left rounded-lg border border-gray-200 px-4 py-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={maintainAspectRatio}
-                onChange={(e) => setMaintainAspectRatio(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <div>
-                <span className="block text-sm font-semibold text-gray-700">
-                  Keep aspect ratio
-                </span>
-                <span className="block text-xs text-gray-500">
-                  Height will be auto-calculated from the width in {unit}.
-                </span>
-              </div>
-            </label>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <label className="text-left">
-                <span className="block text-sm font-semibold text-gray-700 mb-2">
-                  Width ({unit})
-                </span>
-                <input
-                  type="number"
-                  min="1"
-                  step={unit === "px" ? "1" : "0.1"}
-                  value={dimensions.width}
-                  onChange={(e) => handleDimensionChange("width", e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                />
-              </label>
-
-              <label className="text-left">
-                <span className="block text-sm font-semibold text-gray-700 mb-2">
-                  Height ({unit})
-                </span>
-                <input
-                  type="number"
-                  min="1"
-                  step={unit === "px" ? "1" : "0.1"}
-                  value={dimensions.height}
-                  onChange={(e) => handleDimensionChange("height", e.target.value)}
-                  disabled={maintainAspectRatio}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                />
-                {maintainAspectRatio && (
-                  <span className="block mt-2 text-xs text-gray-500">
-                    Height will be calculated automatically from the original image ratio.
-                  </span>
-                )}
-              </label>
-            </div>
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={!file || loading}
-          className="bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 border-none rounded-lg cursor-pointer text-lg font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] tracking-wide relative overflow-hidden w-full max-w-[300px] mx-auto hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 active:enabled:shadow-[0_2px_8px_rgba(59,130,246,0.2)] disabled:bg-gradient-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          {loading ? (
-            <>
-              <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
-              Resizing...
-            </>
-          ) : (
-            `Resize Image (${unit})`
-          )}
-        </button>
-
-        {statusMessage && (
-          <p className="mt-6 text-[0.95rem] text-[#4b5563]">{statusMessage}</p>
-        )}
-      </form>
-    </div>
+            setStatusMessage(
+              maintainAspectRatio
+                ? `Success! Image resized using width ${dimensions.width} ${unit} with aspect ratio preserved.`
+                : `Success! Image resized to ${dimensions.width} x ${dimensions.height} ${unit}.`,
+            );
+            setStatusType("success");
+          } else {
+            const error = await response.json();
+            setStatusMessage(`Error: ${error.error || "Resize failed"}`);
+            setStatusType("error");
+          }
+        } catch (error) {
+          setStatusMessage(`Error: ${error.message || "Failed to resize image"}`);
+          setStatusType("error");
+        } finally {
+          setLoading(false);
+          setTimeout(() => setStatusMessage(""), 5000);
+        }
+      }}
+      submitButtonText={`Resize Image (${unit})`}
+      loadingButtonText="Resizing..."
+      extraFields={extraFields}
+      maxWidthClass="max-w-[700px]"
+      defaultIcon={<Expand className="w-16 h-16" />}
+      defaultText="Upload image for resizing"
+      supportText="Choose a preset or enter custom dimensions and unit"
+      inputId="resize-input"
+    />
   );
 }
 

@@ -1,12 +1,12 @@
-import { useState, useCallback } from "react";
-import { useFileUpload } from "../hooks/useFileUpload";
-import FileUploadArea from "../components/FileUploadArea";
+import React, { useState, useCallback } from "react";
+import ToolPageTemplate from "../components/ToolPageTemplate";
+import { Info, Copy, Check, Download } from "lucide-react";
 
-function ImageMetadata() {
+export default function ImageMetadata() {
   const [metadata, setMetadata] = useState(null);
+  const [securityReport, setSecurityReport] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
-  const [stripping, setStripping] = useState(false);
-
+  
   const validateFile = useCallback((selectedFile) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
@@ -18,274 +18,310 @@ function ImageMetadata() {
     }
     return {
       isValid: false,
-      message: "Error: Please select an image file (JPEG, PNG, TIFF, BMP, WebP)",
+      message: "Error: Please select an image file (PNG, JPG, JPEG, WEBP, etc.)",
     };
   }, []);
 
-  const {
-    file,
-    loading,
-    setLoading,
-    isDragging,
-    statusMessage,
-    setStatusMessage,
-    previewUrl,
-    fileInputRef,
-    dropAreaRef,
-    handleFileChange,
-    handleClear,
-    handleDragEnter,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop,
-    handleAreaClick,
-  } = useFileUpload(validateFile);
-
-  const handleClearAll = (e) => {
-    handleClear(e);
+  const handleClear = () => {
     setMetadata(null);
+    setSecurityReport(null);
     setCopiedKey(null);
   };
 
-  // ── View Metadata ──────────────────────────────────────────────────────────
-  const handleViewMetadata = async (e) => {
-    e.preventDefault();
-    if (!file) {
-      setStatusMessage("Please select a file first");
-      setTimeout(() => setStatusMessage(""), 3000);
-      return;
-    }
-
-    setLoading(true);
+  const handleViewMetadata = async ({ file, formData, setStatusMessage, setLoading, setStatusType }) => {
     setMetadata(null);
-
-    const formData = new FormData();
-    formData.append("image", file);
-
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/view-metadata`,
-        { method: "POST", body: formData }
-      );
-
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/view-metadata`, {
+        method: "POST",
+        body: formData,
+      });
       const data = await response.json();
-
       if (!response.ok) {
         setStatusMessage(`Error: ${data.error || "Failed to read metadata"}`);
-        setTimeout(() => setStatusMessage(""), 5000);
+        setStatusType("error");
         return;
       }
-
       if (data.message) {
         setStatusMessage(data.message);
-        setTimeout(() => setStatusMessage(""), 4000);
+        setStatusType("info");
         return;
       }
-
       setMetadata(data.metadata);
-      setStatusMessage("");
+      setSecurityReport(data.security_report);
+      setStatusMessage("Success! Metadata loaded.");
+      setStatusType("success");
     } catch (err) {
       setStatusMessage(`Error: ${err.message || "Failed to read metadata"}`);
-      setTimeout(() => setStatusMessage(""), 5000);
+      setStatusType("error");
     } finally {
       setLoading(false);
+      setTimeout(() => setStatusMessage(""), 5000);
     }
   };
 
-  // ── Copy to Clipboard ──────────────────────────────────────────────────────
-  const handleCopy = async (key, value) => {
-    try {
-      await navigator.clipboard.writeText(String(value));
-      setCopiedKey(key);
-      setTimeout(() => setCopiedKey(null), 2000);
-    } catch {
-      setCopiedKey(null);
-    }
-  };
-
-  const handleCopyAll = async () => {
-    if (!metadata) return;
-    const text = Object.entries(metadata)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join("\n");
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedKey("__all__");
-      setTimeout(() => setCopiedKey(null), 2000);
-    } catch {
-      setCopiedKey(null);
-    }
-  };
-
-  // ── Strip Metadata ─────────────────────────────────────────────────────────
-  const handleStrip = async () => {
+  const handleStripMetadata = async (file, setLoading, setStatusMessage, setStatusType) => {
     if (!file) return;
-    setStripping(true);
-
+    setLoading(true);
+    setStatusMessage("");
+    
     const formData = new FormData();
     formData.append("image", file);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/strip-metadata`,
-        { method: "POST", body: formData }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/strip-metadata`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) {
         const data = await response.json();
-        setStatusMessage(`Error: ${data.error || "Failed to strip metadata"}`);
-        setTimeout(() => setStatusMessage(""), 5000);
-        return;
+        throw new Error(data.error || "Failed to strip metadata");
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const ext = file.name.match(/\.[^.]+$/)?.[0] || ".jpg";
-      a.download = `${file.name.replace(/\.[^.]+$/, "")}_stripped${ext}`;
+
+      const extension = file.name.includes(".")
+        ? file.name.slice(file.name.lastIndexOf("."))
+        : ".png";
+      const baseName = file.name.includes(".")
+        ? file.name.replace(/\.[^.]+$/, "")
+        : file.name;
+      a.download = `${baseName}_stripped${extension}`;
+
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url);
 
-      setStatusMessage("Success! Clean image without metadata downloaded.");
-      setTimeout(() => setStatusMessage(""), 5000);
+      setStatusMessage("Success! Metadata stripped and image downloaded.");
+      setStatusType("success");
     } catch (err) {
       setStatusMessage(`Error: ${err.message || "Failed to strip metadata"}`);
-      setTimeout(() => setStatusMessage(""), 5000);
+      setStatusType("error");
     } finally {
-      setStripping(false);
+      setLoading(false);
+      setTimeout(() => setStatusMessage(""), 5000);
     }
   };
+  const handleCleanAndDownload = async (file, setLoading, setStatusMessage, setStatusType) => {
+  if (!file) return;
 
-  const metadataEntries = metadata ? Object.entries(metadata) : [];
+  setLoading(true);
+  setStatusMessage("Cleaning metadata...");
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/strip-metadata`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error("Failed to clean image");
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+
+    const baseName = file.name.replace(/\.[^.]+$/, "");
+    const extension = file.name.includes(".") ? file.name.split(".").pop() : "png";
+
+    a.download = `${baseName}_privacy_cleaned.${extension}`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+
+    setStatusMessage("Privacy cleaned successfully!");
+    setStatusType("success");
+
+    // optional UX reset
+    setMetadata(null);
+    setSecurityReport(null);
+  } catch (err) {
+    setStatusMessage(`Error: ${err.message}`);
+    setStatusType("error");
+  } finally {
+    setLoading(false);
+    setTimeout(() => setStatusMessage(""), 4000);
+  }
+};
+  const copyToClipboard = (key, value) => {
+    navigator.clipboard.writeText(`${key}: ${value}`);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 1500);
+  };
+
+  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
+    if (!metadata) return null;
+
+    const keys = Object.keys(metadata);
+
+    return (
+      <div className="w-full mt-8 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-[#1a1a2e]">Image Metadata</h3>
+          <button
+            onClick={() => handleStripMetadata(file, setLoading, setStatusMessage, setStatusType)}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-red-600 hover:to-rose-700 transition-all cursor-pointer disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
+          >
+            <Download size={16} />
+            Strip Metadata & Download
+          </button>
+           <button
+    onClick={() =>
+      handleCleanAndDownload(file, setLoading, setStatusMessage, setStatusType)
+    }
+    disabled={loading}
+    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-green-600 hover:to-emerald-700 transition-all cursor-pointer disabled:opacity-50"
+  >
+    <Download size={16} />
+    One-Click Clean
+  </button>
+        </div>
+{securityReport && (
+  <div className="mb-6 p-4 rounded-xl border bg-yellow-50 border-yellow-200">
+    <div className="flex items-center justify-between">
+      <h3 className="font-semibold text-yellow-800">
+      <span
+  className={`px-3 py-1 rounded-full text-xs font-bold ${
+    securityReport.risk_level === "HIGH"
+      ? "bg-red-100 text-red-700"
+      : securityReport.risk_level === "MEDIUM"
+      ? "bg-yellow-100 text-yellow-700"
+      : "bg-green-100 text-green-700"
+  }`}
+>
+  Privacy Risk: {securityReport.risk_level}
+</span>
+      </h3>
+      <div className="flex flex-col gap-2">
+  <span className="text-sm font-bold text-yellow-700">
+    Score: {securityReport.risk_score}/100
+  </span>
+
+  {/* Risk Progress Bar */}
+  <div className="w-40 h-2 bg-gray-200 rounded-full overflow-hidden">
+    <div
+      className={`h-full transition-all duration-500 ${
+        securityReport.risk_level === "HIGH"
+          ? "bg-red-500"
+          : securityReport.risk_level === "MEDIUM"
+          ? "bg-yellow-500"
+          : "bg-green-500"
+      }`}
+      style={{ width: `${securityReport.risk_score}%` }}
+    />
+  </div>
+</div>
+    </div>
+
+    <div className="mt-3 text-sm text-yellow-900">
+      <p className="font-medium mb-2">Sensitive Data Detected:</p>
+      <ul className="list-disc ml-5 space-y-1">
+        {securityReport.sensitive_fields?.map((item, idx) => (
+          <li key={idx}>
+            <span className="font-semibold">{item.field}</span> — {item.description}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div className="mt-3 text-sm text-yellow-900">
+      <p className="font-medium mb-2">Recommended Actions:</p>
+      <ul className="list-disc ml-5 space-y-1">
+        {securityReport.recommended_actions?.map((a, i) => (
+          <li key={i}>{a}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+)}
+        {keys.length === 0 ? (
+          <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center text-sm text-gray-500">
+            No metadata found in this image.
+          </div>
+        ) : (
+          <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm bg-white">
+            <div className="overflow-x-auto max-h-[350px]">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-1/3">
+                      Tag / Field
+                    </th>
+                    <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Value
+                    </th>
+                    <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16 text-center">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {keys.map((key) => {
+                    const value = typeof metadata[key] === "object"
+                      ? JSON.stringify(metadata[key])
+                      : String(metadata[key]);
+
+                    return (
+                      <tr key={key} className="hover:bg-gray-50/50">
+                        <td className="px-4 py-3 text-xs font-mono text-gray-600 break-all font-semibold">
+                          {key}
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono text-gray-600 break-all max-w-xs">
+                          {value}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => copyToClipboard(key, value)}
+                            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                            title="Copy tag and value"
+                          >
+                            {copiedKey === key ? (
+                              <Check size={14} className="text-green-500" />
+                            ) : (
+                              <Copy size={14} />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-
-      {/* Title */}
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
-        Image Metadata Viewer
-      </h1>
-
-      <form onSubmit={handleViewMetadata} className="w-full flex flex-col items-center">
-
-        {/* Upload Area */}
-        <FileUploadArea
-          file={file}
-          previewUrl={previewUrl}
-          isDragging={isDragging}
-          fileInputRef={fileInputRef}
-          dropAreaRef={dropAreaRef}
-          handleFileChange={handleFileChange}
-          handleClear={handleClearAll}
-          handleDragEnter={handleDragEnter}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          handleAreaClick={handleAreaClick}
-          accept="image/*"
-          inputId="metadata-input"
-          defaultIcon={
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="2" />
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" stroke="currentColor" strokeWidth="2" />
-            </svg>
-          }
-          defaultText="Choose image file or drag & drop here"
-          supportText="Full EXIF support for JPEG, TIFF | Basic info for PNG, WebP, BMP"
-        />
-
-        {/* View Metadata button */}
-        <button
-          type="submit"
-          disabled={!file || loading}
-          className="bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 border-none rounded-lg cursor-pointer text-lg font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] tracking-wide relative overflow-hidden w-full max-w-[300px] mx-auto hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 active:enabled:shadow-[0_2px_8px_rgba(59,130,246,0.2)] disabled:bg-gradient-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          {loading ? (
-            <>
-              <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
-              Reading...
-            </>
-          ) : (
-            "View Metadata"
-          )}
-        </button>
-
-        {/* Status message */}
-        {statusMessage && (
-          <p className="mt-6 text-[0.95rem] text-[#4b5563]">{statusMessage}</p>
-        )}
-      </form>
-
-      {/* Metadata Table */}
-      {metadataEntries.length > 0 && (
-        <div className="w-full mt-8">
-
-          {/* Table header with Copy All button */}
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-[#1a1a2e]">
-              {metadataEntries.length} fields found
-            </p>
-            <button
-              onClick={handleCopyAll}
-              className="text-sm px-3 py-1.5 rounded-lg border border-[#c7d2fe] text-[#4361ee] bg-white hover:bg-[#eef2ff] transition-all duration-200 font-medium"
-            >
-              {copiedKey === "__all__" ? "✓ Copied All" : "Copy All"}
-            </button>
-          </div>
-
-          {/* Rows */}
-          <div className="w-full flex flex-col gap-2 text-left">
-            {metadataEntries.map(([key, value]) => (
-              <div
-                key={key}
-                className="flex items-center justify-between bg-[#f0f9ff] border-l-[3px] border-[#0ea5e9] px-4 py-2.5 rounded-lg shadow-[0_2px_5px_rgba(0,0,0,0.04)]"
-              >
-                <div className="flex-1 min-w-0 mr-3">
-                  <p className="text-xs font-semibold text-[#6b7280] uppercase tracking-wide mb-0.5">
-                    {key}
-                  </p>
-                  <p className="text-sm text-[#1a1a2e] font-medium truncate" title={String(value)}>
-                    {String(value)}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleCopy(key, value)}
-                  className="flex-shrink-0 text-xs px-2.5 py-1 rounded-md border border-[#c7d2fe] text-[#4361ee] bg-white hover:bg-[#eef2ff] transition-all duration-200 font-medium"
-                >
-                  {copiedKey === key ? "✓" : "Copy"}
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Strip metadata button */}
-          <button
-            onClick={handleStrip}
-            disabled={stripping}
-            className="mt-6 w-full py-3.5 px-8 rounded-lg border-2 border-red-400 text-red-500 bg-white font-semibold text-base transition-all duration-300 hover:enabled:bg-red-50 hover:enabled:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {stripping ? (
-              <>
-                <span className="inline-block w-4 h-4 border-[3px] border-red-200 rounded-full border-t-red-500 animate-spin mr-2"></span>
-                Stripping...
-              </>
-            ) : (
-              "Strip Metadata & Download"
-            )}
-          </button>
-
-          {/* Info note */}
-          <p className="mt-4 text-xs text-[#6b7280] text-center">
-            Strip removes all hidden metadata and downloads a clean copy of your image.
-          </p>
-        </div>
-      )}
-    </div>
+    <ToolPageTemplate
+      title="Metadata Viewer"
+      accept="image/*"
+      validateFile={validateFile}
+      onSubmit={handleViewMetadata}
+      onClear={handleClear}
+      submitButtonText="View Metadata"
+      loadingButtonText="Reading Metadata..."
+      extraContent={extraContent}
+      showSubmitButton={!metadata}
+      maxWidthClass="max-w-[800px]"
+      inputId="metadata-input"
+      defaultIcon={<Info className="w-16 h-16" />}
+      defaultText="Choose image file or drag & drop here"
+      supportText="Upload image to view, inspect or strip metadata"
+    />
   );
 }
-
-export default ImageMetadata;

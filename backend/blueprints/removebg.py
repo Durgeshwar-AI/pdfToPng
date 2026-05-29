@@ -1,7 +1,5 @@
 import io
-import traceback
-
-from flask import Blueprint, request
+from flask import Blueprint
 from PIL import Image
 from rembg import remove
 

@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, request, jsonify
 from PIL import Image, ImageFile
 from werkzeug.utils import secure_filename
@@ -7,7 +8,8 @@ import io
 import zipfile
 
 # Prevent decompression bomb attacks
-Image.MAX_IMAGE_PIXELS = 50000000
+MAX_PIXELS = int(os.getenv("MAX_IMAGE_PIXELS", "50000000"))
+Image.MAX_IMAGE_PIXELS = MAX_PIXELS
 
 # Allow partially corrupted images
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -237,7 +239,7 @@ def convert_dpi():
             img.load()
 
             # Image size protection
-            if img.size[0] * img.size[1] > 100000000:
+            if img.size[0] * img.size[1] > MAX_PIXELS:
                 raise ValueError("Image too large")
 
             img, _ = set_dpi(

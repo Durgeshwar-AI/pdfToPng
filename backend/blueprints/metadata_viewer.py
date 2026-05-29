@@ -1,12 +1,11 @@
 import os
 from io import BytesIO
 
-import piexif
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from PIL import Image, ExifTags
-from werkzeug.utils import secure_filename
 
-from utils.helpers import error, send_file_and_cleanup
+from utils.decorators import process_image_request
+from utils.helpers import send_file_and_cleanup
 
 metadata_bp = Blueprint("metadata", __name__)
 
@@ -275,76 +274,120 @@ def _extract_metadata(img, file_bytes, filename):
 
     return metadata
 
+def _analyze_metadata_security(metadata: dict):
+    sensitive_fields = {
+        "GPS Latitude": "GPS location detected",
+        "GPS Longitude": "GPS location detected",
+        "GPS Maps Link": "GPS location detected",
+        "Camera Make": "Device information detected",
+        "Camera Model": "Device information detected",
+        "Software": "Software/device metadata detected",
+        "Artist": "Author information detected",
+        "Copyright": "Ownership information detected",
+        "Date Taken": "Timestamp detected",
+        "Date Modified": "Timestamp detected",
+        "Date Digitized": "Timestamp detected",
+        "User Comment": "User-generated hidden data detected",
+    }
 
+    found = []
+    risk_score = 0
+
+    for key in metadata.keys():
+        if key in sensitive_fields:
+            found.append({
+                "field": key,
+                "description": sensitive_fields[key],
+                "value": metadata[key]
+            })
+
+            # scoring rules
+            if "GPS" in key:
+                risk_score += 40
+            elif key in ("Artist", "Copyright"):
+                risk_score += 25
+            elif "Date" in key:
+                risk_score += 15
+            else:
+                risk_score += 10
+
+    # cap score
+    risk_score = min(risk_score, 100)
+
+    # risk level
+    if risk_score >= 70:
+        risk_level = "HIGH"
+    elif risk_score >= 40:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "LOW"
+
+    # suggestions
+    actions = []
+
+    if any("GPS" in f["field"] for f in found):
+        actions.append("Remove GPS metadata")
+    if any(f["field"] == "Artist" for f in found):
+        actions.append("Remove author information")
+    if any("Date" in f["field"] for f in found):
+        actions.append("Strip timestamps")
+    if found:
+        actions.append("Strip all metadata (recommended)")
+
+    return {
+        "risk_score": risk_score,
+        "risk_level": risk_level,
+        "sensitive_fields": found,
+        "recommended_actions": actions
+    }
 # ── routes ────────────────────────────────────────────────────────────────────
 
 @metadata_bp.route("/view-metadata", methods=["POST"])
-def view_metadata():
-    if "image" not in request.files:
-        return error("No image provided")
-    file = request.files["image"]
-    if not file.filename:
-        return error("No file selected")
-    try:
-        file_bytes = file.read()
-        img = Image.open(BytesIO(file_bytes))
-        img.load()
-        filename = secure_filename(file.filename)
-        metadata = _extract_metadata(img, file_bytes, filename)
-        img.close()
-        return jsonify({"metadata": metadata})
-    except Exception as e:
-        return error(f"Failed to read metadata: {str(e)}", 500)
+@process_image_request
+def view_metadata(img, filename, file_bytes):
+    img.load()
+    metadata = _extract_metadata(img, file_bytes, filename)
+    security_report = _analyze_metadata_security(metadata)
+
+    return jsonify({
+        "metadata": metadata,
+        "security_report": security_report
+    })
 
 
 @metadata_bp.route("/strip-metadata", methods=["POST"])
-def strip_metadata():
-    if "image" not in request.files:
-        return error("No image provided")
-    file = request.files["image"]
-    if not file.filename:
-        return error("No file selected")
+@process_image_request
+def strip_metadata(img, filename, file_bytes):
+    ext = os.path.splitext(filename)[1].lower()
+    img.load()
+    buf = BytesIO()
 
-    img = None
-    try:
-        filename   = secure_filename(file.filename)
-        ext        = os.path.splitext(filename)[1].lower()
-        file_bytes = file.read()
-        img = Image.open(BytesIO(file_bytes))
-        img.load()
-        buf = BytesIO()
+    if ext in (".jpg", ".jpeg"):
+        clean = img.convert("RGB") if img.mode != "RGB" else img
+        clean.save(buf, format="JPEG", quality=95, subsampling=0)
+        mimetype, out_ext = "image/jpeg", ".jpg"
+    elif ext == ".png":
+        clean = Image.new(img.mode, img.size)
+        clean.putdata(list(img.getdata()))
+        clean.save(buf, format="PNG")
+        mimetype, out_ext = "image/png", ".png"
+    elif ext in (".tiff", ".tif"):
+        img.save(buf, format="TIFF")
+        mimetype, out_ext = "image/tiff", ".tiff"
+    elif ext == ".bmp":
+        img.save(buf, format="BMP")
+        mimetype, out_ext = "image/bmp", ".bmp"
+    elif ext == ".webp":
+        img.save(buf, format="WEBP", quality=95)
+        mimetype, out_ext = "image/webp", ".webp"
+    else:
+        raise ValueError("Unsupported file format")
 
-        if ext in (".jpg", ".jpeg"):
-            clean = img.convert("RGB") if img.mode != "RGB" else img
-            clean.save(buf, format="JPEG", quality=95, subsampling=0)
-            mimetype, out_ext = "image/jpeg", ".jpg"
-        elif ext == ".png":
-            clean = Image.new(img.mode, img.size)
-            clean.putdata(list(img.getdata()))
-            clean.save(buf, format="PNG")
-            mimetype, out_ext = "image/png", ".png"
-        elif ext in (".tiff", ".tif"):
-            img.save(buf, format="TIFF")
-            mimetype, out_ext = "image/tiff", ".tiff"
-        elif ext == ".bmp":
-            img.save(buf, format="BMP")
-            mimetype, out_ext = "image/bmp", ".bmp"
-        elif ext == ".webp":
-            img.save(buf, format="WEBP", quality=95)
-            mimetype, out_ext = "image/webp", ".webp"
-        else:
-            return error("Unsupported file format")
-
-        buf.seek(0)
-        base = os.path.splitext(filename)[0]
-        return send_file_and_cleanup(
-            buf.getvalue(),
-            mimetype=mimetype,
-            as_attachment=True,
-            download_name=f"{base}_stripped{out_ext}",
-        )
-    except Exception as e:
-        return error(f"Failed to strip metadata: {str(e)}", 500)
-    finally:
-        if img:
-            img.close()
+    buf.seek(0)
+    base = os.path.splitext(filename)[0]
+    return send_file_and_cleanup(
+        buf.getvalue(),
+        mimetype=mimetype,
+        as_attachment=True,
+        download_name=f"{base}_stripped{out_ext}",
+    )

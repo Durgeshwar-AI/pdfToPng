@@ -1,20 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  FileText,
-  Image,
-  FileImage,
-  Eraser,
-  RotateCcw,
-  X,
-  Sliders,
-  Expand,
-  Gauge,
-  Info,
-  Code,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
+import tools from "../../data/toolsData";
 
 const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -22,74 +9,12 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
-  const menuItems = [
-    {
-      id: "pdf-to-png",
-      label: "PDF to PNG",
-      icon: <FileText className="w-5 h-5" />,
-      description: "Convert PDF to PNG",
-    },
-    {
-      id: "image-compress",
-      label: "Image Compressor",
-      icon: <Sliders className="w-5 h-5" />,
-      description: "Compress images with quality control",
-    },
-    {
-      id: "image-upscale",
-      label: "AI Upscaler",
-      icon: <Sliders className="w-5 h-5 text-purple-500" />,
-      description: "Increase image resolution",
-    },
-    {
-      id: "image-to-webp",
-      label: "Image to WebP",
-      icon: <Image className="w-5 h-5" />,
-      description: "Convert to WebP",
-    },
-    {
-      id: "image-to-jpg",
-      label: "Image to JPG",
-      icon: <FileImage className="w-5 h-5" />,
-      description: "Convert to JPG",
-    },
-    {
-      id: "remove-bg",
-      label: "Remove Background",
-      icon: <Eraser className="w-5 h-5" />,
-      description: "Remove background",
-    },
-    {
-      id: "rotate-flip",
-      label: "Rotate & Flip",
-      icon: <RotateCcw className="w-5 h-5" />,
-      description: "Rotate or flip images",
-    },
-    {
-      id: "image-resize",
-      label: "Image Resize",
-      icon: <Expand className="w-5 h-5" />,
-      description: "Resize images",
-    },
-    {
-      id: "image-dpi",
-      label: "Image DPI Converter",
-      icon: <Gauge className="w-5 h-5" />,
-      description: "Change image DPI",
-    },
-    {
-      id: "image-metadata",
-      label: "Metadata Viewer",
-      icon: <Info className="w-5 h-5" />,
-      description: "View & strip image metadata",
-    },
-    {
-      id: "image-to-base64",
-      label: "Image to Base64",
-      icon: <Code className="w-5 h-5" />,
-      description: "Convert image to Base64 Data URI",
-    },
-  ];
+  const menuItems = tools.map((t) => ({
+    id: t.id,
+    label: t.name,
+    icon: React.cloneElement(t.icon, { className: "w-5 h-5" }),
+    description: t.description,
+  }));
 
   const handleNavigation = (id) => {
     navigate(`/${id}`);
