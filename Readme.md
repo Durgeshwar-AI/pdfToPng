@@ -302,7 +302,7 @@ Available endpoints:
 - `POST /watermark-image` – Add watermarks to an image
 - `POST /image-to-base64` – Convert image to Base64
 
-**Mark Down Endpoints **
+**Mark Down Endpoints**
 
 - `POST /convertMdToHtml` – Converts MD to HTML
 
