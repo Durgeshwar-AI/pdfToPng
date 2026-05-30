@@ -1,4 +1,5 @@
 import React from "react";
+import OutputFilenameInput from "./OutputFilenameInput";
 
 const FileUploadArea = ({
   file,
@@ -19,6 +20,9 @@ const FileUploadArea = ({
   defaultText,
   supportText,
   pdfIcon,
+  outputFilename,
+  onOutputFilenameChange,
+  outputFilenamePlaceholder,
 }) => {
   return (
     <div
@@ -133,6 +137,14 @@ const FileUploadArea = ({
                 ? `${file.name.substring(0, 27)}...`
                 : file.name}
             </div>
+            {outputFilename != null && onOutputFilenameChange && (
+              <OutputFilenameInput
+                value={outputFilename}
+                onChange={onOutputFilenameChange}
+                placeholder={outputFilenamePlaceholder}
+                className="mt-4 mb-0"
+              />
+            )}
           </div>
         ) : (
           <>

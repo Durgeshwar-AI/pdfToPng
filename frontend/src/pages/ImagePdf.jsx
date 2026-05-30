@@ -1,6 +1,7 @@
-import { useCallback } from "react";
 import { PDFDocument } from "pdf-lib";
+import { useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { triggerDownload } from "../utils/downloadFile";
 
 function ImagePdf() {
   const validateFile = useCallback((selectedFile) => {
@@ -16,7 +17,7 @@ function ImagePdf() {
     };
   }, []);
 
-  const createPdf = async ({ file, setLoading, setStatusMessage, setStatusType }) => {
+  const createPdf = async ({ file, setLoading, setStatusMessage, setStatusType, resolveFilename }) => {
     if (!file) return;
 
     setLoading(true);
@@ -39,15 +40,7 @@ function ImagePdf() {
 
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "converted-image.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      triggerDownload(blob, resolveFilename("converted-image.pdf"));
 
       setStatusMessage("Success! Your PDF has been created.");
       setStatusType("success");
@@ -67,6 +60,8 @@ function ImagePdf() {
       accept="image/*"
       validateFile={validateFile}
       onSubmit={createPdf}
+      toolName="pdf"
+      outputExtension="pdf"
       submitButtonText="Convert to PDF"
       loadingButtonText="Creating..."
       onSuccessMessage="Success! Your PDF has been created."

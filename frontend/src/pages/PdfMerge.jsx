@@ -1,7 +1,18 @@
-import { useState, useRef, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
 
 function MergePdf() {
   const [files, setFiles] = useState([]);
+  const { downloadFilename, setDownloadFilename, resetDownloadFilename, resolveFilename } =
+    useDownloadFilename({
+      originalName: files[0]?.name,
+      tool: "merged",
+      detail: files.length > 1 ? `${files.length} files` : undefined,
+      extension: "pdf",
+      enabled: files.length > 0,
+    });
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
@@ -77,18 +88,11 @@ function MergePdf() {
       }
 
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "merged.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
+      triggerDownload(blob, resolveFilename("merged.pdf"));
       setStatusMessage("PDFs merged successfully! File downloaded.");
       setStatusType("success");
       setFiles([]);
+      resetDownloadFilename();
     } catch (err) {
       setStatusMessage(`Error: ${err.message}`);
       setStatusType("error");
@@ -144,6 +148,14 @@ function MergePdf() {
         </span>
       </div>
 
+      {files.length > 0 && (
+        <OutputFilenameInput
+          value={downloadFilename}
+          onChange={setDownloadFilename}
+          placeholder="merged.pdf"
+        />
+      )}
+
       {/* File List */}
       {files.length > 0 && (
         <div className="w-full mb-6 flex flex-col gap-2">
@@ -152,7 +164,10 @@ function MergePdf() {
               {files.length} file{files.length !== 1 ? "s" : ""} selected
             </span>
             <button
-              onClick={() => setFiles([])}
+              onClick={() => {
+                setFiles([]);
+                resetDownloadFilename();
+              }}
               className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
             >
               Clear all

@@ -1,6 +1,7 @@
+import { Expand, Image as ImageIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
-import { Expand, Image as ImageIcon } from "lucide-react";
+import { triggerDownload } from "../utils/downloadFile";
 
 function ImageResize() {
   const [dimensions, setDimensions] = useState({ width: "1280", height: "720" });
@@ -217,7 +218,7 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
       fileFieldName="image"
       modifyFormData={modifyFormData}
       onSubmit={async (context) => {
-        const { file, formData, setStatusMessage, setLoading, setStatusType } = context;
+        const { file, formData, setStatusMessage, setLoading, setStatusType, resolveFilename } = context;
         if (!handleBeforeSubmit(setStatusMessage, setStatusType)) {
           setLoading(false);
           return;
@@ -231,22 +232,10 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
 
           if (response.ok) {
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
             const extension = file.name.includes(".")
               ? file.name.slice(file.name.lastIndexOf("."))
               : ".png";
-            const baseName = file.name.includes(".")
-              ? file.name.replace(/\.[^.]+$/, "")
-              : file.name;
-
-            a.href = url;
-            a.download = `${baseName}_resized${extension}`;
-
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            triggerDownload(blob, resolveFilename(`${file.name.replace(/\.[^.]+$/, "")}_resized${extension}`));
 
             setStatusMessage(
               maintainAspectRatio
@@ -267,6 +256,12 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
           setTimeout(() => setStatusMessage(""), 5000);
         }
       }}
+      toolName="resize"
+      filenameDetail={
+        maintainAspectRatio
+          ? `${dimensions.width}${unit} wide`
+          : `${dimensions.width}x${dimensions.height}${unit}`
+      }
       submitButtonText={`Resize Image (${unit})`}
       loadingButtonText="Resizing..."
       extraFields={extraFields}

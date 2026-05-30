@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
 import ImageTracer from "imagetracerjs";
+import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { triggerDownload } from "../utils/downloadFile";
 
 function ImageToSVG() {
   const [svg, setSvg] = useState("");
@@ -66,19 +67,11 @@ function ImageToSVG() {
     setSvg("");
   }, []);
 
-  const downloadSVG = useCallback(() => {
+  const downloadSVG = useCallback((downloadFilename, resolveFilename) => {
     if (!svg) return;
 
     const blob = new Blob([svg], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "converted-image.svg";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    triggerDownload(blob, resolveFilename?.() || downloadFilename || "converted-image.svg");
   }, [svg]);
 
   return (
@@ -92,6 +85,8 @@ function ImageToSVG() {
       submitButtonText="Convert to SVG"
       loadingButtonText="Generating SVG..."
       onSuccessMessage="SVG generated successfully."
+      toolName="svg"
+      outputExtension="svg"
       defaultIcon={
         <svg
           width="64"
@@ -128,7 +123,7 @@ function ImageToSVG() {
       defaultText="Choose image file or drag & drop here"
       supportText="Supports PNG, JPG, JPEG, GIF, BMP, and more"
       inputId="image-input"
-      extraContent={({ file }) =>
+      extraContent={({ file, downloadFilename, resolveFilename }) =>
         svg ? (
           <div className="w-full mt-10 text-left">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -144,7 +139,7 @@ function ImageToSVG() {
                   </div>
                   <button
                     type="button"
-                    onClick={downloadSVG}
+                    onClick={() => downloadSVG(downloadFilename, resolveFilename)}
                     className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#16a34a] to-[#4ade80] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(16,185,129,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(16,185,129,0.22)] active:translate-y-0.5"
                   >
                     Download SVG

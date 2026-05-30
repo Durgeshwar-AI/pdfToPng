@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from "react";
+import { Check, Code, Copy, Download } from "lucide-react";
+import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
-import { Copy, Download, Check, Code } from "lucide-react";
+import { triggerDownload } from "../utils/downloadFile";
 
 function ImageBase64() {
   const [base64String, setBase64String] = useState("");
@@ -49,22 +50,17 @@ function ImageBase64() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadAsTxt = (file) => {
+  const downloadAsTxt = (file, downloadFilename, resolveFilename) => {
     if (!base64String || !file) return;
-    const element = document.createElement("a");
-    const fileBlob = new Blob([base64String], { type: "text/plain" });
-    element.href = URL.createObjectURL(fileBlob);
-    element.download = `${file.name.split(".")[0]}_base64.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    const blob = new Blob([base64String], { type: "text/plain" });
+    triggerDownload(blob, resolveFilename?.() || downloadFilename || `${file.name.split(".")[0]}_base64.txt`);
   };
 
   const handleClearAll = () => {
     setBase64String("");
   };
 
-  const extraContent = ({ file }) => {
+  const extraContent = ({ file, downloadFilename, resolveFilename }) => {
     if (!base64String) return null;
     return (
       <div className="w-full mt-8 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
@@ -79,7 +75,7 @@ function ImageBase64() {
               {copied ? "Copied!" : "Copy"}
             </button>
             <button
-              onClick={() => downloadAsTxt(file)}
+              onClick={() => downloadAsTxt(file, downloadFilename, resolveFilename)}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
             >
               <Download size={16} />
@@ -112,6 +108,8 @@ function ImageBase64() {
       submitButtonText="Convert to Base64"
       loadingButtonText="Converting..."
       extraContent={extraContent}
+      toolName="base64"
+      outputExtension="txt"
       showSubmitButton={!base64String}
       maxWidthClass="max-w-[800px]"
       defaultIcon={<Code size={64} />}

@@ -1,6 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
+import { useCallback, useEffect, useRef, useState } from "react";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -14,6 +17,18 @@ function PdfSplit() {
   const [endPage, setEndPage] = useState("1");
   const [totalPages, setTotalPages] = useState(null);
   const inputRef = useRef(null);
+
+  const pageDetail =
+    startPage && endPage ? `pages ${startPage}-${endPage}` : undefined;
+
+  const { downloadFilename, setDownloadFilename, resetDownloadFilename, resolveFilename } =
+    useDownloadFilename({
+      originalName: file?.name,
+      tool: "split",
+      detail: pageDetail,
+      extension: "pdf",
+      enabled: Boolean(file),
+    });
 
   // Load total page count using pdfjs whenever a file is chosen
   useEffect(() => {
@@ -69,6 +84,7 @@ function PdfSplit() {
   const clearFile = (e) => {
     if (e) e.stopPropagation();
     setFile(null);
+    resetDownloadFilename();
     setTotalPages(null);
     setStartPage("1");
     setEndPage("1");
@@ -128,15 +144,10 @@ function PdfSplit() {
       }
 
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const baseName = file.name.replace(/\.pdf$/i, "");
-      a.download = `${baseName}_pages_${startPage}-${endPage}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      triggerDownload(
+        blob,
+        resolveFilename(`${file.name.replace(/\.pdf$/i, "")}_pages_${startPage}-${endPage}.pdf`),
+      );
 
       setStatusMessage(
         `Success! Pages ${startPage}–${endPage} extracted and downloaded.`
@@ -227,6 +238,13 @@ function PdfSplit() {
                 {totalPages} page{totalPages !== 1 ? "s" : ""} detected
               </span>
             )}
+
+            <OutputFilenameInput
+              value={downloadFilename}
+              onChange={setDownloadFilename}
+              placeholder="split-output.pdf"
+              className="mt-4 mb-0 w-full"
+            />
           </div>
         ) : (
           /* Empty state */

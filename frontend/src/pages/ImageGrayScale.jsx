@@ -17,10 +17,8 @@ const ImageGrayScale = () => {
       validateFile={validateFile}
       apiEndpoint="/convertGrayscale"
       fileFieldName="image"
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.replace(/\.[^/.]+$/, "");
-        return `${originalName}_grayscale.png`;
-      }}
+      toolName="grayscale"
+      outputExtension="png"
       submitButtonText="Convert to Grayscale"
       loadingButtonText="Converting..."
       onSuccessMessage="Image converted successfully!"

@@ -24,9 +24,8 @@ function ImageJpg() {
       validateFile={validateFile}
       apiEndpoint="/convertJpeg"
       fileFieldName="image"
-      getDownloadFilename={(fileName) =>
-        fileName.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg|webp)$/i, ".jpg")
-      }
+      toolName="jpg"
+      outputExtension="jpg"
       submitButtonText="Convert to JPG"
       loadingButtonText="Converting..."
       onSuccessMessage="Success! Your JPEG file has been downloaded."

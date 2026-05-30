@@ -1,8 +1,17 @@
-import React, { useState, useRef } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useRef, useState } from "react";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
 
 export default function ImageWatermark() {
   const [image, setImage] = useState(null);
+  const { downloadFilename, setDownloadFilename, resetDownloadFilename, resolveFilename } =
+    useDownloadFilename({
+      originalName: image?.name,
+      tool: "watermark",
+      extension: image?.name.split(".").pop()?.toLowerCase() || "png",
+      enabled: Boolean(image),
+    });
   const [preview, setPreview] = useState(null);
   const [watermarkType, setWatermarkType] = useState("text");
   const [watermarkText, setWatermarkText] = useState("© Watermark");
@@ -29,6 +38,7 @@ export default function ImageWatermark() {
       };
       reader.readAsDataURL(file);
       setWatermarkedImage(null);
+      resetDownloadFilename();
     }
   };
 
@@ -93,12 +103,7 @@ export default function ImageWatermark() {
 
   const downloadWatermarkedImage = () => {
     if (watermarkedImage) {
-      const a = document.createElement("a");
-      a.href = watermarkedImage;
-      a.download = "watermarked.png";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      triggerDownload(watermarkedImage, resolveFilename("watermarked.png"));
     }
   };
 
@@ -166,6 +171,15 @@ export default function ImageWatermark() {
                   className="w-full h-64 object-contain rounded-lg border border-slate-200"
                 />
               </div>
+            )}
+
+            {image && (
+              <OutputFilenameInput
+                value={downloadFilename}
+                onChange={setDownloadFilename}
+                placeholder="watermarked.png"
+                className="mt-4 mb-0"
+              />
             )}
           </div>
 

@@ -24,9 +24,8 @@ function ImageWbp() {
       validateFile={validateFile}
       apiEndpoint="/convertWebP"
       fileFieldName="image"
-      getDownloadFilename={(fileName) =>
-        fileName.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg)$/i, ".webp")
-      }
+      toolName="webp"
+      outputExtension="webp"
       submitButtonText="Convert to WebP"
       loadingButtonText="Converting..."
       onSuccessMessage="Success! Your WebP file has been downloaded."

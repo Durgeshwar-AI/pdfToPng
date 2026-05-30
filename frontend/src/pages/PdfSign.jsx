@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
-
 function PdfSign() {
   const [signature, setSignature] = useState("");
 
@@ -45,7 +44,8 @@ function PdfSign() {
       apiEndpoint="/sign/signPdf"
       fileFieldName="file"
       modifyFormData={modifyFormData}
-      getDownloadFilename={() => "signed.pdf"}
+      toolName="signed"
+      outputExtension="pdf"
       submitButtonText="Sign PDF"
       loadingButtonText="Signing..."
       onSuccessMessage="Success! Your signed PDF is downloaded."
