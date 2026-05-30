@@ -1,12 +1,15 @@
 import os
 import tempfile
+import threading
 from io import BytesIO
+from werkzeug.utils import secure_filename
 
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from PIL import Image, ImageEnhance
 
 from utils.decorators import process_image_request
-from utils.helpers import send_file_and_cleanup
+from utils.helpers import send_file_and_cleanup, error
+from utils.job_registry import job_registry
 
 image_bp = Blueprint("image", __name__)
 
@@ -85,23 +88,26 @@ def convert_to_webp(img, filename, file_bytes):
     )
 
 
-@image_bp.route("/upscale", methods=["POST"])
-@process_image_request
-def upscale_image(img, filename, file_bytes):
+def _process_upscale(job_id, file_bytes, filename, scale_factor):
     temp_output_path = None
+    img = None
     try:
-        scale_factor = request.form.get("scale", 2, type=int)
+        job_registry.update(job_id, progress=5, status="processing",
+                            message="Opening image...")
+        img = Image.open(BytesIO(file_bytes))
 
-        # Limit scale factor
-        scale_factor = max(1, min(4, scale_factor))
-
-        # Upscale using LANCZOS (High quality)
+        job_registry.update(job_id, progress=20, status="processing",
+                            message=f"Upscaling {scale_factor}x...")
         new_size = (img.width * scale_factor, img.height * scale_factor)
         upscaled = img.resize(new_size, resample=Image.Resampling.LANCZOS)
 
-        # Apply Sharpness Enhancement
+        job_registry.update(job_id, progress=60, status="processing",
+                            message="Enhancing sharpness...")
         enhancer = ImageEnhance.Sharpness(upscaled)
-        upscaled = enhancer.enhance(1.5) # Slight boost
+        upscaled = enhancer.enhance(1.5)
+
+        job_registry.update(job_id, progress=80, status="processing",
+                            message="Saving result...")
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_out:
             temp_output_path = temp_out.name
@@ -110,19 +116,52 @@ def upscale_image(img, filename, file_bytes):
 
         base = os.path.splitext(filename)[0]
 
-        return send_file_and_cleanup(
-            temp_output_path,
-            mimetype="image/png",
-            as_attachment=True,
+        job_registry.update(
+            job_id, progress=100, status="completed",
+            message="Image upscaled successfully!",
+            result_path=temp_output_path, result_mimetype="image/png",
             download_name=f"{base}_upscaled_{scale_factor}x.png",
         )
-    except Exception:
+    except Exception as e:
         if temp_output_path and os.path.exists(temp_output_path):
             try:
                 os.remove(temp_output_path)
             except Exception:
                 pass
-        raise
+        job_registry.update(job_id, status="failed", message=str(e))
+    finally:
+        if img:
+            try:
+                img.close()
+            except Exception:
+                pass
+
+
+@image_bp.route("/upscale", methods=["POST"])
+def upscale_image_async():
+    if "image" not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+
+    file = request.files["image"]
+    if not file or file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+
+    filename = secure_filename(file.filename)
+    file_bytes = file.read()
+    scale_factor = request.form.get("scale", 2, type=int)
+    scale_factor = max(1, min(4, scale_factor))
+
+    job_id = job_registry.create_job()
+    job_registry.update(job_id, progress=0, status="processing",
+                        message="Starting image upscale...")
+
+    thread = threading.Thread(
+        target=_process_upscale, args=(job_id, file_bytes, filename, scale_factor)
+    )
+    thread.daemon = True
+    thread.start()
+
+    return jsonify({"job_id": job_id}), 202
 
 
 @image_bp.route("/convertJpeg", methods=["POST"])
@@ -185,74 +224,80 @@ def convert_to_grayscale():
         return error(str(e), 500)
 
 
-@image_bp.route("/compress", methods=["POST"])
-def compress_image():
+def _process_compress(job_id, file_bytes, filename, quality):
     img = None
     try:
-        if "image" not in request.files:
-            return error("No image provided")
+        job_registry.update(job_id, progress=5, status="processing",
+                            message="Opening image...")
+        img = Image.open(BytesIO(file_bytes))
 
-        file = request.files["image"]
-        quality = request.form.get("quality", 70, type=int)
+        job_registry.update(job_id, progress=20, status="processing",
+                            message="Analyzing image format...")
+        img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
+        if img_format == "JPEG" and img.mode != "RGB":
+            img = img.convert("RGB")
 
-        quality = max(1, min(100, quality))
+        extension = ".jpg" if img_format == "JPEG" else ".webp"
+        mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
 
-        filename = secure_filename(file.filename)
-        img = Image.open(file)
+        job_registry.update(job_id, progress=50, status="processing",
+                            message=f"Compressing at {quality}% quality...")
 
-        try:
-            img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
-            if img_format == "JPEG" and img.mode != "RGB":
-                img = img.convert("RGB")
+        buf = BytesIO()
+        img.save(buf, format=img_format, quality=quality, optimize=True)
+        buf.seek(0)
+        data = buf.getvalue()
 
-            extension = ".jpg" if img_format == "JPEG" else ".webp"
-            mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
+        job_registry.update(job_id, progress=80, status="processing",
+                            message="Saving result...")
 
-            buf = BytesIO()
-            img.save(buf, format=img_format, quality=quality, optimize=True)
-            buf.seek(0)
-            data = buf.getvalue()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp:
+            tmp.write(data)
+            temp_path = tmp.name
 
-            base = os.path.splitext(filename)[0]
+        base = os.path.splitext(filename)[0]
 
-            return send_file_and_cleanup(
-                data,
-                mimetype=mimetype,
-                as_attachment=True,
-                download_name=f"{base}_compressed{extension}",
-            )
-        finally:
-            if img:
-                img.close()
-
+        job_registry.update(
+            job_id, progress=100, status="completed",
+            message=f"Image compressed to {quality}% quality!",
+            result_path=temp_path, result_mimetype=mimetype,
+            download_name=f"{base}_compressed{extension}",
+        )
     except Exception as e:
-        return error(str(e), 500)
+        job_registry.update(job_id, status="failed", message=str(e))
+    finally:
+        if img:
+            try:
+                img.close()
+            except Exception:
+                pass
 
-    # Clamp quality between 1 and 100
+
+@image_bp.route("/compress", methods=["POST"])
+def compress_image_async():
+    if "image" not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+
+    file = request.files["image"]
+    if not file or file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+
+    filename = secure_filename(file.filename)
+    file_bytes = file.read()
+    quality = request.form.get("quality", 70, type=int)
     quality = max(1, min(100, quality))
 
-    # Determine format - if it's not a format that supports quality,
-    # we'll convert to JPEG for the best compression results
-    img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
-    if img_format == "JPEG" and img.mode != "RGB":
-        img = img.convert("RGB")
+    job_id = job_registry.create_job()
+    job_registry.update(job_id, progress=0, status="processing",
+                        message="Starting image compression...")
 
-    extension = ".jpg" if img_format == "JPEG" else ".webp"
-    mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
-
-    buf = BytesIO()
-    img.save(buf, format=img_format, quality=quality, optimize=True)
-    buf.seek(0)
-    data = buf.getvalue()
-
-    base = os.path.splitext(filename)[0]
-
-    return send_file_and_cleanup(
-        data,
-        mimetype=mimetype,
-        as_attachment=True,
-        download_name=f"{base}_compressed{extension}",
+    thread = threading.Thread(
+        target=_process_compress, args=(job_id, file_bytes, filename, quality)
     )
+    thread.daemon = True
+    thread.start()
+
+    return jsonify({"job_id": job_id}), 202
 
 
 @image_bp.route("/resizeImage", methods=["POST"])

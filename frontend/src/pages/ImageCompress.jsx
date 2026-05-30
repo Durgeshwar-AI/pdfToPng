@@ -96,6 +96,7 @@ function ImageCompress() {
       submitButtonText="Compress Image"
       loadingButtonText="Compressing..."
       onSuccessMessage={`Success! Image compressed with ${quality}% quality.`}
+      useAsyncProgress={true}
       extraFields={extraFields}
       maxWidthClass="max-w-[700px]"
       defaultIcon={<Sliders className="w-16 h-16" />}

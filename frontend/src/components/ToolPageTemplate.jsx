@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
+import { useJobPolling } from "../hooks/useJobPolling";
 import FileUploadArea from "./FileUploadArea";
+import ProgressBar from "./ProgressBar";
 
 const ToolPageTemplate = ({
   title,
@@ -24,8 +26,11 @@ const ToolPageTemplate = ({
   defaultText,
   supportText,
   inputId = "file-input",
+  useAsyncProgress = false,
 }) => {
-  const [statusType, setStatusType] = useState("info"); // info, success, error
+  const [statusType, setStatusType] = useState("info");
+  const [jobId, setJobId] = useState(null);
+  const [downloadTriggered, setDownloadTriggered] = useState(false);
 
   const internalValidate = useCallback(
     async (selectedFile) => {
@@ -56,9 +61,46 @@ const ToolPageTemplate = ({
     handleAreaClick,
   } = useFileUpload(internalValidate);
 
+  const handlePollComplete = useCallback(
+    (completedJobId) => {
+      const baseUrl = import.meta.env.VITE_API_URL || "";
+      const a = document.createElement("a");
+      a.href = `${baseUrl}/api/download/${completedJobId}`;
+      a.download = "";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      setStatusMessage(onSuccessMessage || "Success! File downloaded.");
+      setStatusType("success");
+      setLoading(false);
+      setDownloadTriggered(true);
+      setTimeout(() => setStatusMessage(""), 5000);
+    },
+    [onSuccessMessage, setLoading],
+  );
+
+  const handlePollError = useCallback(
+    (errorMsg) => {
+      setStatusMessage(`Error: ${errorMsg || "Processing failed"}`);
+      setStatusType("error");
+      setLoading(false);
+      setJobId(null);
+      setTimeout(() => setStatusMessage(""), 5000);
+    },
+    [setLoading],
+  );
+
+  const { progress, status: pollStatus, message: pollMessage } = useJobPolling(
+    jobId,
+    { onComplete: handlePollComplete, onError: handlePollError },
+  );
+
   const handleClearAll = (e) => {
     handleClear(e);
     setStatusType("info");
+    setJobId(null);
+    setDownloadTriggered(false);
     if (onClear) {
       onClear();
     }
@@ -73,8 +115,40 @@ const ToolPageTemplate = ({
       return;
     }
 
+    if (onSubmit) {
+      setLoading(true);
+      setStatusType("info");
+      try {
+        const formData = new FormData();
+        formData.append(fileFieldName, file);
+        if (modifyFormData) {
+          modifyFormData(formData);
+        }
+        await onSubmit({
+          file,
+          formData,
+          setStatusMessage,
+          setLoading,
+          setStatusType,
+          previewUrl,
+        });
+      } catch (err) {
+        setStatusMessage(`Error: ${err.message || "Failed to process file"}`);
+        setStatusType("error");
+        setLoading(false);
+        setTimeout(() => setStatusMessage(""), 5000);
+      }
+      return;
+    }
+
+    if (!apiEndpoint) {
+      throw new Error("No API endpoint or custom onSubmit handler provided.");
+    }
+
     setLoading(true);
     setStatusType("info");
+    setJobId(null);
+    setDownloadTriggered(false);
 
     const formData = new FormData();
     formData.append(fileFieldName, file);
@@ -84,22 +158,6 @@ const ToolPageTemplate = ({
     }
 
     try {
-      if (onSubmit) {
-        await onSubmit({
-          file,
-          formData,
-          setStatusMessage,
-          setLoading,
-          setStatusType,
-          previewUrl,
-        });
-        return;
-      }
-
-      if (!apiEndpoint) {
-        throw new Error("No API endpoint or custom onSubmit handler provided.");
-      }
-
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}${apiEndpoint}`,
         {
@@ -108,39 +166,71 @@ const ToolPageTemplate = ({
         },
       );
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-
-        const downloadName = getDownloadFilename
-          ? getDownloadFilename(file.name)
-          : file.name;
-        a.download = downloadName;
-
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-
-        setStatusMessage(onSuccessMessage || "Success! File downloaded.");
-        setStatusType("success");
+      if (useAsyncProgress) {
+        if (response.ok) {
+          const data = await response.json();
+          if (data.job_id) {
+            setJobId(data.job_id);
+            setStatusMessage("Processing started...");
+            setStatusType("info");
+          } else {
+            throw new Error("Unexpected response from server");
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          setStatusMessage(
+            `Error: ${errorData.error || "Operation failed"}`,
+          );
+          setStatusType("error");
+          setLoading(false);
+          setTimeout(() => setStatusMessage(""), 5000);
+        }
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        setStatusMessage(`Error: ${errorData.error || "Operation failed"}`);
-        setStatusType("error");
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+
+          const downloadName = getDownloadFilename
+            ? getDownloadFilename(file.name)
+            : file.name;
+          a.download = downloadName;
+
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+          setStatusMessage(onSuccessMessage || "Success! File downloaded.");
+          setStatusType("success");
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          setStatusMessage(
+            `Error: ${errorData.error || "Operation failed"}`,
+          );
+          setStatusType("error");
+        }
+        setLoading(false);
+        setTimeout(() => setStatusMessage(""), 5000);
       }
     } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to process file"}`);
+      setStatusMessage(
+        `Error: ${error.message || "Failed to process file"}`,
+      );
       setStatusType("error");
-    } finally {
       setLoading(false);
-      setTimeout(() => {
-        setStatusMessage("");
-      }, 5000);
+      setTimeout(() => setStatusMessage(""), 5000);
     }
   };
+
+  const showProgressBar = useAsyncProgress && loading && jobId;
+  const progressBarStatus =
+    pollStatus === "completed"
+      ? "success"
+      : pollStatus === "failed" || pollStatus === "error"
+        ? "error"
+        : "processing";
 
   const context = {
     file,
@@ -156,13 +246,18 @@ const ToolPageTemplate = ({
   };
 
   return (
-    <div className={`w-full ${maxWidthClass} mx-auto p-10 text-center flex flex-col justify-center items-center bg-linear-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden`}>
+    <div
+      className={`w-full ${maxWidthClass} mx-auto p-10 text-center flex flex-col justify-center items-center bg-linear-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden`}
+    >
       <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         {title}
       </h1>
       {description && <p className="text-gray-500 mb-8">{description}</p>}
 
-      <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full flex flex-col items-center"
+      >
         <FileUploadArea
           file={file}
           previewUrl={previewUrl}
@@ -183,7 +278,10 @@ const ToolPageTemplate = ({
           supportText={supportText}
         />
 
-        {extraFields && (typeof extraFields === "function" ? extraFields(context) : extraFields)}
+        {extraFields &&
+          (typeof extraFields === "function"
+            ? extraFields(context)
+            : extraFields)}
 
         {showSubmitButton && (
           <button
@@ -202,14 +300,33 @@ const ToolPageTemplate = ({
           </button>
         )}
 
-        {statusMessage && (
-          <p className={`mt-6 text-[0.95rem] ${statusType === "success" ? "text-green-600" : statusType === "error" ? "text-red-500" : "text-[#4b5563]"}`}>
-            {statusMessage}
-          </p>
+        {showProgressBar ? (
+          <ProgressBar
+            progress={progress}
+            statusMessage={pollMessage || "Processing..."}
+            statusType={progressBarStatus}
+          />
+        ) : (
+          statusMessage && (
+            <p
+              className={`mt-6 text-[0.95rem] ${
+                statusType === "success"
+                  ? "text-green-600"
+                  : statusType === "error"
+                    ? "text-red-500"
+                    : "text-[#4b5563]"
+              }`}
+            >
+              {statusMessage}
+            </p>
+          )
         )}
       </form>
 
-      {extraContent && (typeof extraContent === "function" ? extraContent(context) : extraContent)}
+      {extraContent &&
+        (typeof extraContent === "function"
+          ? extraContent(context)
+          : extraContent)}
     </div>
   );
 };

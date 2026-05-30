@@ -1,11 +1,14 @@
 import { useState, useRef, useCallback } from "react";
+import ProgressBar from "../components/ProgressBar";
+import { useJobPolling } from "../hooks/useJobPolling";
 
 function MergePdf() {
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const [statusType, setStatusType] = useState("info"); // info | success | error
+  const [statusType, setStatusType] = useState("info");
+  const [jobId, setJobId] = useState(null);
   const inputRef = useRef(null);
 
   const addFiles = (incoming) => {
@@ -52,6 +55,34 @@ function MergePdf() {
     });
   };
 
+  const handlePollComplete = useCallback((completedJobId) => {
+    const baseUrl = import.meta.env.VITE_API_URL || "";
+    const a = document.createElement("a");
+    a.href = `${baseUrl}/api/download/${completedJobId}`;
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setStatusMessage("PDFs merged successfully! File downloaded.");
+    setStatusType("success");
+    setIsLoading(false);
+    setFiles([]);
+    setTimeout(() => setStatusMessage(""), 5000);
+  }, []);
+
+  const handlePollError = useCallback((errorMsg) => {
+    setStatusMessage(`Error: ${errorMsg || "Merge failed"}`);
+    setStatusType("error");
+    setIsLoading(false);
+    setTimeout(() => setStatusMessage(""), 5000);
+  }, []);
+
+  const { progress, status: pollStatus, message: pollMessage } = useJobPolling(
+    jobId,
+    { onComplete: handlePollComplete, onError: handlePollError },
+  );
+
   const handleMerge = async () => {
     if (files.length < 2) {
       setStatusMessage("Please add at least 2 PDF files to merge.");
@@ -61,6 +92,7 @@ function MergePdf() {
     setStatusMessage("");
     setIsLoading(true);
     setStatusType("info");
+    setJobId(null);
 
     try {
       const formData = new FormData();
@@ -76,37 +108,36 @@ function MergePdf() {
         throw new Error(data.error || "Merge failed. Please try again.");
       }
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "merged.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      setStatusMessage("PDFs merged successfully! File downloaded.");
-      setStatusType("success");
-      setFiles([]);
+      const data = await res.json();
+      if (data.job_id) {
+        setJobId(data.job_id);
+        setStatusMessage("Merging PDFs...");
+      } else {
+        throw new Error("Unexpected response from server");
+      }
     } catch (err) {
       setStatusMessage(`Error: ${err.message}`);
       setStatusType("error");
-    } finally {
       setIsLoading(false);
       setTimeout(() => setStatusMessage(""), 5000);
     }
   };
 
+  const showProgressBar = isLoading && jobId;
+  const progressBarStatus =
+    pollStatus === "completed"
+      ? "success"
+      : pollStatus === "failed" || pollStatus === "error"
+        ? "error"
+        : "processing";
+
   return (
     <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-      
-      {/* Title — matches ToolPageTemplate exactly */}
+
       <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         Merge PDFs
       </h1>
 
-      {/* Drop Zone */}
       <div
         className={`w-full border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-6
           ${isDragging
@@ -127,7 +158,6 @@ function MergePdf() {
           onChange={(e) => addFiles(e.target.files)}
         />
 
-        {/* Upload icon */}
         <svg className="w-16 h-16 text-[#4361ee] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round" />
           <polyline points="14,2 14,8 20,8" strokeLinecap="round" strokeLinejoin="round" />
@@ -144,7 +174,6 @@ function MergePdf() {
         </span>
       </div>
 
-      {/* File List */}
       {files.length > 0 && (
         <div className="w-full mb-6 flex flex-col gap-2">
           <div className="flex justify-between items-center mb-1">
@@ -152,7 +181,7 @@ function MergePdf() {
               {files.length} file{files.length !== 1 ? "s" : ""} selected
             </span>
             <button
-              onClick={() => setFiles([])}
+              onClick={() => { setFiles([]); setJobId(null); }}
               className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
             >
               Clear all
@@ -165,28 +194,23 @@ function MergePdf() {
                 key={file.name}
                 className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm"
               >
-                {/* Order badge */}
                 <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#4361ee] to-[#7209b7] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
                   {i + 1}
                 </span>
 
-                {/* File icon */}
                 <svg className="w-4 h-4 text-[#4361ee] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round" />
                   <polyline points="14,2 14,8 20,8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
 
-                {/* Name */}
                 <span className="flex-1 text-sm text-gray-700 text-left truncate" title={file.name}>
                   {file.name}
                 </span>
 
-                {/* Size */}
                 <span className="text-xs text-gray-400 flex-shrink-0">
                   {(file.size / 1024).toFixed(1)} KB
                 </span>
 
-                {/* Controls */}
                 <div className="flex gap-1 flex-shrink-0">
                   <button
                     onClick={() => moveFile(i, -1)}
@@ -212,7 +236,6 @@ function MergePdf() {
         </div>
       )}
 
-      {/* Merge Button — matches ToolPageTemplate button exactly */}
       <button
         onClick={handleMerge}
         disabled={files.length < 2 || isLoading}
@@ -235,24 +258,30 @@ function MergePdf() {
         )}
       </button>
 
-      {/* Hint when only 1 file */}
       {files.length === 1 && (
         <p className="mt-3 text-xs text-[#4361ee]">
           Add at least one more PDF to enable merging.
         </p>
       )}
 
-      {/* Status message — matches ToolPageTemplate exactly */}
-      {statusMessage && (
-        <p className={`mt-6 text-[0.95rem] ${
-          statusType === "success"
-            ? "text-green-600"
-            : statusType === "error"
-            ? "text-red-500"
-            : "text-[#4b5563]"
-        }`}>
-          {statusMessage}
-        </p>
+      {showProgressBar ? (
+        <ProgressBar
+          progress={progress}
+          statusMessage={pollMessage || "Merging PDFs..."}
+          statusType={progressBarStatus}
+        />
+      ) : (
+        statusMessage && (
+          <p className={`mt-6 text-[0.95rem] ${
+            statusType === "success"
+              ? "text-green-600"
+              : statusType === "error"
+              ? "text-red-500"
+              : "text-[#4b5563]"
+          }`}>
+            {statusMessage}
+          </p>
+        )
       )}
     </div>
   );

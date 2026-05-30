@@ -56,6 +56,7 @@ function ImageUpscale() {
       submitButtonText="Upscale Image"
       loadingButtonText="Upscaling..."
       onSuccessMessage="Image upscaled successfully!"
+      useAsyncProgress={true}
       extraFields={extraFields}
       maxWidthClass="max-w-[600px]"
       defaultIcon={

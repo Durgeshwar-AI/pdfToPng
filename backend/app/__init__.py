@@ -1,5 +1,7 @@
 from flask import Flask, request
 import os
+import threading
+import time
 from flask_cors import CORS
 
 def create_app():
@@ -61,6 +63,7 @@ def create_app():
     from blueprints.merge_pdf import merge_pdf_bp
     from blueprints.split_pdf import split_pdf_bp
     from blueprints.watermark import watermark_bp
+    from blueprints.status import status_bp
 
     app.register_blueprint(pdf_bp)
     app.register_blueprint(pdf_docx_bp)
@@ -74,5 +77,18 @@ def create_app():
     app.register_blueprint(merge_pdf_bp)
     app.register_blueprint(split_pdf_bp)
     app.register_blueprint(watermark_bp)
+    app.register_blueprint(status_bp)
+
+    def _cleanup_loop():
+        from utils.job_registry import job_registry
+        while True:
+            time.sleep(300)
+            try:
+                job_registry.cleanup()
+            except Exception:
+                pass
+
+    cleanup_thread = threading.Thread(target=_cleanup_loop, daemon=True)
+    cleanup_thread.start()
 
     return app

@@ -31,6 +31,7 @@ function RemoveBg() {
       submitButtonText="Remove Background"
       loadingButtonText="Removing..."
       onSuccessMessage="Background removed successfully!"
+      useAsyncProgress={true}
       defaultIcon={
         <svg
           width="64"
