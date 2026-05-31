@@ -4,7 +4,7 @@ from io import BytesIO
 
 from flask import Blueprint, request
 
-from utils.helpers import error, send_file_and_cleanup
+from utils.helpers import error, send_file_and_cleanup, safe_gc_collect, log_memory
 
 pdf_bp = Blueprint("pdf", __name__)
 
@@ -21,8 +21,11 @@ def convert_pdf_to_png():
         if pdf_file.filename == "":
             return error("No file selected")
 
+        log_memory("convertPng - before read")
         # Read PDF into memory and open from bytes
         pdf_bytes = pdf_file.read()
+        log_memory("convertPng - after read")
+
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
         try:
@@ -40,6 +43,13 @@ def convert_pdf_to_png():
         finally:
             if doc:
                 doc.close()
+            # release references and collect
+            try:
+                del pdf_bytes
+            except Exception:
+                pass
+            safe_gc_collect()
+            log_memory("convertPng - after close and gc")
 
         return send_file_and_cleanup(
             png_bytes,

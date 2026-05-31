@@ -5,7 +5,7 @@ from flask import Blueprint, request
 from PIL import Image
 from rembg import remove
 
-from utils.helpers import error, safe_gc_collect, send_file_and_cleanup
+from utils.helpers import error, safe_gc_collect, send_file_and_cleanup, log_memory
 from werkzeug.utils import secure_filename
 
 remove_bp = Blueprint("removebg", __name__)
@@ -13,7 +13,6 @@ remove_bp = Blueprint("removebg", __name__)
 
 @remove_bp.route("/removeBg", methods=["POST"])
 def remove_bg():
-    img = None
     try:
         file = request.files.get("image")
 
@@ -23,34 +22,36 @@ def remove_bg():
         filename = secure_filename(file.filename)
         base = filename.rsplit('.', 1)[0]
 
+        log_memory("removeBg - before read")
+
         # Read uploaded file bytes into memory
         input_bytes = file.read()
 
+        log_memory("removeBg - after read")
+
         output_bytes = remove(input_bytes)
 
-        # Clean up input bytes reference
+        # Clean up input bytes reference promptly
         del input_bytes
         safe_gc_collect()
+        log_memory("removeBg - after remove and gc")
 
-        img = Image.open(io.BytesIO(output_bytes))
+        # Use context managers for PIL and BytesIO to ensure cleanup
+        from io import BytesIO
 
-        # Save processed image to memory buffer
-        buf = io.BytesIO()
-        try:
-            img.save(buf, format="PNG", optimize=True)
-            buf.seek(0)
-            data = buf.getvalue()
-        finally:
-            if img:
-                img.close()
-                img = None
+        with Image.open(BytesIO(output_bytes)) as img:
+            with BytesIO() as buf:
+                img.save(buf, format="PNG", optimize=True)
+                buf.seek(0)
+                data = buf.getvalue()
 
-        # Free output bytes
+        # Free output bytes and collect
         try:
             del output_bytes
-            safe_gc_collect()
         except Exception:
             pass
+        safe_gc_collect()
+        log_memory("removeBg - before return")
 
         return send_file_and_cleanup(
             data,

@@ -4,7 +4,7 @@ from io import BytesIO
 from flask import Blueprint, request
 from PIL import Image
 
-from utils.helpers import error, send_file_and_cleanup
+from utils.helpers import error, send_file_and_cleanup, log_memory
 from werkzeug.utils import secure_filename
 
 image_bp = Blueprint("image", __name__)
@@ -12,7 +12,6 @@ image_bp = Blueprint("image", __name__)
 
 @image_bp.route("/convertWebP", methods=["POST"])
 def convert_to_webp():
-    img = None
     try:
         if "image" not in request.files:
             return error("No image provided")
@@ -20,36 +19,32 @@ def convert_to_webp():
         file = request.files["image"]
         filename = secure_filename(file.filename)
 
-        img = Image.open(file)
-
-        try:
+        log_memory("convertWebP - before open")
+        with Image.open(file) as img:
             if img.mode not in ("RGB", "RGBA"):
                 img = img.convert("RGBA")
 
-            buf = BytesIO()
-            img.save(buf, format="WEBP", quality=85, method=6)
-            buf.seek(0)
-            data = buf.getvalue()
+            with BytesIO() as buf:
+                img.save(buf, format="WEBP", quality=85, method=6)
+                buf.seek(0)
+                data = buf.getvalue()
 
-            base = os.path.splitext(filename)[0]
+        log_memory("convertWebP - before return")
 
-            return send_file_and_cleanup(
-                data,
-                mimetype="image/webp",
-                as_attachment=True,
-                download_name=f"{base}.webp",
-            )
-        finally:
-            if img:
-                img.close()
+        base = os.path.splitext(filename)[0]
 
+        return send_file_and_cleanup(
+            data,
+            mimetype="image/webp",
+            as_attachment=True,
+            download_name=f"{base}.webp",
+        )
     except Exception as e:
         return error(str(e), 500)
 
 
 @image_bp.route("/convertJpeg", methods=["POST"])
 def convert_to_jpeg():
-    img = None
     try:
         if "image" not in request.files:
             return error("No image provided")
@@ -57,36 +52,32 @@ def convert_to_jpeg():
         file = request.files["image"]
         filename = secure_filename(file.filename)
 
-        img = Image.open(file)
-
-        try:
+        log_memory("convertJpeg - before open")
+        with Image.open(file) as img:
             if img.mode != "RGB":
                 img = img.convert("RGB")
 
-            buf = BytesIO()
-            img.save(buf, format="JPEG", quality=90, optimize=True)
-            buf.seek(0)
-            data = buf.getvalue()
+            with BytesIO() as buf:
+                img.save(buf, format="JPEG", quality=90, optimize=True)
+                buf.seek(0)
+                data = buf.getvalue()
 
-            base = os.path.splitext(filename)[0]
+        log_memory("convertJpeg - before return")
 
-            return send_file_and_cleanup(
-                data,
-                mimetype="image/jpeg",
-                as_attachment=True,
-                download_name=f"{base}.jpg",
-            )
-        finally:
-            if img:
-                img.close()
+        base = os.path.splitext(filename)[0]
 
+        return send_file_and_cleanup(
+            data,
+            mimetype="image/jpeg",
+            as_attachment=True,
+            download_name=f"{base}.jpg",
+        )
     except Exception as e:
         return error(str(e), 500)
 
 
 @image_bp.route("/compress", methods=["POST"])
 def compress_image():
-    img = None
     try:
         if "image" not in request.files:
             return error("No image provided")
@@ -98,9 +89,9 @@ def compress_image():
         quality = max(1, min(100, quality))
         
         filename = secure_filename(file.filename)
-        img = Image.open(file)
 
-        try:
+        log_memory("compress - before open")
+        with Image.open(file) as img:
             # Determine format - if it's not a format that supports quality, 
             # we'll convert to JPEG for the best compression results
             img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
@@ -110,22 +101,20 @@ def compress_image():
             extension = ".jpg" if img_format == "JPEG" else ".webp"
             mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
 
-            buf = BytesIO()
-            img.save(buf, format=img_format, quality=quality, optimize=True)
-            buf.seek(0)
-            data = buf.getvalue()
+            with BytesIO() as buf:
+                img.save(buf, format=img_format, quality=quality, optimize=True)
+                buf.seek(0)
+                data = buf.getvalue()
 
-            base = os.path.splitext(filename)[0]
+        log_memory("compress - before return")
 
-            return send_file_and_cleanup(
-                data,
-                mimetype=mimetype,
-                as_attachment=True,
-                download_name=f"{base}_compressed{extension}",
-            )
-        finally:
-            if img:
-                img.close()
+        base = os.path.splitext(filename)[0]
 
+        return send_file_and_cleanup(
+            data,
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=f"{base}_compressed{extension}",
+        )
     except Exception as e:
         return error(str(e), 500)
