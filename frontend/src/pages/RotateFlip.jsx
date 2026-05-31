@@ -92,7 +92,7 @@ export default function RotateFlip() {
               key={id}
               onClick={() => transform(id, file, setLoading, setStatusMessage, setStatusType, setSuggestedName)}
               disabled={!file || loading}
-              className={`flex flex-col items-center justify-center gap-1 p-4 rounded-xl border text-sm font-medium transition-all
+              className={`flex flex-col items-center justify-center gap-1 p-4 rounded-xl border text-sm font-medium transition-colors
                 ${file && !loading
                   ? "border-[#c7d2fe] text-[#4361ee] hover:bg-[#4361ee] hover:text-white hover:shadow-md cursor-pointer"
                   : "border-gray-200 text-gray-300 cursor-not-allowed"

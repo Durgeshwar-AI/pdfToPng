@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Image } from "lucide-react";
 import "./ToolCard.css";
 
 const toolAnimations = {
@@ -322,6 +322,13 @@ const toolAnimations = {
           <div className="tc-b64-line h-[2px] rounded-[1px] bg-[#5DCAA5] opacity-70 w-[55%]" />
           <div className="tc-b64-cursor w-[2px] h-[8px] bg-[#5DCAA5] rounded-[1px] opacity-0 absolute bottom-[6px] right-[6px]" />
         </div>
+      </div>
+    </div>
+  ),
+  "image-blur": (
+    <div className="tc-scene tc-blur-scene flex items-center justify-center">
+      <div className="tc-blur-image w-[54px] h-[40px] rounded-[8px] bg-[#E6F1FB] border border-[#85B7EB] flex items-center justify-center" >
+        <Image />
       </div>
     </div>
   ),

@@ -6,7 +6,7 @@ import ToolPageTemplate from "../components/ToolPageTemplate";
 import { buildDownloadName, sanitizeForFilename } from "../utils/fileNames";
 
 // Set worker source for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
 
 const PdfPng = () => {
   const [scale, setScale] = useState(2.0); // Default scale (2x)
@@ -19,7 +19,17 @@ const PdfPng = () => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       try {
         const arrayBuffer = await selectedFile.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const pdfjsLib = await import("pdfjs-dist");
+
+const pdfWorker = await import(
+  "pdfjs-dist/build/pdf.worker.min.mjs?url"
+);
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+
+const pdf = await pdfjsLib.getDocument({
+  data: arrayBuffer,
+}).promise;
         setNumPages(pdf.numPages);
       } catch (err) {
         console.error("Error loading PDF info:", err);
@@ -47,6 +57,13 @@ const PdfPng = () => {
   const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
     setStatusMessage("Processing PDF... This may take a while for large files.");
     try {
+      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
+
+const pdfWorker = await import(
+  "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"
+);
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const totalPages = pdf.numPages;
@@ -260,7 +277,7 @@ const PdfPng = () => {
                 key={mode}
                 type="button"
                 onClick={() => setPageMode(mode)}
-                className={`py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                className={`py-2.5 rounded-lg text-sm font-semibold transition-transform duration-200 cursor-pointer ${
                   pageMode === mode
                     ? "bg-[#4361ee] text-white shadow-[0_4px_10px_rgba(67,97,238,0.3)] scale-[1.02]"
                     : "bg-white text-[#4b5563] border border-[#e2e8f0] hover:border-[#4361ee] hover:text-[#4361ee]"
@@ -283,7 +300,7 @@ const PdfPng = () => {
                   max={numPages}
                   value={singlePage}
                   onChange={(e) => setSinglePage(e.target.value)}
-                  className="w-24 p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-all bg-white text-[#1a1a2e] font-bold text-center"
+                  className="w-24 p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white text-[#1a1a2e] font-bold text-center"
                 />
                 <span className="text-xs text-[#94a3b8]">
                   of {numPages}
@@ -299,7 +316,7 @@ const PdfPng = () => {
                 placeholder="e.g. 1-3, 5"
                 value={pageRange}
                 onChange={(e) => setPageRange(e.target.value)}
-                className="w-full p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-all bg-white placeholder:text-[#94a3b8] text-[#1a1a2e] font-medium"
+                className="w-full p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white placeholder:text-[#94a3b8] text-[#1a1a2e] font-medium"
               />
               <p className="mt-2 text-[11px] text-[#6b7280]">
                 Enter page numbers or ranges (e.g., 1-5, 8, 10-12)

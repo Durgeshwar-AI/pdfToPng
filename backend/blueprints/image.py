@@ -6,7 +6,8 @@ from flask import Blueprint, request
 from PIL import Image, ImageEnhance
 
 from utils.decorators import process_image_request
-from utils.helpers import send_file_and_cleanup
+from utils.helpers import send_file_and_cleanup, error
+from utils.validators import validate_image_file, validate_uploaded_file
 
 image_bp = Blueprint("image", __name__)
 
@@ -150,109 +151,127 @@ def convert_to_jpeg(img, filename, file_bytes):
 def convert_to_grayscale():
     img = None
     grayscale_img = None
+
     try:
-        if "image" not in request.files:
-            return error("No image provided")
+        file, filename, upload_error = validate_uploaded_file(
+            request,
+            "image",
+        )
 
-        file = request.files["image"]
-        filename = secure_filename(file.filename)
+        if upload_error:
+            return upload_error
 
-        img = Image.open(file)
+        img, file_bytes, image_error = validate_image_file(file)
 
-        try:
-            grayscale_img = img.convert("L")
+        if image_error:
+            return image_error
 
-            buf = BytesIO()
-            grayscale_img.save(buf, format="PNG")
-            buf.seek(0)
-            data = buf.getvalue()
+        grayscale_img = img.convert("L")
 
-            base = os.path.splitext(filename)[0]
+        buf = BytesIO()
 
-            return send_file_and_cleanup(
-                data,
-                mimetype="image/png",
-                as_attachment=True,
-                download_name=f"{base}_grayscale.png",
-            )
-        finally:
-            if grayscale_img:
-                grayscale_img.close()
-            if img:
-                img.close()
+        grayscale_img.save(buf, format="PNG")
+
+        buf.seek(0)
+
+        data = buf.getvalue()
+
+        base = os.path.splitext(filename)[0]
+
+        return send_file_and_cleanup(
+            data,
+            mimetype="image/png",
+            as_attachment=True,
+            download_name=f"{base}_grayscale.png",
+        )
 
     except Exception as e:
         return error(str(e), 500)
+
+    finally:
+        if grayscale_img:
+            try:
+                grayscale_img.close()
+            except Exception:
+                pass
+
+        if img:
+            try:
+                img.close()
+            except Exception:
+                pass
 
 
 @image_bp.route("/compress", methods=["POST"])
 def compress_image():
     img = None
-    try:
-        if "image" not in request.files:
-            return error("No image provided")
 
-        file = request.files["image"]
+    try:
+        file, filename, upload_error = validate_uploaded_file(
+            request,
+            "image",
+        )
+
+        if upload_error:
+            return upload_error
+
+        img, file_bytes, image_error = validate_image_file(file)
+
+        if image_error:
+            return image_error
+
         quality = request.form.get("quality", 70, type=int)
 
         quality = max(1, min(100, quality))
 
-        filename = secure_filename(file.filename)
-        img = Image.open(file)
+        img_format = (
+            img.format
+            if img.format in ["JPEG", "WEBP"]
+            else "JPEG"
+        )
 
-        try:
-            img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
-            if img_format == "JPEG" and img.mode != "RGB":
-                img = img.convert("RGB")
+        if img_format == "JPEG" and img.mode != "RGB":
+            img = img.convert("RGB")
 
-            extension = ".jpg" if img_format == "JPEG" else ".webp"
-            mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
+        extension = ".jpg" if img_format == "JPEG" else ".webp"
 
-            buf = BytesIO()
-            img.save(buf, format=img_format, quality=quality, optimize=True)
-            buf.seek(0)
-            data = buf.getvalue()
+        mimetype = (
+            "image/jpeg"
+            if img_format == "JPEG"
+            else "image/webp"
+        )
 
-            base = os.path.splitext(filename)[0]
+        buf = BytesIO()
 
-            return send_file_and_cleanup(
-                data,
-                mimetype=mimetype,
-                as_attachment=True,
-                download_name=f"{base}_compressed{extension}",
-            )
-        finally:
-            if img:
-                img.close()
+        img.save(
+            buf,
+            format=img_format,
+            quality=quality,
+            optimize=True,
+        )
+
+        buf.seek(0)
+
+        data = buf.getvalue()
+
+        base = os.path.splitext(filename)[0]
+
+        return send_file_and_cleanup(
+            data,
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=f"{base}_compressed{extension}",
+        )
 
     except Exception as e:
         return error(str(e), 500)
 
-    # Clamp quality between 1 and 100
-    quality = max(1, min(100, quality))
-
-    # Determine format - if it's not a format that supports quality,
-    # we'll convert to JPEG for the best compression results
-    img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
-    if img_format == "JPEG" and img.mode != "RGB":
-        img = img.convert("RGB")
-
-    extension = ".jpg" if img_format == "JPEG" else ".webp"
-    mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
-
-    buf = BytesIO()
-    img.save(buf, format=img_format, quality=quality, optimize=True)
-    buf.seek(0)
-    data = buf.getvalue()
-
-    base = os.path.splitext(filename)[0]
-
-    return send_file_and_cleanup(
-        data,
-        mimetype=mimetype,
-        as_attachment=True,
-        download_name=f"{base}_compressed{extension}",
-    )
+    finally:
+        if img:
+            try:
+                img.close()
+            except Exception:
+                pass
 
 
 @image_bp.route("/resizeImage", methods=["POST"])

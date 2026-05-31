@@ -328,6 +328,37 @@
   100%     { opacity: 0; }
 }
 
+/* ════════════════════════════════════
+   15. Image Blur
+════════════════════════════════════ */
+.tc-blur-image {
+  filter: blur(0px);
+}
+.tc-blur-scene:hover .tc-blur-image {
+  animation: blurPulse 2s ease-in-out infinite;
+}
+.group:hover .tc-blur-scene {
+  animation: blurPulse 2s ease-in-out infinite;
+}
+
+@keyframes blurPulse {
+  0% {
+    filter: blur(0px);
+    transform: scale(1);
+  }
+
+  50% {
+    filter: blur(2px);
+    transform: scale(1.08);
+  }
+
+  100% {
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+
 .tc-base64-scene { animation: tc-float 2.4s ease-in-out infinite; }
 .group:hover .tc-base64-scene      { animation: none; }
 .group:hover .tc-b64-photo         { animation: tc-b64-photo-out    1.8s ease-in-out infinite; }

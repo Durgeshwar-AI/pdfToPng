@@ -1,10 +1,12 @@
 import fitz  # PyMuPDF
-import traceback
-from io import BytesIO
 
 from flask import Blueprint, request
 
 from utils.helpers import error, send_file_and_cleanup
+from utils.validators import (
+    validate_pdf_file,
+    validate_uploaded_file,
+)
 
 pdf_bp = Blueprint("pdf", __name__)
 
@@ -12,37 +14,50 @@ pdf_bp = Blueprint("pdf", __name__)
 @pdf_bp.route("/convertPng", methods=["POST"])
 def convert_pdf_to_png():
     doc = None
+
     try:
-        if "file" not in request.files:
-            return error("No file provided")
+        pdf_file, filename, upload_error = validate_uploaded_file(
+            request,
+            "file",
+        )
 
-        pdf_file = request.files["file"]
+        if upload_error:
+            return upload_error
 
-        if pdf_file.filename == "":
-            return error("No file selected")
-        
-        # --- NEW CODE: Check if the file is a PDF ---
-        if not pdf_file.filename.lower().endswith(".pdf"):
-            return error("Invalid file format. Please upload a PDF file.")
-        # --------------------------------------------
-        
-        # Read PDF into memory and open from bytes
+        pdf_error = validate_pdf_file(filename)
+
+        if pdf_error:
+            return pdf_error
 
         # Read PDF into memory and open from bytes
         pdf_bytes = pdf_file.read()
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+
+        doc = fitz.open(
+            stream=pdf_bytes,
+            filetype="pdf",
+        )
 
         try:
             if doc.page_count == 0:
                 return error("Empty PDF")
 
             page = doc.load_page(0)
+
             zoom = 1.0
+
             mat = fitz.Matrix(zoom, zoom)
-            pix = page.get_pixmap(matrix=mat, alpha=False)
+
+            pix = page.get_pixmap(
+                matrix=mat,
+                alpha=False,
+            )
 
             # Get PNG bytes from pixmap
-            png_bytes = pix.tobytes(output="png") if hasattr(pix, "tobytes") else pix.tobytes()
+            png_bytes = (
+                pix.tobytes(output="png")
+                if hasattr(pix, "tobytes")
+                else pix.tobytes()
+            )
 
         finally:
             if doc:
@@ -55,6 +70,8 @@ def convert_pdf_to_png():
             download_name="converted.png",
         )
 
-    except Exception as e:
-# --- NEW CODE: Handle corrupted PDFs gracefully ---
-        return error("The provided PDF file appears to be corrupted or unreadable.")
+    except Exception:
+        # Handle corrupted PDFs gracefully
+        return error(
+            "The provided PDF file appears to be corrupted or unreadable."
+        )

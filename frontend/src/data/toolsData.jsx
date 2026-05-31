@@ -217,6 +217,15 @@ const tools = [
     gradient: "from-sky-500/10 to-indigo-500/10",
     iconGradient: "from-sky-500 to-indigo-500",
   },
+  {
+    id: "image-blur",
+    name: "Image Blur",
+    icon: <Image />,
+    description: "Blur images with adjustable blur intensity.",
+    path: "/image-blur",
+    gradient: "from-gray-500/10 to-gray-700/10",
+    iconGradient: "from-gray-500 to-gray-700",
+  }
 ];
 
 export default tools;

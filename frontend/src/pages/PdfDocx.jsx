@@ -91,7 +91,7 @@ function PdfDocx() {
         PDF to Word
       </h1>
 
-      <p className="text-gray-500 text-sm mb-8 -mt-6">
+      <p className="text-gray-800 text-sm mb-8 -mt-6">
         Text-based PDFs only. Scanned PDFs are not supported.
       </p>
 

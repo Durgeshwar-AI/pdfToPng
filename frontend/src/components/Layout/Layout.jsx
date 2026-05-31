@@ -57,12 +57,14 @@ const Layout = () => {
                 <Menu className="w-6 h-6" />
               </button>
 
-              <h1 className="text-lg font-semibold text-blue-400">pdfToPng</h1>
+      <h1 className="text-lg font-semibold text-blue-700">
+        pdfToPng
+      </h1>
 
-              <div className="w-10" />
-            </div>
-          </header>
-        )}
+      <div className="w-10" />
+    </div>
+  </header>
+)}
 
         <div className="min-h-full flex justify-center items-center py-8">
           <Outlet />

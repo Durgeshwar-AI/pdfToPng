@@ -52,16 +52,27 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
               </Link>
             )}
             <button
-              onClick={isMobile ? onClose : toggleSidebar}
-              className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${isCollapsed && !isMobile ? "mx-auto" : ""}`}
-            >
+              
+  onClick={isMobile ? onClose : toggleSidebar}
+  aria-label={
+    isMobile
+      ? "Close sidebar"
+      : isCollapsed
+      ? "Expand sidebar"
+      : "Collapse sidebar"
+  }
+  className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${
+    isCollapsed && !isMobile ? "mx-auto" : ""
+  }`}
+>
+            
               {isMobile ? (
-                <X className="w-5 h-5" />
-              ) : isCollapsed ? (
-                <ChevronRight className="w-5 h-5" />
-              ) : (
-                <ChevronLeft className="w-5 h-5" />
-              )}
+    <X className="w-5 h-5" />
+  ) : isCollapsed ? (
+    <ChevronRight className="w-5 h-5" />
+  ) : (
+    <ChevronLeft className="w-5 h-5" />
+  )}
             </button>
           </div>
         </div>
@@ -73,7 +84,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                 <button
                   onClick={() => handleNavigation(item.id)}
                   className={`
-                    w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-all
+                    w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-colors
                     ${activeTab === item.id ? "bg-blue-600 text-white shadow-lg" : "hover:bg-slate-50 text-slate-600"}
                     ${isCollapsed ? "justify-center" : ""}
                   `}

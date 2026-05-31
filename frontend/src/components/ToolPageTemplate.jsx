@@ -181,9 +181,10 @@ const ToolPageTemplate = ({
       <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         {title}
       </h1>
-      {description && <p className="text-gray-500 mb-8">{description}</p>}
+      {description && <p className="text-gray-800 mb-8">{description}</p>}
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
+        <Suspense fallback={<div>Loading upload...</div>}>
         <FileUploadArea
           file={file}
           previewUrl={previewUrl}
@@ -205,6 +206,7 @@ const ToolPageTemplate = ({
           outputFilename={showFilenameInput && file ? downloadFilename : undefined}
           onOutputFilenameChange={showFilenameInput && file ? setDownloadFilename : undefined}
         />
+        </Suspense>
 
         {extraFields && (typeof extraFields === "function" ? extraFields(context) : extraFields)}
 
