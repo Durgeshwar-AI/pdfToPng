@@ -1,18 +1,15 @@
 import React, { useCallback, useState } from "react";
-
-import JSZip from "jszip";
-
 import ToolPageTemplate from "../components/ToolPageTemplate";
-
-// Set worker source for PDF.js
-
+import MultiFileResults from "../components/MultiFileResults";
 
 const PdfPng = () => {
-  const [scale, setScale] = useState(2.0); // Default scale (2x)
-  const [pageMode, setPageMode] = useState("all"); // all, single, range
+  const [scale, setScale] = useState(2.0);
+  const [pageMode, setPageMode] = useState("all");
   const [pageRange, setPageRange] = useState("");
   const [singlePage, setSinglePage] = useState("1");
   const [numPages, setNumPages] = useState(0);
+  const [outputFiles, setOutputFiles] = useState([]);
+  const [sourceFilename, setSourceFilename] = useState("");
 
   const validateFile = useCallback(async (selectedFile) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
@@ -20,15 +17,15 @@ const PdfPng = () => {
         const arrayBuffer = await selectedFile.arrayBuffer();
         const pdfjsLib = await import("pdfjs-dist");
 
-const pdfWorker = await import(
-  "pdfjs-dist/build/pdf.worker.min.mjs?url"
-);
+        const pdfWorker = await import(
+          "pdfjs-dist/build/pdf.worker.min.mjs?url"
+        );
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
-const pdf = await pdfjsLib.getDocument({
-  data: arrayBuffer,
-}).promise;
+        const pdf = await pdfjsLib.getDocument({
+          data: arrayBuffer,
+        }).promise;
         setNumPages(pdf.numPages);
       } catch (err) {
         console.error("Error loading PDF info:", err);
@@ -51,18 +48,28 @@ const pdf = await pdfjsLib.getDocument({
     setPageRange("");
     setSinglePage("1");
     setPageMode("all");
+    setOutputFiles([]);
+    setSourceFilename("");
   };
 
-  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
+  const handleCustomSubmit = async ({
+    file,
+    setStatusMessage,
+    setLoading,
+    setStatusType,
+  }) => {
+    setOutputFiles([]);
+    setSourceFilename(file.name);
     setStatusMessage("Processing PDF... This may take a while for large files.");
+
     try {
       const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
 
-const pdfWorker = await import(
-  "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"
-);
+      const pdfWorker = await import(
+        "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"
+      );
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const totalPages = pdf.numPages;
@@ -93,14 +100,12 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         });
       }
 
-      // Deduplicate and sort
       pagesToRender = [...new Set(pagesToRender)].sort((a, b) => a - b);
 
       if (pagesToRender.length === 0) {
         throw new Error("No valid pages selected");
       }
 
-      const zip = new JSZip();
       const results = [];
 
       for (let i = 0; i < pagesToRender.length; i++) {
@@ -123,42 +128,19 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         results.push({ name: `page-${pageNum}.png`, blob });
       }
 
-      if (results.length === 1) {
-        const url = window.URL.createObjectURL(results[0].blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name.replace(/\.pdf$/i, ".png");
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        setStatusMessage("Success! Your PNG file has been downloaded.");
-        setStatusType("success");
-      } else {
-        setStatusMessage("Packaging files into ZIP...");
-        results.forEach((res) => zip.file(res.name, res.blob));
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-        const url = window.URL.createObjectURL(zipBlob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${file.name.replace(/\.pdf$/i, "")}_pages.zip`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        setStatusMessage(
-          `Success! ZIP file with ${results.length} pages downloaded.`,
-        );
-        setStatusType("success");
-      }
-
-      setTimeout(() => setStatusMessage(""), 5000);
+      setOutputFiles(results);
+      setStatusMessage(
+        results.length === 1
+          ? "Conversion complete. Download your PNG below."
+          : `Conversion complete. ${results.length} pages ready — download individually or as ZIP.`,
+      );
+      setStatusType("success");
+      setTimeout(() => setStatusMessage(""), 8000);
     } catch (error) {
       console.error("Client-side conversion error:", error);
       setStatusMessage("Client conversion failed — trying server fallback...");
       setStatusType("info");
 
-      // Attempt server-side conversion fallback
       try {
         const form = new FormData();
         form.append("file", file);
@@ -178,15 +160,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
         if (response && response.ok) {
           const blob = await response.blob();
-          const downloadUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = downloadUrl;
-          a.download = file.name.replace(/\.pdf$/i, ".png");
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(downloadUrl);
-          setStatusMessage("Success! PNG downloaded from server fallback.");
+          const name = file.name.replace(/\.pdf$/i, ".png");
+          setOutputFiles([{ name, blob }]);
+          setSourceFilename(file.name);
+          setStatusMessage("Conversion complete. Download your PNG below.");
           setStatusType("success");
         } else {
           const msg = response
@@ -211,7 +188,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
     if (!file) return null;
     return (
       <div className="w-full space-y-6 mb-8 text-left bg-white/50 p-6 rounded-xl border border-[#c7d2fe] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-        {/* Quality Slider */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
@@ -237,7 +213,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
           </div>
         </div>
 
-        {/* Page Selection */}
         <div className="space-y-4">
           <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
             Page Selection {numPages > 0 && `(Total: ${numPages})`}
@@ -262,9 +237,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
           {pageMode === "single" && (
             <div className="animate-in zoom-in-95 duration-200">
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-[#6b7280] font-medium">
-                  Page:
-                </span>
+                <span className="text-sm text-[#6b7280] font-medium">Page:</span>
                 <input
                   type="number"
                   min="1"
@@ -273,9 +246,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
                   onChange={(e) => setSinglePage(e.target.value)}
                   className="w-24 p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white text-[#1a1a2e] font-bold text-center"
                 />
-                <span className="text-xs text-[#94a3b8]">
-                  of {numPages}
-                </span>
+                <span className="text-xs text-[#94a3b8]">of {numPages}</span>
               </div>
             </div>
           )}
@@ -299,6 +270,16 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
     );
   };
 
+  const extraContent = () => {
+    if (!outputFiles.length) return null;
+    return (
+      <MultiFileResults
+        files={outputFiles}
+        sourceFilename={sourceFilename}
+      />
+    );
+  };
+
   return (
     <ToolPageTemplate
       title="PDF to PNG Converter"
@@ -310,7 +291,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       submitButtonText="Convert to PNG"
       loadingButtonText="Converting..."
       extraFields={extraFields}
-      maxWidthClass="max-w-[600px]"
+      extraContent={extraContent}
+      maxWidthClass="max-w-[900px]"
       inputId="file-input"
       defaultIcon={
         <svg
