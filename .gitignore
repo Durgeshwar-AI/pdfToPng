@@ -1,5 +1,11 @@
 .env
 node_modules
 venv
+.venv
+.venv*/
+**/.venv*/
 __pycache__
+*.pyc
+dist/
+build/
 stats.html

@@ -53,7 +53,10 @@ def create_app():
     from blueprints.pdf_to_docx import pdf_docx_bp
     from blueprints.docx_to_pdf import docx_pdf_bp
     from blueprints.image import image_bp
-    from blueprints.removebg import remove_bp
+    try:
+        from blueprints.removebg import remove_bp
+    except ImportError:
+        remove_bp = None
     from blueprints.rotate_flip import rotate_flip_bp
     from blueprints.pdf_rotate_flip import pdf_rotate_flip_bp
     from blueprints.dpi_converter import dpi_bp
@@ -66,7 +69,8 @@ def create_app():
     app.register_blueprint(pdf_docx_bp)
     app.register_blueprint(docx_pdf_bp)
     app.register_blueprint(image_bp)
-    app.register_blueprint(remove_bp)
+    if remove_bp is not None:
+        app.register_blueprint(remove_bp)
     app.register_blueprint(rotate_flip_bp)
     app.register_blueprint(pdf_rotate_flip_bp)
     app.register_blueprint(dpi_bp)
