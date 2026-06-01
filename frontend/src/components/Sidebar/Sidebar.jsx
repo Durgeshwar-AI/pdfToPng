@@ -1,20 +1,48 @@
 import React, { useState } from "react";
+ 
 import { useNavigate, Link } from "react-router-dom";
 import { FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
 import tools from "../../data/toolsData";
 
 const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+
+ const [isCollapsed, setIsCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+   
   const navigate = useNavigate();
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+ 
+const filteredTools = tools.filter((tool) => {
+  const query = searchQuery
+    .toLowerCase()
+    .trim()
+    .replace(/[-_\s]+/g, "");
 
-  const menuItems = tools.map((t) => ({
-    id: t.id,
-    label: t.name,
-    icon: React.cloneElement(t.icon, { className: "w-5 h-5" }),
-    description: t.description,
-  }));
+  const toolName = tool.name
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
+
+  const toolDescription = tool.description
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
+
+  return (
+    toolName.includes(query) ||
+    toolDescription.includes(query)
+  );
+});
+
+const menuItems = filteredTools.map((t) => ({
+  id: t.id,
+  label: t.name,
+  icon: React.cloneElement(t.icon, { className: "w-5 h-5" }),
+  description: t.description,
+}));
+
+
+
+
 
   const handleNavigation = (id) => {
     navigate(`/${id}`);
@@ -78,8 +106,25 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="space-y-2">
-            {menuItems.map((item) => (
+
+
+{!isCollapsed && (
+  <div className="mb-4">
+    <input
+      type="text"
+      placeholder="Search tools..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+  </div>
+)}
+ 
+
+{menuItems.length > 0 ? (
+  <ul className="space-y-2">
+    {menuItems.map((item) => (
+
               <li key={item.id}>
                 <button
                   onClick={() => handleNavigation(item.id)}
@@ -103,6 +148,14 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
               </li>
             ))}
           </ul>
+
+
+) : (
+  <div className="text-center text-slate-500 py-4">
+    No tools found
+  </div>
+)}
+
         </nav>
       </aside>
     </>

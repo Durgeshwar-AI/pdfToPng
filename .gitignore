@@ -8,4 +8,5 @@ __pycache__
 *.pyc
 dist/
 build/
+.obsidian
 stats.html

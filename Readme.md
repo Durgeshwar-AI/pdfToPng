@@ -28,6 +28,9 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 - Extract text from images (OCR)
 - Convert images to Base64
 
+**MD tools**
+- Convert Markdown files to HTML with optional theme styling
+
 The backend is a Flask API and the frontend is a React app (Vite).
 
 ### Project Rules
@@ -49,7 +52,7 @@ If you contribute to this repository, you must respect all the rules above.
 
 ## Tech Stack
 
-- **Backend:** Python, Flask, Flask‑CORS, PyMuPDF (`fitz`), Pillow, `rembg`, `python-docx`, `pdf2docx`, OpenCV, pytesseract
+- **Backend:** `Python`, `Flask`, `Flask‑CORS`, `PyMuPDF (fitz)`, `Pillow`, `rembg`, `python-docx`, `pdf2docx`, `OpenCV`, `pytesseract`,`markdown2`
 - **Frontend:** React, React Router, Vite, PDF.js
 
 ---
@@ -76,7 +79,10 @@ pdfToPng/
 │   │   ├── split_pdf.py
 │   │   ├── pdf_to_docx.py
 │   │   ├── docx_to_pdf.py
-│   │   └── watermark.py
+│   │   ├── watermark.py
+│   │   ├── md2html.py
+│   │   └── markdown.py
+|   |   
 │   └── utils/
 │       ├── __init__.py
 │       ├── helpers.py
@@ -129,6 +135,7 @@ pdfToPng/
 │       │   ├── PdfRotateFlip.jsx
 │       │   ├── PDFWatermark.jsx
 │       │   ├── PdfSign.jsx
+│       │   ├── MdToHtml.jsx
 │       │   ├── ImageWbp.jsx
 │       │   ├── ImageJpg.jsx
 │       │   ├── ImagePdf.jsx
@@ -173,6 +180,7 @@ pdfToPng/
   - `pdf_to_docx.py` – Convert PDF to DOCX endpoint
   - `docx_to_pdf.py` – Convert DOCX to PDF endpoint
   - `watermark.py` – Add watermarks to PDFs and images endpoint
+  - `md2html.py` - Converts MD to HTML with built-in css
 - `utils/` – Helper functions and utilities used across blueprints:
   - `helpers.py` – Common utility functions
   - `decorators.py` – Custom decorators for request handling
@@ -236,6 +244,8 @@ pdfToPng/
       - `ImageBase64.jsx` – Convert image to Base64 page
       - `RemoveBg.jsx` – Background removal page
       - `RotateFlip.jsx` – Rotate/flip image page
+    - **MD Tools:**
+      - `MdToHtml.jsx` - converts MD to HTML
   - `styles/` – Global stylesheets:
     - `ImageWatermark.css` – Image watermark styles
 - `public/` – Static assets
@@ -275,7 +285,7 @@ Available endpoints:
 - `POST /pdf-to-docx` – Convert PDF to DOCX
 - `POST /docx-to-pdf` – Convert DOCX to PDF
 - `POST /rotate-flip-pdf` – Rotate or flip PDF pages
-- `POST /watermark-pdf` – Add watermarks to PDF
+- `POST /watermark-pdf` – Add watermarks to PDF 
 
 **Image Endpoints:**
 
@@ -291,6 +301,10 @@ Available endpoints:
 - `POST /removeBg` – Remove the background from an image
 - `POST /watermark-image` – Add watermarks to an image
 - `POST /image-to-base64` – Convert image to Base64
+
+**Mark Down Endpoints**
+
+- `POST /convertMdToHtml` – Converts MD to HTML
 
 **Health Check:**
 

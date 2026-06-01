@@ -5,7 +5,6 @@ import ScrollToTop from "./components/ScrollToTop";
 
 import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
-import BlurImage from "./pages/BlurImage";
 
 const PdfMerge = lazy(() => import("./pages/PdfMerge"));
 const PdfSign = lazy(() => import("./pages/PdfSign"));
@@ -32,6 +31,8 @@ const PdfRotateFlip = lazy(() => import("./pages/PdfRotateFlip"));
 const PDFWatermark = lazy(() => import("./pages/PDFWatermark"));
 const ImageOCR = lazy(() => import("./pages/ImageOCR"));
 const ImageWatermark = lazy(() => import("./pages/ImageWatermark"));
+const BlurImage = lazy(()=> import("./pages/BlurImage"))
+const MdToHtml = lazy(()=> import("./pages/MdToHtml"))
 
 function App() {
   return (
@@ -69,8 +70,7 @@ function App() {
             <Route path="/image-dpi" element={<ImageDpi />} />
             <Route path="/image-metadata" element={<ImageMetadata />} />
             <Route path="/image-to-base64" element={<ImageBase64 />} />
-
-            {/* Catch-all route placed precisely at the bottom of the layout block */}
+            <Route path="/md-to-html" element={<MdToHtml />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

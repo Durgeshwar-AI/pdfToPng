@@ -1,9 +1,33 @@
-import React from "react";
+import React, {useState} from "react";
 import ToolCard from "./ToolCard";
 import tools from "../../data/toolsData";
 import { Sparkles } from "lucide-react";
 
 const ToolsGrid = () => {
+
+const [searchQuery, setSearchQuery] = useState("");
+
+const filteredTools = tools.filter((tool) => {
+  const query = searchQuery
+    .toLowerCase()
+    .trim()
+    .replace(/[-_\s]+/g, "");
+
+  const toolName = tool.name
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
+
+  const toolDescription = tool.description
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
+
+  return (
+    toolName.includes(query) ||
+    toolDescription.includes(query)
+  );
+});
+
+
   return (
     <section id="tools" className="max-w-7xl mx-auto px-6 py-24">
       <div className="text-center mb-16">
@@ -21,11 +45,34 @@ const ToolsGrid = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-        {tools.map((tool, idx) => (
-          <ToolCard key={tool.id} tool={tool} index={idx} />
-        ))}
-      </div>
+ 
+
+<div className="max-w-md mx-auto mb-10">
+<input
+  type="text"
+  aria-label="Search converters and tools"
+  placeholder="Search converters and tools..."
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+/>
+
+
+</div>
+
+{filteredTools.length > 0 ? (
+  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+    {filteredTools.map((tool, idx) => (
+      <ToolCard key={tool.id} tool={tool} index={idx} />
+    ))}
+  </div>
+) : (
+  <div className="text-center py-12">
+    <p className="text-slate-500 text-lg">
+      No tools found
+    </p>
+  </div>
+)}
     </section>
   );
 };

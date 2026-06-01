@@ -556,13 +556,11 @@ const toolAnimations = {
   "image-blur": (
     <div className="tc-scene tc-blur-scene flex items-center justify-center">
       <div className="tc-blur-image w-[54px] h-[40px] rounded-[8px] bg-[#E6F1FB] border border-[#85B7EB] flex items-center justify-center">
-  "image-blur": (
-    <div className="tc-scene tc-blur-scene flex items-center justify-center">
-      <div className="tc-blur-image w-[54px] h-[40px] rounded-[8px] bg-[#E6F1FB] border border-[#85B7EB] flex items-center justify-center" >
         <Image />
       </div>
     </div>
-  ),
+  </div>
+),
 };
 
 const ToolCard = ({ tool, index }) => (
