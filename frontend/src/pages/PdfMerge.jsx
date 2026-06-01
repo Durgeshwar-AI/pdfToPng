@@ -87,7 +87,7 @@ export default function MergePdf() {
     e.preventDefault();
     setIsDragging(false);
     addFiles(e.dataTransfer.files);
-  }, []);
+  }, [addFiles]);
   const onDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
