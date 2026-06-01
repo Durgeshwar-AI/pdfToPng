@@ -26,6 +26,7 @@ const ToolPageTemplate = ({
   inputId = "file-input",
 }) => {
   const [statusType, setStatusType] = useState("info"); // info, success, error
+  const [progress, setProgress] = useState(0);
 
   const internalValidate = useCallback(
     async (selectedFile) => {
@@ -59,6 +60,7 @@ const ToolPageTemplate = ({
   const handleClearAll = (e) => {
     handleClear(e);
     setStatusType("info");
+    setProgress(0);
     if (onClear) {
       onClear();
     }
@@ -153,6 +155,8 @@ const ToolPageTemplate = ({
     handleClear: handleClearAll,
     handleSubmit,
     previewUrl,
+    progress,
+    setProgress,
   };
 
   return (
@@ -206,6 +210,21 @@ const ToolPageTemplate = ({
           <p className={`mt-6 text-[0.95rem] ${statusType === "success" ? "text-green-600" : statusType === "error" ? "text-red-500" : "text-[#4b5563]"}`}>
             {statusMessage}
           </p>
+        )}
+
+        {progress > 0 && progress < 100 && (
+          <div className="mt-6 w-full max-w-xs mx-auto">
+            <div className="flex items-center justify-between text-sm text-[#6b7280] mb-1">
+              <span>Processing</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-[#e2e8f0]">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#4361ee] to-[#3b82f6] transition-all duration-300"
+                style={{ width: `${Math.round(progress)}%` }}
+              />
+            </div>
+          </div>
         )}
       </form>
 

@@ -43,7 +43,7 @@ const PdfPng = () => {
     setPageMode("all");
   };
 
-  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
+  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType, setProgress }) => {
     setStatusMessage("Processing PDF... This may take a while for large files.");
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -88,6 +88,8 @@ const PdfPng = () => {
 
       for (let i = 0; i < pagesToRender.length; i++) {
         const pageNum = pagesToRender[i];
+        const pct = ((i + 1) / pagesToRender.length) * 100;
+        setProgress(pct);
         setStatusMessage(
           `Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})...`,
         );
@@ -105,6 +107,8 @@ const PdfPng = () => {
         );
         results.push({ name: `page-${pageNum}.png`, blob });
       }
+
+      setProgress(100);
 
       if (results.length === 1) {
         const url = window.URL.createObjectURL(results[0].blob);
