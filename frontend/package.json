@@ -11,13 +11,21 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
+    "axios": "^1.16.1",
+    "imagetracerjs": "^1.2.6",
+    "is-wsl": "^3.1.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.562.0",
+    "motion": "^12.38.0",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.7.284",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-dropzone": "^15.0.0",
+    "react-icons": "^5.6.0",
     "react-router-dom": "^7.9.2",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "tesseract.js": "^4.1.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
@@ -28,6 +36,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "rollup-plugin-visualizer": "^7.0.1",
     "vite": "^7.0.4"
   }
 }

@@ -27,11 +27,13 @@ If a pull request violates any of these rules, it will not be merged.
 3. **Set up** the project locally (see `README.md` for detailed steps).
 4. **Implement** your change, keeping the rules above in mind.
 5. **Update documentation** in `README.md` if you introduce a new feature or change existing functionality. README updates are **required** for PR acceptance.
+   - Documentation-only changes (typos, clarifications, examples, or docs improvements) are not welcome.
 6. **Run the app** (backend and frontend) to ensure everything works.
 7. **Open a Pull Request** with a clear description:
    - What feature or bugfix you are adding
    - How it works
    - Any limitations or follow‑up ideas
+8. **Consider starring the repo** to show support.
 
 Pull requests must reference an existing issue. PRs opened without an issue may be asked to create one before review.
 
