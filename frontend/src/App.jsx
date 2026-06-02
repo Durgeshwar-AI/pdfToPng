@@ -1,29 +1,81 @@
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import "./App.css";
+import ScrollToTop from "./components/ScrollToTop";
+
 import Layout from "./components/Layout/Layout";
-import LandingPage from "./pages/LandingPage";
-import PdfPng from "./pages/PdfPng";
-import ImageWebp from "./pages/ImageWbp";
-import ImageJpg from "./pages/ImageJpg";
-import RemoveBg from "./pages/RemoveBg";
-import RotateFlip from "./pages/RotateFlip";
-import ImageCompress from "./pages/ImageCompress";
+import ErrorBoundary from "./ErrorBoundary";
+
+const PdfMerge = lazy(() => import("./pages/PdfMerge"));
+const PdfSign = lazy(() => import("./pages/PdfSign"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const ImagePdf = lazy(() => import("./pages/ImagePdf"));
+const PdfPng = lazy(() => import("./pages/PdfPng"));
+const PdfDocx = lazy(() => import("./pages/PdfDocx"));
+const ImageWbp = lazy(() => import("./pages/ImageWbp"));
+const ImageJpg = lazy(() => import("./pages/ImageJpg"));
+const RemoveBg = lazy(() => import("./pages/RemoveBg"));
+const RotateFlip = lazy(() => import("./pages/RotateFlip"));
+const ImageCompress = lazy(() => import("./pages/ImageCompress"));
+const ImageResize = lazy(() => import("./pages/ImageResize"));
+const ImageUpscale = lazy(() => import("./pages/ImageUpscale"));
+const ImageDpi = lazy(() => import("./pages/ImageDpi"));
+const ImageGrayScale = lazy(() => import("./pages/ImageGrayScale"));
+const ImageMetadata = lazy(() => import("./pages/ImageMetadata"));
+const ImageBase64 = lazy(() => import("./pages/ImageBase64"));
+const ImageToSVG = lazy(() => import("./pages/ImageToSVG"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const DocxPdf = lazy(() => import("./pages/DocxPdf"));
+const PdfSplit = lazy(() => import("./pages/PdfSplit"));
+const PdfRotateFlip = lazy(() => import("./pages/PdfRotateFlip"));
+const PDFWatermark = lazy(() => import("./pages/PDFWatermark"));
+const ImageOCR = lazy(() => import("./pages/ImageOCR"));
+const ImageWatermark = lazy(() => import("./pages/ImageWatermark"));
+const BlurImage = lazy(()=> import("./pages/BlurImage"))
+const MdToHtml = lazy(()=> import("./pages/MdToHtml"))
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
+    <ErrorBoundary>
+      <ScrollToTop />
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          {/* The Landing Page has its own clean view */}
+          <Route path="/" element={<LandingPage />} />
 
-      {/* All tools share the Layout with the Sidebar */}
-      <Route element={<Layout />}>
-        <Route path="/pdf-to-png" element={<PdfPng />} />
-        <Route path="/image-to-webp" element={<ImageWebp />} />
-        <Route path="/image-to-jpg" element={<ImageJpg />} />
-        <Route path="/remove-bg" element={<RemoveBg />} />
-        <Route path="/rotate-flip" element={<RotateFlip />} />
-        <Route path="/image-compress" element={<ImageCompress />} />
-      </Route>
-    </Routes>
+          {/* All application tools share the Layout with the Sidebar */}
+          <Route element={<Layout />}>
+            <Route path="/pdf-to-png" element={<PdfPng />} />
+            <Route path="/pdf-to-word" element={<PdfDocx />} />
+            <Route path="/docx-to-pdf" element={<DocxPdf />} />
+            <Route path="/image-to-pdf" element={<ImagePdf />} />
+            <Route path="/pdf-merge" element={<PdfMerge />} />
+            <Route path="/pdf-split" element={<PdfSplit />} />
+            <Route path="/pdf-rotate-flip" element={<PdfRotateFlip />} />
+            <Route path="/pdf-sign" element={<PdfSign />} />
+            <Route path="/pdf-watermark" element={<PDFWatermark />} />
+
+            <Route path="/image-blur" element={<BlurImage />} />
+            <Route path="/image-to-webp" element={<ImageWbp />} />
+            <Route path="/image-to-jpg" element={<ImageJpg />} />
+            <Route path="/image-ocr" element={<ImageOCR />} />
+            <Route path="/image-watermark" element={<ImageWatermark />} />
+            <Route path="/image-to-svg" element={<ImageToSVG />} />
+            <Route path="/image-to-grayscale" element={<ImageGrayScale />} />
+            <Route path="/remove-bg" element={<RemoveBg />} />
+            <Route path="/rotate-flip" element={<RotateFlip />} />
+            <Route path="/image-compress" element={<ImageCompress />} />
+            <Route path="/image-resize" element={<ImageResize />} />
+            <Route path="/image-upscale" element={<ImageUpscale />} />
+            <Route path="/image-dpi" element={<ImageDpi />} />
+            <Route path="/image-metadata" element={<ImageMetadata />} />
+            <Route path="/image-to-base64" element={<ImageBase64 />} />
+            <Route path="/md-to-html" element={<MdToHtml />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

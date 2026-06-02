@@ -1,0 +1,398 @@
+/* ── Shared float keyframe ── */
+@keyframes tc-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* ════════════════════════════════════
+   1. PDF → PNG
+════════════════════════════════════ */
+@keyframes tc-pdf-out {
+  0%, 10%  { transform: translateX(0); opacity: 1; }
+  45%      { transform: translateX(-28px); opacity: 0; }
+  100%     { transform: translateX(-28px); opacity: 0; }
+}
+@keyframes tc-png-in {
+  0%, 40%   { transform: translateX(28px); opacity: 0; }
+  80%, 100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes tc-arr-blink {
+  0%, 100% { opacity: 0.2; }
+  50%      { opacity: 1; }
+}
+@keyframes tc-px-pop {
+  0%, 42%  { opacity: 0; transform: scale(.5); }
+  72%      { opacity: 1; transform: scale(1.1); }
+  100%     { opacity: 1; transform: scale(1); }
+}
+
+.group:hover .tc-pdf-png-scene                    { animation: none; }
+.group:hover .tc-pdf-png-scene .tc-pdf-side       { animation: tc-pdf-out   1.8s ease-in-out infinite; }
+.group:hover .tc-pdf-png-scene .tc-arrow          { animation: tc-arr-blink 1.8s ease-in-out infinite; }
+.group:hover .tc-pdf-png-scene .tc-png-side       { animation: tc-png-in    1.8s ease-in-out infinite; }
+.group:hover .tc-pdf-png-scene .tc-pixel-grid     { animation: tc-px-pop    1.8s ease-in-out infinite; }
+
+.tc-pdf-png-scene { animation: tc-float 2.4s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   2. Image → PDF
+════════════════════════════════════ */
+@keyframes tc-img-out {
+  0%, 10%  { transform: translateX(0); opacity: 1; }
+  45%      { transform: translateX(-30px); opacity: 0; }
+  100%     { transform: translateX(-30px); opacity: 0; }
+}
+@keyframes tc-pdf-in {
+  0%, 40%   { transform: translateX(30px); opacity: 0; }
+  80%, 100% { transform: translateX(0); opacity: 1; }
+}
+
+.tc-img-pdf-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-img-pdf-scene                    { animation: none; }
+.group:hover .tc-img-pdf-scene .tc-img-side       { animation: tc-img-out   1.8s ease-in-out infinite; }
+.group:hover .tc-img-pdf-scene .tc-arrow          { animation: tc-arr-blink 1.8s ease-in-out infinite; }
+.group:hover .tc-img-pdf-scene .tc-pdf-out-side   { animation: tc-pdf-in    1.8s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   3. PDF Merge
+════════════════════════════════════ */
+@keyframes tc-merge-1 {
+  0%, 10%  { transform: translate(0, 0); opacity: 1; }
+  50%      { transform: translate(12px, 4px); opacity: 0; }
+  100%     { transform: translate(12px, 4px); opacity: 0; }
+}
+@keyframes tc-merge-2 {
+  0%, 20%  { transform: translate(0, 0); opacity: 0.7; }
+  55%      { transform: translate(10px, 2px); opacity: 0; }
+  100%     { transform: translate(10px, 2px); opacity: 0; }
+}
+@keyframes tc-merge-3 {
+  0%, 30%  { transform: translate(0, 0); opacity: 0.4; }
+  60%      { transform: translate(8px, 0px); opacity: 0; }
+  100%     { transform: translate(8px, 0px); opacity: 0; }
+}
+@keyframes tc-merge-lines-in {
+  0%, 55%   { opacity: 0; }
+  80%, 100% { opacity: 0.6; }
+}
+
+.tc-merge-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-merge-scene      { animation: none; }
+.group:hover .tc-doc--merge-1     { animation: tc-merge-1        1.8s ease-in-out infinite; }
+.group:hover .tc-doc--merge-2     { animation: tc-merge-2        1.8s ease-in-out infinite; }
+.group:hover .tc-doc--merge-3     { animation: tc-merge-3        1.8s ease-in-out infinite; }
+.group:hover .tc-merge-line       { animation: tc-merge-lines-in 1.8s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   4. PDF Sign
+════════════════════════════════════ */
+@keyframes tc-sig-draw {
+  0%, 15%  { stroke-dashoffset: 120; }
+  65%      { stroke-dashoffset: 0; }
+  100%     { stroke-dashoffset: 0; }
+}
+@keyframes tc-signed-badge {
+  0%, 60%  { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  80%      { opacity: 1; transform: translateX(-50%) scale(1.1); }
+  100%     { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
+.tc-sign-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-sign-scene  { animation: none; }
+.group:hover .tc-sig-path    { animation: tc-sig-draw      1.8s ease-in-out infinite; }
+.group:hover .tc-sign-badge  { animation: tc-signed-badge  1.8s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   5. Image Compress
+════════════════════════════════════ */
+@keyframes tc-compress-squish {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.65, 0.75); }
+  100% { transform: scale(1); }
+}
+@keyframes tc-bar-shrink {
+  0%   { transform: scaleX(1); }
+  70%  { transform: scaleX(0.26); }
+  100% { transform: scaleX(0.26); }
+}
+@keyframes tc-before-fade {
+  0%, 30%   { opacity: 1; }
+  60%, 100% { opacity: 0; }
+}
+@keyframes tc-after-fade {
+  0%, 50%   { opacity: 0; }
+  80%, 100% { opacity: 1; }
+}
+
+.tc-compress-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-compress-scene      { animation: none; }
+.group:hover .tc-compress-photo      { animation: tc-compress-squish 1.6s ease-in-out infinite; }
+.group:hover .tc-compress-bar-fill   { animation: tc-bar-shrink      1.6s ease-in-out infinite; }
+.group:hover .tc-compress-before     { animation: tc-before-fade     1.6s ease-in-out infinite; }
+.group:hover .tc-compress-after      { animation: tc-after-fade      1.6s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   6. AI Upscaler
+════════════════════════════════════ */
+@keyframes tc-upscale-grow {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+@keyframes tc-upscale-badge-pop {
+  0%, 40%  { opacity: 0; transform: scale(0.4); }
+  70%      { opacity: 1; transform: scale(1.1); }
+  100%     { opacity: 1; transform: scale(1); }
+}
+@keyframes tc-small-fade {
+  0%, 20%   { opacity: 1; }
+  55%, 100% { opacity: 0.3; }
+}
+
+.tc-upscale-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-upscale-scene            { animation: none; }
+.group:hover .tc-upscale-frame--big       { animation: tc-upscale-grow      1.6s ease-in-out infinite; }
+.group:hover .tc-upscale-frame--small     { animation: tc-small-fade        1.6s ease-in-out infinite; }
+.group:hover .tc-upscale-badge            { animation: tc-upscale-badge-pop 1.6s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   7. Image → WebP
+════════════════════════════════════ */
+@keyframes tc-webp-photo-out {
+  0%, 10%  { transform: translateX(0); opacity: 1; }
+  45%      { transform: translateX(-30px); opacity: 0; }
+  100%     { transform: translateX(-30px); opacity: 0; }
+}
+@keyframes tc-webp-doc-in {
+  0%, 40%   { transform: translateX(30px); opacity: 0; }
+  80%, 100% { transform: translateX(0); opacity: 1; }
+}
+
+.tc-webp-scene { animation: tc-float 2.3s ease-in-out infinite; }
+.group:hover .tc-webp-scene                   { animation: none; }
+.group:hover .tc-webp-wrap .tc-webp-photo     { animation: tc-webp-photo-out 1.8s ease-in-out infinite; }
+.group:hover .tc-webp-wrap .tc-arrow          { animation: tc-arr-blink      1.8s ease-in-out infinite; }
+.group:hover .tc-webp-wrap .tc-webp-doc       { animation: tc-webp-doc-in    1.8s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   8. Image → JPG
+════════════════════════════════════ */
+@keyframes tc-jpg-back-merge {
+  0%, 100% { transform: translate(0, 0); opacity: 0.5; }
+  50%      { transform: translate(-6px, 3px); opacity: 0.2; }
+}
+@keyframes tc-jpg-badge-show {
+  0%, 40%  { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  70%      { opacity: 1; transform: translateX(-50%) scale(1.1); }
+  100%     { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
+.tc-jpg-scene { animation: tc-float 2.2s ease-in-out infinite; }
+.group:hover .tc-jpg-scene           { animation: none; }
+.group:hover .tc-jpg-frame--back     { animation: tc-jpg-back-merge 1.4s ease-in-out infinite; }
+.group:hover .tc-jpg-badge           { animation: tc-jpg-badge-show 1.4s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   9. Image → Grayscale
+════════════════════════════════════ */
+@keyframes tc-color-fade {
+  0%, 20%   { opacity: 1; }
+  60%, 100% { opacity: 0.3; }
+}
+@keyframes tc-gray-appear {
+  0%, 30%   { opacity: 0.3; }
+  70%, 100% { opacity: 1; }
+}
+
+.tc-grayscale-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-grayscale-scene              { animation: none; }
+.group:hover .tc-grayscale-photo--color       { animation: tc-color-fade  1.6s ease-in-out infinite; }
+.group:hover .tc-grayscale-photo--gray        { animation: tc-gray-appear 1.6s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   10. Remove Background
+════════════════════════════════════ */
+@keyframes tc-bg-erase {
+  0%, 100% { opacity: 1; }
+  55%      { opacity: 0; }
+}
+@keyframes tc-checker-show {
+  0%, 100% { opacity: 0; }
+  55%      { opacity: 1; }
+}
+@keyframes tc-check-pop {
+  0%, 50%  { opacity: 0; transform: scale(0); }
+  75%      { transform: scale(1.2); opacity: 1; }
+  100%     { transform: scale(1); opacity: 1; }
+}
+
+.tc-removebg-scene { animation: tc-float 2.2s ease-in-out infinite; }
+.group:hover .tc-removebg-scene  { animation: none; }
+.group:hover .tc-rb-bg           { animation: tc-bg-erase     1.8s ease-in-out infinite; }
+.group:hover .tc-rb-checker      { animation: tc-checker-show 1.8s ease-in-out infinite; }
+.group:hover .tc-rb-check        { animation: tc-check-pop    1.8s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   11. Rotate & Flip
+════════════════════════════════════ */
+@keyframes tc-rot-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes tc-rot-arrow-show {
+  0%, 30%   { opacity: 0; }
+  60%, 100% { opacity: 1; }
+}
+
+.tc-rotate-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-rotate-scene  { animation: none; }
+.group:hover .tc-rot-frame     { animation: tc-rot-spin       1.1s linear infinite; }
+.group:hover .tc-rot-arrow     { animation: tc-rot-arrow-show 1.1s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   12. Image Resize
+════════════════════════════════════ */
+@keyframes tc-resize-big-shrink {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(0.75); }
+}
+@keyframes tc-resize-small-grow {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.25); }
+}
+@keyframes tc-resize-badge-show {
+  0%, 30%   { opacity: 0; }
+  60%, 100% { opacity: 1; }
+}
+
+.tc-resize-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-resize-scene          { animation: none; }
+.group:hover .tc-resize-frame--big     { animation: tc-resize-big-shrink 1.6s ease-in-out infinite; }
+.group:hover .tc-resize-frame--small   { animation: tc-resize-small-grow 1.6s ease-in-out infinite; }
+.group:hover .tc-resize-badge          { animation: tc-resize-badge-show 1.6s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   13. Image DPI
+════════════════════════════════════ */
+@keyframes tc-dpi-low-fade {
+  0%, 20%   { opacity: 1; }
+  60%, 100% { opacity: 0.3; }
+}
+@keyframes tc-dpi-high-glow {
+  0%, 30%   { opacity: 0.3; }
+  70%, 100% { opacity: 1; }
+}
+@keyframes tc-dpi-label-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+
+.tc-dpi-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-dpi-scene                  { animation: none; }
+.group:hover .tc-dpi-frame:first-child      { animation: tc-dpi-low-fade    1.6s ease-in-out infinite; }
+.group:hover .tc-dpi-frame:last-of-type     { animation: tc-dpi-high-glow   1.6s ease-in-out infinite; }
+.group:hover .tc-dpi-label                  { animation: tc-dpi-label-pulse 1.6s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   14. Metadata Viewer
+════════════════════════════════════ */
+@keyframes tc-meta-scan {
+  0%   { top: 10px; opacity: 1; }
+  80%  { top: 54px; opacity: 0.8; }
+  100% { top: 54px; opacity: 0; }
+}
+@keyframes tc-meta-row-highlight {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+.tc-metadata-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-metadata-scene  { animation: none; }
+.group:hover .tc-meta-scanner    { animation: tc-meta-scan          1.6s ease-in-out infinite; }
+.group:hover .tc-meta-val        { animation: tc-meta-row-highlight 1.6s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   15. Image → Base64
+════════════════════════════════════ */
+@keyframes tc-b64-photo-out {
+  0%, 10%  { transform: translateX(0); opacity: 1; }
+  45%      { transform: translateX(-30px); opacity: 0; }
+  100%     { transform: translateX(-30px); opacity: 0; }
+}
+@keyframes tc-b64-lines-in {
+  0%, 35%   { opacity: 0; transform: scaleX(0); transform-origin: left; }
+  70%, 100% { opacity: 0.7; transform: scaleX(1); }
+}
+@keyframes tc-b64-cursor-blink {
+  0%, 40%  { opacity: 0; }
+  60%, 80% { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+/* ════════════════════════════════════
+   15. Image Blur
+════════════════════════════════════ */
+.tc-blur-image {
+  filter: blur(0px);
+}
+.tc-blur-scene:hover .tc-blur-image {
+  animation: blurPulse 2s ease-in-out infinite;
+}
+.group:hover .tc-blur-scene {
+  animation: blurPulse 2s ease-in-out infinite;
+}
+
+@keyframes blurPulse {
+  0% {
+    filter: blur(0px);
+    transform: scale(1);
+  }
+
+  50% {
+    filter: blur(2px);
+    transform: scale(1.08);
+  }
+
+  100% {
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+
+.tc-base64-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-base64-scene      { animation: none; }
+.group:hover .tc-b64-photo         { animation: tc-b64-photo-out    1.8s ease-in-out infinite; }
+.group:hover .tc-b64-line          { animation: tc-b64-lines-in     1.8s ease-in-out infinite; }
+.group:hover .tc-b64-cursor        { animation: tc-b64-cursor-blink 1.8s ease-in-out infinite; }
+
+/* ════════════════════════════════════
+   Sig path initial state
+════════════════════════════════════ */  
+.tc-sig-path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+}
+
+/* PDF Split */
+.tc-pdf-split-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-pdf-split-scene { animation: none; }
+
+/* PDF Watermark */
+.tc-pdf-watermark-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-pdf-watermark-scene { animation: none; }
+
+/* Image Watermark */
+.tc-image-watermark-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-image-watermark-scene { animation: none; }
+
+/* Image OCR */
+.tc-image-ocr-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-image-ocr-scene { animation: none; }
+
+/* DOCX to PDF */
+.tc-docx-pdf-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-docx-pdf-scene { animation: none; }
+
+/* Image to SVG */
+.tc-image-svg-scene { animation: tc-float 2.4s ease-in-out infinite; }
+.group:hover .tc-image-svg-scene { animation: none; }

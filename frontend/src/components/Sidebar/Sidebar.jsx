@@ -1,61 +1,48 @@
 import React, { useState } from "react";
+ 
 import { useNavigate, Link } from "react-router-dom";
-import {
-  FileText,
-  Image,
-  FileImage,
-  Eraser,
-  RotateCcw,
-  X,
-  Sliders,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
+import tools from "../../data/toolsData";
 
 const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+
+ const [isCollapsed, setIsCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+   
   const navigate = useNavigate();
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+ 
+const filteredTools = tools.filter((tool) => {
+  const query = searchQuery
+    .toLowerCase()
+    .trim()
+    .replace(/[-_\s]+/g, "");
 
-  const menuItems = [
-    {
-      id: "pdf-to-png",
-      label: "PDF to PNG",
-      icon: <FileText className="w-5 h-5" />,
-      description: "Convert PDF to PNG",
-    },
-    {
-      id: "image-to-webp",
-      label: "Image to WebP",
-      icon: <Image className="w-5 h-5" />,
-      description: "Convert to WebP",
-    },
-    {
-      id: "image-to-jpg",
-      label: "Image to JPG",
-      icon: <FileImage className="w-5 h-5" />,
-      description: "Convert to JPG",
-    },
-    {
-      id: "remove-bg",
-      label: "Remove Background",
-      icon: <Eraser className="w-5 h-5" />,
-      description: "Remove background",
-    },
-    {
-      id: "rotate-flip",
-      label: "Rotate & Flip",
-      icon: <RotateCcw className="w-5 h-5" />,
-      description: "Rotate or flip images",
-    },
-    {
-      id: "image-compress",
-      label: "Image Compressor",
-      icon: <Sliders className="w-5 h-5" />,
-      description: "Compress images",
-    },
-  ];
+  const toolName = tool.name
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
+
+  const toolDescription = tool.description
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
+
+  return (
+    toolName.includes(query) ||
+    toolDescription.includes(query)
+  );
+});
+
+const menuItems = filteredTools.map((t) => ({
+  id: t.id,
+  label: t.name,
+  icon: React.cloneElement(t.icon, { className: "w-5 h-5" }),
+  description: t.description,
+}));
+
+
+
+
 
   const handleNavigation = (id) => {
     navigate(`/${id}`);
@@ -93,28 +80,56 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
               </Link>
             )}
             <button
-              onClick={isMobile ? onClose : toggleSidebar}
-              className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${isCollapsed && !isMobile ? "mx-auto" : ""}`}
-            >
+              
+  onClick={isMobile ? onClose : toggleSidebar}
+  aria-label={
+    isMobile
+      ? "Close sidebar"
+      : isCollapsed
+      ? "Expand sidebar"
+      : "Collapse sidebar"
+  }
+  className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${
+    isCollapsed && !isMobile ? "mx-auto" : ""
+  }`}
+>
+            
               {isMobile ? (
-                <X className="w-5 h-5" />
-              ) : isCollapsed ? (
-                <ChevronRight className="w-5 h-5" />
-              ) : (
-                <ChevronLeft className="w-5 h-5" />
-              )}
+    <X className="w-5 h-5" />
+  ) : isCollapsed ? (
+    <ChevronRight className="w-5 h-5" />
+  ) : (
+    <ChevronLeft className="w-5 h-5" />
+  )}
             </button>
           </div>
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="space-y-2">
-            {menuItems.map((item) => (
+
+
+{!isCollapsed && (
+  <div className="mb-4">
+    <input
+      type="text"
+      placeholder="Search tools..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+  </div>
+)}
+ 
+
+{menuItems.length > 0 ? (
+  <ul className="space-y-2">
+    {menuItems.map((item) => (
+
               <li key={item.id}>
                 <button
                   onClick={() => handleNavigation(item.id)}
                   className={`
-                    w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-all
+                    w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-colors
                     ${activeTab === item.id ? "bg-blue-600 text-white shadow-lg" : "hover:bg-slate-50 text-slate-600"}
                     ${isCollapsed ? "justify-center" : ""}
                   `}
@@ -133,6 +148,14 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
               </li>
             ))}
           </ul>
+
+
+) : (
+  <div className="text-center text-slate-500 py-4">
+    No tools found
+  </div>
+)}
+
         </nav>
       </aside>
     </>

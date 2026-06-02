@@ -18,12 +18,12 @@ const FileUploadArea = ({
   defaultIcon,
   defaultText,
   supportText,
-  pdfIcon
+  pdfIcon,
 }) => {
   return (
     <div
       ref={dropAreaRef}
-      className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-all duration-300 flex flex-col items-center select-none ${
+      className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none ${
         isDragging
           ? "border-[#3b82f6] bg-[#ebf5ff] scale-[1.02]"
           : "border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
@@ -50,11 +50,21 @@ const FileUploadArea = ({
           <div className="relative group w-full flex flex-col items-center">
             <div className="relative">
               {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="max-h-48 max-w-full rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-                />
+                file && file.type === "application/pdf" ? (
+                  <embed
+                    src={previewUrl}
+                    type="application/pdf"
+                    className="w-full h-96 rounded-lg shadow-md object-contain"
+                    style={{ maxHeight: "560px" }}
+                  />
+                ) : (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-96 rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                    style={{ maxHeight: "560px" }}
+                  />
+                )
               ) : (
                 <div className="flex flex-col items-center p-4">
                   {pdfIcon || (
@@ -97,7 +107,7 @@ const FileUploadArea = ({
               )}
               <button
                 onClick={handleClear}
-                className="absolute -top-3 -right-3 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-all duration-200 hover:scale-110 z-10"
+                className="absolute -top-3 -right-3 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-colors duration-200 hover:scale-[1.02] z-10"
                 aria-label="Remove file"
               >
                 <svg

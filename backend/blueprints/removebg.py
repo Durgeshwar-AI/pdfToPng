@@ -1,9 +1,9 @@
 import io
-import traceback
-
-from flask import Blueprint, request
-from PIL import Image
+import numpy as np
+from flask import Blueprint
+from PIL import Image, ImageFilter
 from rembg import remove
+from skimage import morphology
 
 from utils.helpers import error, safe_gc_collect, send_file_and_cleanup, log_memory
 from werkzeug.utils import secure_filename
@@ -16,11 +16,9 @@ def remove_bg():
     try:
         file = request.files.get("image")
 
-        if not file or file.filename == "":
-            return error("No image provided", 400)
+    cleaned = morphology.binary_closing(opened, selem)
 
-        filename = secure_filename(file.filename)
-        base = filename.rsplit('.', 1)[0]
+    clean_mask = (cleaned * 255).astype(np.uint8)
 
         log_memory("removeBg - before read")
 
@@ -53,14 +51,10 @@ def remove_bg():
         safe_gc_collect()
         log_memory("removeBg - before return")
 
-        return send_file_and_cleanup(
-            data,
-            mimetype="image/png",
-            as_attachment=True,
-            download_name=f"{base}_no_bg.png",
-            max_age=0,
-        )
-    except Exception as e:
-        safe_gc_collect()
-        traceback.print_exc()
-        return error(f"Background removal failed: {str(e)}", 500)
+    return send_file_and_cleanup(
+        data,
+        mimetype="image/png",
+        as_attachment=True,
+        download_name=f"{base}_no_bg.png",
+        max_age=0,
+    )

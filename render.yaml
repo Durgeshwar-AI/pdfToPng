@@ -1,0 +1,10 @@
+services:
+  # ─────────────────────────────────────────────
+  # Backend — Flask API (Web Service)
+  # ─────────────────────────────────────────────
+  - type: web
+    name: pdftopng-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --timeout 120 main:app

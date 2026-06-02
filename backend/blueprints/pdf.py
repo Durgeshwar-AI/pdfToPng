@@ -1,6 +1,4 @@
 import fitz  # PyMuPDF
-import traceback
-from io import BytesIO
 
 from flask import Blueprint, request
 
@@ -12,14 +10,20 @@ pdf_bp = Blueprint("pdf", __name__)
 @pdf_bp.route("/convertPng", methods=["POST"])
 def convert_pdf_to_png():
     doc = None
+
     try:
-        if "file" not in request.files:
-            return error("No file provided")
+        pdf_file, filename, upload_error = validate_uploaded_file(
+            request,
+            "file",
+        )
 
-        pdf_file = request.files["file"]
+        if upload_error:
+            return upload_error
 
-        if pdf_file.filename == "":
-            return error("No file selected")
+        pdf_error = validate_pdf_file(filename)
+
+        if pdf_error:
+            return pdf_error
 
         log_memory("convertPng - before read")
         # Read PDF into memory and open from bytes
@@ -33,12 +37,22 @@ def convert_pdf_to_png():
                 return error("Empty PDF")
 
             page = doc.load_page(0)
+
             zoom = 1.0
+
             mat = fitz.Matrix(zoom, zoom)
-            pix = page.get_pixmap(matrix=mat, alpha=False)
+
+            pix = page.get_pixmap(
+                matrix=mat,
+                alpha=False,
+            )
 
             # Get PNG bytes from pixmap
-            png_bytes = pix.tobytes(output="png") if hasattr(pix, "tobytes") else pix.tobytes()
+            png_bytes = (
+                pix.tobytes(output="png")
+                if hasattr(pix, "tobytes")
+                else pix.tobytes()
+            )
 
         finally:
             if doc:
@@ -58,6 +72,8 @@ def convert_pdf_to_png():
             download_name="converted.png",
         )
 
-    except Exception as e:
-        traceback.print_exc()
-        return error(str(e), 500)
+    except Exception:
+        # Handle corrupted PDFs gracefully
+        return error(
+            "The provided PDF file appears to be corrupted or unreadable."
+        )
