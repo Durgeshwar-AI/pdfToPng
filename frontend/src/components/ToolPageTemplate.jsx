@@ -30,7 +30,6 @@ const ToolPageTemplate = ({
 }) => {
   const [statusType, setStatusType] = useState("info");
   const [jobId, setJobId] = useState(null);
-  const [downloadTriggered, setDownloadTriggered] = useState(false);
 
   const internalValidate = useCallback(
     async (selectedFile) => {
@@ -74,10 +73,9 @@ const ToolPageTemplate = ({
       setStatusMessage(onSuccessMessage || "Success! File downloaded.");
       setStatusType("success");
       setLoading(false);
-      setDownloadTriggered(true);
       setTimeout(() => setStatusMessage(""), 5000);
     },
-    [onSuccessMessage, setLoading],
+    [onSuccessMessage, setLoading, setStatusMessage],
   );
 
   const handlePollError = useCallback(
@@ -88,7 +86,7 @@ const ToolPageTemplate = ({
       setJobId(null);
       setTimeout(() => setStatusMessage(""), 5000);
     },
-    [setLoading],
+    [setLoading, setStatusMessage],
   );
 
   const { progress, status: pollStatus, message: pollMessage } = useJobPolling(
@@ -100,7 +98,6 @@ const ToolPageTemplate = ({
     handleClear(e);
     setStatusType("info");
     setJobId(null);
-    setDownloadTriggered(false);
     if (onClear) {
       onClear();
     }
@@ -148,7 +145,6 @@ const ToolPageTemplate = ({
     setLoading(true);
     setStatusType("info");
     setJobId(null);
-    setDownloadTriggered(false);
 
     const formData = new FormData();
     formData.append(fileFieldName, file);

@@ -28,7 +28,7 @@ export default function ImageMetadata() {
     setCopiedKey(null);
   };
 
-  const handleViewMetadata = async ({ file, formData, setStatusMessage, setLoading, setStatusType }) => {
+  const handleViewMetadata = async ({ formData, setStatusMessage, setLoading, setStatusType }) => {
     setMetadata(null);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/view-metadata`, {

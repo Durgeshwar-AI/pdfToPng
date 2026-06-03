@@ -29,29 +29,6 @@ function ImageResize() {
     { name: "Square", width: 1080, height: 1080 },
   ];
 
-  const areValidDimensions = () => {
-    const width = unit === "px"
-      ? Number.parseInt(dimensions.width, 10)
-      : Number.parseFloat(dimensions.width);
-    const height = unit === "px"
-      ? Number.parseInt(dimensions.height, 10)
-      : Number.parseFloat(dimensions.height);
-
-    const isValidWidth = unit === "px"
-      ? Number.isInteger(width) && width > 0
-      : Number.isFinite(width) && width > 0;
-
-    if (maintainAspectRatio) {
-      return isValidWidth;
-    }
-
-    const isValidHeight = unit === "px"
-      ? Number.isInteger(height) && height > 0
-      : Number.isFinite(height) && height > 0;
-
-    return isValidWidth && isValidHeight;
-  };
-
   const handleDimensionChange = (field, value) => {
     setDimensions((prev) => ({ ...prev, [field]: value }));
   };

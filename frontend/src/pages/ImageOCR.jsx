@@ -118,7 +118,7 @@ function ImageOCR() {
       await navigator.clipboard.writeText(extractedText);
       setStatusMessage("Text copied to clipboard.");
       setStatusType("success");
-    } catch (error) {
+    } catch {
       setStatusMessage(
         "Unable to copy text. Use your browser's copy command instead.",
       );

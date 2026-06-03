@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { useOutletContext } from "react-router-dom";
 
 export default function ImageWatermark() {
   const [image, setImage] = useState(null);

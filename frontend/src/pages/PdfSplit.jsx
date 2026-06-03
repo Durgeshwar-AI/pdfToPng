@@ -83,7 +83,6 @@ function PdfSplit() {
   const validatePages = () => {
     const sp = parseInt(startPage, 10);
     const ep = parseInt(endPage, 10);
-    const max = totalPages ?? Infinity;
 
     if (isNaN(sp) || isNaN(ep)) return "Please enter valid page numbers.";
     if (sp < 1) return "Start page must be at least 1.";

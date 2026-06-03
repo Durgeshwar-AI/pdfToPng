@@ -11,7 +11,7 @@ function MergePdf() {
   const [jobId, setJobId] = useState(null);
   const inputRef = useRef(null);
 
-  const addFiles = (incoming) => {
+  const addFiles = useCallback((incoming) => {
     const pdfs = Array.from(incoming).filter(
       (f) => f.type === "application/pdf"
     );
@@ -26,13 +26,13 @@ function MergePdf() {
       const unique = pdfs.filter((f) => !existingNames.has(f.name));
       return [...prev, ...unique];
     });
-  };
+  }, []);
 
   const onDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
     addFiles(e.dataTransfer.files);
-  }, []);
+  }, [addFiles]);
 
   const onDragOver = (e) => {
     e.preventDefault();
