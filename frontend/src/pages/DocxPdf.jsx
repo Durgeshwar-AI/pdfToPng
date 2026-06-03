@@ -1,7 +1,10 @@
 import { useCallback } from "react";
+import { FileText } from "lucide-react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
-import { FileText } from "lucide-react";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -43,6 +46,13 @@ function DocxPdf() {
     handleAreaClick,
   } = useFileUpload(validateFile);
 
+  const { downloadFilename, setDownloadFilename, resolveFilename } = useDownloadFilename({
+    originalName: file?.name,
+    tool: "pdf",
+    extension: "pdf",
+    enabled: Boolean(file),
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -63,14 +73,7 @@ function DocxPdf() {
 
       if (response.ok) {
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name.replace(/\.(docx|doc)$/i, ".pdf");
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        triggerDownload(blob, resolveFilename(file.name.replace(/\.(docx|doc)$/i, ".pdf")));
         setStatusMessage("Success! Your PDF is downloading.");
         setTimeout(() => setStatusMessage(""), 5000);
       } else {
@@ -113,6 +116,13 @@ function DocxPdf() {
           defaultText="Upload a DOCX to convert"
           supportText="Converts DOCX to PDF on the server"
         />
+
+        {file && (
+          <OutputFilenameInput
+            value={downloadFilename}
+            onChange={setDownloadFilename}
+          />
+        )}
 
         <button
           type="submit"

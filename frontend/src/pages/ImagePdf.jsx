@@ -1,35 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PDFDocument } from "pdf-lib";
-
-const MAX_SIZE = 10 * 1024 * 1024;
-
-const createId = () =>
-  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-
-const fileToPngBytes = async (file) => {
-  if (file.type === "image/png") {
-    return file.arrayBuffer();
-  }
-
-  const bitmap = await createImageBitmap(file);
-  const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Canvas context not available");
-  }
-  ctx.drawImage(bitmap, 0, 0);
-
-  const blob = await new Promise((resolve, reject) => {
-    canvas.toBlob((result) => {
-      if (result) resolve(result);
-      else reject(new Error("Failed to convert image"));
-    }, "image/png");
-  });
-
-  return blob.arrayBuffer();
-};
+import { useCallback } from "react";
+import ToolPageTemplate from "../components/ToolPageTemplate";
+import { triggerDownload } from "../utils/downloadFile";
 
 function ImagePdf() {
   const [items, setItems] = useState([]);
@@ -90,102 +62,8 @@ function ImagePdf() {
     }
   }, []);
 
-  const handleFileChange = (event) => {
-    addFiles(Array.from(event.target.files || []));
-    event.target.value = "";
-  };
-
-  const handleDragEnter = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragOver = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!isDragging) setIsDragging(true);
-  };
-
-  const handleDragLeave = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (
-      dropAreaRef.current &&
-      !dropAreaRef.current.contains(event.relatedTarget)
-    ) {
-      setIsDragging(false);
-    }
-  };
-
-  const handleDrop = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setIsDragging(false);
-    addFiles(Array.from(event.dataTransfer.files || []));
-    event.dataTransfer.clearData();
-  };
-
-  const handleAreaClick = (event) => {
-    if (
-      event.target.tagName.toLowerCase() !== "label" &&
-      !event.target.closest("label") &&
-      event.target.tagName.toLowerCase() !== "button" &&
-      !event.target.closest("button")
-    ) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const moveItem = (index, direction) => {
-    setItems((prev) => {
-      const nextIndex = index + direction;
-      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(index, 1);
-      next.splice(nextIndex, 0, moved);
-      return next;
-    });
-  };
-
-  const removeItem = (id) => {
-    setItems((prev) => {
-      const item = prev.find((entry) => entry.id === id);
-      if (item) URL.revokeObjectURL(item.previewUrl);
-      return prev.filter((entry) => entry.id !== id);
-    });
-  };
-
-  const handleReorderDrop = (targetId) => {
-    if (!draggedId || draggedId === targetId) return;
-    setItems((prev) => {
-      const currentIndex = prev.findIndex((item) => item.id === draggedId);
-      const targetIndex = prev.findIndex((item) => item.id === targetId);
-      if (currentIndex === -1 || targetIndex === -1) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(currentIndex, 1);
-      next.splice(targetIndex, 0, moved);
-      return next;
-    });
-    setDraggedId(null);
-    setDragOverId(null);
-  };
-
-  const clearAll = () => {
-    items.forEach((item) => URL.revokeObjectURL(item.previewUrl));
-    setItems([]);
-    setStatusMessage("");
-    setStatusType("info");
-  };
-
-  const createPdf = async (event) => {
-    event.preventDefault();
-    if (items.length === 0) {
-      setStatusMessage("Please add at least one image.");
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 3000);
-      return;
-    }
+  const createPdf = async ({ file, setLoading, setStatusMessage, setStatusType, resolveFilename }) => {
+    if (!file) return;
 
     setLoading(true);
     setStatusMessage("Creating PDF...");
@@ -208,15 +86,7 @@ function ImagePdf() {
 
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "images-to-pdf.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      triggerDownload(blob, resolveFilename("converted-image.pdf"));
 
       setStatusMessage("Success! Your PDF has been created.");
       setStatusType("success");
@@ -230,28 +100,24 @@ function ImagePdf() {
   };
 
   return (
-    <div className="w-full max-w-[760px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-linear-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
-        Image to PDF
-      </h1>
-      <p className="text-gray-500 mb-8">
-        Convert multiple images into a single PDF and arrange them in the exact
-        order you want.
-      </p>
-
-      <form onSubmit={createPdf} className="w-full flex flex-col items-center">
-        <div
-          ref={dropAreaRef}
-          className={`w-full border-2 border-dashed rounded-2xl p-8 mb-6 cursor-pointer transition-all duration-300 flex flex-col items-center select-none ${
-            isDragging
-              ? "border-[#3b82f6] bg-[#ebf5ff] scale-[1.02]"
-              : "border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
-          }`}
-          onDragEnter={handleDragEnter}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={handleAreaClick}
+    <ToolPageTemplate
+      title="Image to PDF"
+      description="Convert an image into a PDF file, right in your browser."
+      accept="image/*"
+      validateFile={validateFile}
+      onSubmit={createPdf}
+      toolName="pdf"
+      outputExtension="pdf"
+      submitButtonText="Convert to PDF"
+      loadingButtonText="Creating..."
+      onSuccessMessage="Success! Your PDF has been created."
+      defaultIcon={
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <input
             type="file"

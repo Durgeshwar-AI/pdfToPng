@@ -1,6 +1,8 @@
-import { useState, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
+import { useRef, useState } from "react";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -23,6 +25,14 @@ export default function PdfRotateFlip() {
   const [resultUrl, setResultUrl] = useState(null);
   const inputRef = useRef();
 
+  const { downloadFilename, setDownloadFilename, setSuggestedName, resetDownloadFilename, resolveFilename } =
+    useDownloadFilename({
+      originalName: file?.name,
+      tool: "rotate",
+      extension: "pdf",
+      enabled: Boolean(file),
+    });
+
   const pickFile = async (f) => {
     if (!f) return;
     if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) {
@@ -35,6 +45,7 @@ export default function PdfRotateFlip() {
     setError(null);
     setScope("all");
     setPages("");
+    resetDownloadFilename();
 
     try {
       const bytes = await f.arrayBuffer();
@@ -57,6 +68,8 @@ export default function PdfRotateFlip() {
       setError("Enter pages like 1,3,7 or 1-10 for selected-page mode.");
       return;
     }
+    const actionLabel = { rotate_left: "left", rotate_right: "right", flip_h: "horizontal", flip_v: "vertical" }[action];
+    setSuggestedName({ detail: actionLabel });
 
     setLoading(true);
     setError(null);
@@ -160,6 +173,14 @@ export default function PdfRotateFlip() {
           </div>
         )}
 
+        {file && (
+          <OutputFilenameInput
+            value={downloadFilename}
+            onChange={setDownloadFilename}
+            placeholder="transformed.pdf"
+          />
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {ACTIONS.map(({ id, label, icon }) => (
             <button
@@ -186,13 +207,13 @@ export default function PdfRotateFlip() {
         )}
 
         {resultUrl && (
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center w-full">
             <div className="w-full rounded-xl border border-gray-200 p-6 bg-gray-50 text-center text-gray-600 text-sm mb-4">
               PDF transformation complete. Download your file below.
             </div>
             <a
               href={resultUrl}
-              download={`${file.name.replace(/\.pdf$/i, "")}_transformed.pdf`}
+              download={resolveFilename(`${file.name.replace(/\.pdf$/i, "")}_transformed.pdf`)}
               className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               ⬇ Download PDF

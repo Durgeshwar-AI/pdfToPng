@@ -29,7 +29,7 @@ export default function RotateFlip() {
     setResultUrl(null);
   }, []);
 
-  const transform = async (action, file, setLoading, setStatusMessage, setStatusType) => {
+  const transform = async (action, file, setLoading, setStatusMessage, setStatusType, setSuggestedName) => {
     if (!file) return;
     setLoading(true);
     setStatusMessage("Processing...");
@@ -48,8 +48,11 @@ export default function RotateFlip() {
         throw new Error(msg ?? "Transformation failed");
       }
       const blob = await res.blob();
+      const ext = format === "JPEG" ? "jpg" : format.toLowerCase();
       setResultUrl(URL.createObjectURL(blob));
-      setResultExt(format === "JPEG" ? "jpg" : format.toLowerCase());
+      setResultExt(ext);
+      const actionLabel = { rotate_left: "left", rotate_right: "right", flip_h: "horizontal", flip_v: "vertical" }[action];
+      setSuggestedName?.({ detail: actionLabel, extension: ext });
       setStatusMessage("Transformation successful!");
       setStatusType("success");
     } catch (e) {
@@ -60,7 +63,7 @@ export default function RotateFlip() {
     }
   };
 
-  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
+  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType, downloadFilename, setSuggestedName, resolveFilename }) => {
     if (!file) return null;
 
     return (
@@ -87,7 +90,7 @@ export default function RotateFlip() {
           {ACTIONS.map(({ id, label, icon }) => (
             <button
               key={id}
-              onClick={() => transform(id, file, setLoading, setStatusMessage, setStatusType)}
+              onClick={() => transform(id, file, setLoading, setStatusMessage, setStatusType, setSuggestedName)}
               disabled={!file || loading}
               className={`flex flex-col items-center justify-center gap-1 p-4 rounded-xl border text-sm font-medium transition-colors
                 ${file && !loading
@@ -112,7 +115,7 @@ export default function RotateFlip() {
             />
             <a
               href={resultUrl}
-              download={`transformed.${resultExt}`}
+              download={resolveFilename?.() || downloadFilename || `transformed.${resultExt}`}
               className="mt-6 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#16a34a] to-[#4ade80] px-8 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(16,185,129,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(16,185,129,0.22)] active:translate-y-0.5"
             >
               ⬇ Download
@@ -131,6 +134,8 @@ export default function RotateFlip() {
       validateFile={validateFile}
       onClear={handleClear}
       showSubmitButton={false}
+      toolName="rotate"
+      outputExtension="png"
       extraContent={extraContent}
       defaultIcon={
         <svg

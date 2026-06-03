@@ -1,7 +1,8 @@
-import React, { useState, useCallback, lazy, Suspense } from "react";import { useFileUpload } from "../hooks/useFileUpload";
-
-
-const FileUploadArea = lazy(() => import("./FileUploadArea"));
+import { Suspense, useCallback, useState } from "react";
+import { useFileUpload } from "../hooks/useFileUpload";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
+import FileUploadArea from "./FileUploadArea";
 
 const ToolPageTemplate = ({
   title,
@@ -17,17 +18,19 @@ const ToolPageTemplate = ({
   loadingButtonText = "Processing...",
   onSuccessMessage,
   getDownloadFilename,
+  toolName = "converted",
+  outputExtension,
+  filenameDetail,
   extraFields,
   extraContent,
   showSubmitButton = true,
+  showFilenameInput = true,
   maxWidthClass = "max-w-[600px]",
   defaultIcon,
   defaultText,
   supportText,
   inputId = "file-input",
 }) => {
-  const [statusType, setStatusType] = useState("info"); // info, success, error
-
   const internalValidate = useCallback(
     async (selectedFile) => {
       if (validateFile) {
@@ -57,9 +60,31 @@ const ToolPageTemplate = ({
     handleAreaClick,
   } = useFileUpload(internalValidate);
 
+  const [statusType, setStatusType] = useState("info"); // info, success, error
+
+  const resolvedExtension =
+    outputExtension ??
+    (file?.name.includes(".") ? file.name.split(".").pop() : "bin");
+
+  const {
+    downloadFilename,
+    setDownloadFilename,
+    resetDownloadFilename,
+    resolveFilename,
+    setSuggestedName,
+  } = useDownloadFilename({
+    originalName: file?.name,
+    tool: toolName,
+    detail: filenameDetail,
+    extension: resolvedExtension,
+    getDownloadFilename: file ? getDownloadFilename : undefined,
+    enabled: Boolean(file),
+  });
+
   const handleClearAll = (e) => {
     handleClear(e);
     setStatusType("info");
+    resetDownloadFilename();
     if (onClear) {
       onClear();
     }
@@ -93,6 +118,10 @@ const ToolPageTemplate = ({
           setLoading,
           setStatusType,
           previewUrl,
+          downloadFilename,
+          setDownloadFilename,
+          resolveFilename,
+          setSuggestedName,
         });
         return;
       }
@@ -111,20 +140,7 @@ const ToolPageTemplate = ({
 
       if (response.ok) {
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-
-        const downloadName = getDownloadFilename
-          ? getDownloadFilename(file.name)
-          : file.name;
-        a.download = downloadName;
-
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-
+        triggerDownload(blob, resolveFilename());
         setStatusMessage(onSuccessMessage || "Success! File downloaded.");
         setStatusType("success");
       } else {
@@ -151,6 +167,10 @@ const ToolPageTemplate = ({
     setStatusMessage,
     statusType,
     setStatusType,
+    downloadFilename,
+    setDownloadFilename,
+    resolveFilename,
+    setSuggestedName,
     handleClear: handleClearAll,
     handleSubmit,
     previewUrl,
@@ -183,6 +203,8 @@ const ToolPageTemplate = ({
           defaultIcon={defaultIcon}
           defaultText={defaultText}
           supportText={supportText}
+          outputFilename={showFilenameInput && file ? downloadFilename : undefined}
+          onOutputFilenameChange={showFilenameInput && file ? setDownloadFilename : undefined}
         />
         </Suspense>
 

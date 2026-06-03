@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { triggerDownload } from "../utils/downloadFile";
 
 const PRESET_DPIS = [72, 96, 150, 300, 600];
 
@@ -62,7 +63,7 @@ export default function ImageDpi() {
     }
   };
 
-  const handleConvert = async (file, setLoading, setStatusMessage, setStatusType) => {
+  const handleConvert = async (file, setLoading, setStatusMessage, setStatusType, downloadFilename, resolveFilename) => {
     if (!file) return;
     setLoading(true);
     setStatusMessage("");
@@ -80,18 +81,8 @@ export default function ImageDpi() {
       });
       if (!res.ok) throw new Error("Conversion failed");
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      
       const fileExt = file.name.match(/\.[^.]+$/)?.[0] || ".jpg";
-      const baseName = file.name.replace(/\.[^.]+$/, "");
-      a.download = `${baseName}_${dpi}dpi${fileExt}`;
-
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      triggerDownload(blob, resolveFilename?.() || downloadFilename || `${file.name.replace(/\.[^.]+$/, "")}_${dpi}dpi${fileExt}`);
 
       setStatusMessage(`Success! Image converted to ${dpi} DPI and downloaded.`);
       setStatusType("success");
@@ -160,7 +151,7 @@ export default function ImageDpi() {
     );
   };
 
-  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
+  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType, downloadFilename, resolveFilename }) => {
     if (!file) return null;
     return (
       <div className="w-full text-left">
@@ -185,7 +176,7 @@ export default function ImageDpi() {
 
           <button
             type="button"
-            onClick={() => handleConvert(file, setLoading, setStatusMessage, setStatusType)}
+            onClick={() => handleConvert(file, setLoading, setStatusMessage, setStatusType, downloadFilename, resolveFilename)}
             disabled={loading}
             className="flex-1 bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-6 border-none rounded-lg cursor-pointer text-base font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 disabled:bg-gradient-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none"
           >
@@ -242,6 +233,8 @@ export default function ImageDpi() {
       showSubmitButton={false}
       extraFields={extraFields}
       extraContent={extraContent}
+      toolName="dpi"
+      filenameDetail={`${dpi}dpi`}
       maxWidthClass="max-w-[600px]"
       inputId="file-input"
       defaultIcon={<ImageIcon />}

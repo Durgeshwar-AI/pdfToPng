@@ -1,52 +1,18 @@
-import { useState, useRef, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
 
-let pdfjsLib = null;
-
-async function getPdfJs() {
-  if (pdfjsLib) return pdfjsLib;
-  return new Promise((resolve, reject) => {
-    if (window.pdfjsLib) {
-      pdfjsLib = window.pdfjsLib;
-      resolve(pdfjsLib);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-    script.onload = () => {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      pdfjsLib = window.pdfjsLib;
-      resolve(pdfjsLib);
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-async function renderPageThumb(pdfDoc, pageNum, width = 120) {
-  const page = await pdfDoc.getPage(pageNum);
-  const viewport = page.getViewport({ scale: 1 });
-  const scale = width / viewport.width;
-  const scaled = page.getViewport({ scale });
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.floor(scaled.width);
-  canvas.height = Math.floor(scaled.height);
-  await page.render({
-    canvasContext: canvas.getContext("2d"),
-    viewport: scaled,
-  }).promise;
-  return {
-    dataUrl: canvas.toDataURL("image/jpeg", 0.7),
-    aspectRatio: scaled.height / scaled.width,
-  };
-}
-
-const STAGE = { SELECT: "select", ARRANGE: "arrange", DONE: "done" };
-
-export default function MergePdf() {
-  const [stage, setStage] = useState(STAGE.SELECT);
-  const [rawFiles, setRawFiles] = useState([]);
+function MergePdf() {
+  const [files, setFiles] = useState([]);
+  const { downloadFilename, setDownloadFilename, resetDownloadFilename, resolveFilename } =
+    useDownloadFilename({
+      originalName: files[0]?.name,
+      tool: "merged",
+      detail: files.length > 1 ? `${files.length} files` : undefined,
+      extension: "pdf",
+      enabled: files.length > 0,
+    });
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
@@ -202,23 +168,12 @@ export default function MergePdf() {
         merged.addPage(copied);
       }
 
-      const bytes = await merged.save();
-      const blob = new Blob([bytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "merged.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      setStage(STAGE.DONE);
-      showStatus(
-        `merged.pdf downloaded - ${pages.length} pages.`,
-        "success",
-        0,
-      );
+      const blob = await res.blob();
+      triggerDownload(blob, resolveFilename("merged.pdf"));
+      setStatusMessage("PDFs merged successfully! File downloaded.");
+      setStatusType("success");
+      setFiles([]);
+      resetDownloadFilename();
     } catch (err) {
       console.error(err);
       showStatus(`Merge failed: ${err.message}`, "error");
@@ -408,13 +363,27 @@ export default function MergePdf() {
               </p>
             )}
 
+      {files.length > 0 && (
+        <OutputFilenameInput
+          value={downloadFilename}
+          onChange={setDownloadFilename}
+          placeholder="merged.pdf"
+        />
+      )}
+
+      {/* File List */}
+      {files.length > 0 && (
+        <div className="w-full mb-6 flex flex-col gap-2">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-sm font-semibold text-gray-600">
+              {files.length} file{files.length !== 1 ? "s" : ""} selected
+            </span>
             <button
-              onClick={loadPages}
-              disabled={rawFiles.length < 2 || isLoading}
-              className="w-full py-3.5 rounded-xl font-bold text-white text-base tracking-wide transition-all
-                bg-[#4361ee] hover:bg-[#3451d1] active:bg-[#2a41b8]
-                disabled:bg-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed
-                flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+              onClick={() => {
+                setFiles([]);
+                resetDownloadFilename();
+              }}
+              className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
             >
               {isLoading ? (
                 <>

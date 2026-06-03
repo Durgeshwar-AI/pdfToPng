@@ -1,5 +1,8 @@
-﻿import { useState, useRef, useCallback } from "react";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+﻿import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { useCallback, useRef, useState } from "react";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
 
 const POSITION_OPTIONS = [
   { value: "top-left", label: "Top Left" },
@@ -11,6 +14,13 @@ const POSITION_OPTIONS = [
 
 function PDFWatermark() {
   const [file, setFile] = useState(null);
+  const { downloadFilename, setDownloadFilename, resetDownloadFilename, resolveFilename } =
+    useDownloadFilename({
+      originalName: file?.name,
+      tool: "watermarked",
+      extension: "pdf",
+      enabled: Boolean(file),
+    });
   const [watermarkType, setWatermarkType] = useState("text");
   const [watermarkText, setWatermarkText] = useState("CONFIDENTIAL");
   const [watermarkImage, setWatermarkImage] = useState(null);
@@ -60,6 +70,7 @@ function PDFWatermark() {
 
   const clearFile = () => {
     setFile(null);
+    resetDownloadFilename();
     resetStatus();
   };
 
@@ -185,14 +196,7 @@ function PDFWatermark() {
 
       const updatedPdfBytes = await pdfDoc.save();
       const blob = new Blob([updatedPdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "watermarked.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      triggerDownload(blob, resolveFilename("watermarked.pdf"));
 
       setStatusMessage("PDF watermarked successfully! File downloaded.");
       setStatusType("success");
@@ -257,6 +261,12 @@ function PDFWatermark() {
               Remove
             </button>
           </div>
+
+          <OutputFilenameInput
+            value={downloadFilename}
+            onChange={setDownloadFilename}
+            placeholder="watermarked.pdf"
+          />
 
           <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
             <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#4361ee] to-[#7209b7] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">

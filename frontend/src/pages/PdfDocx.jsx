@@ -1,7 +1,10 @@
-import { useCallback } from "react";
-import { useFileUpload } from "../hooks/useFileUpload";
-import FileUploadArea from "../components/FileUploadArea";
 import { FileText } from "lucide-react";
+import { useCallback } from "react";
+import FileUploadArea from "../components/FileUploadArea";
+import OutputFilenameInput from "../components/OutputFilenameInput";
+import { useFileUpload } from "../hooks/useFileUpload";
+import { useDownloadFilename } from "../hooks/useDownloadFilename";
+import { triggerDownload } from "../utils/downloadFile";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -39,6 +42,13 @@ function PdfDocx() {
     handleAreaClick,
   } = useFileUpload(validateFile);
 
+  const { downloadFilename, setDownloadFilename, resolveFilename } = useDownloadFilename({
+    originalName: file?.name,
+    tool: "docx",
+    extension: "docx",
+    enabled: Boolean(file),
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -59,14 +69,7 @@ function PdfDocx() {
 
       if (response.ok) {
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name.replace(/\.pdf$/i, ".docx");
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        triggerDownload(blob, resolveFilename(file.name.replace(/\.pdf$/i, ".docx")));
         setStatusMessage("Success! Your Word document is downloading.");
         setTimeout(() => setStatusMessage(""), 5000);
       } else {
@@ -111,6 +114,13 @@ function PdfDocx() {
           defaultText="Upload a PDF to convert"
           supportText="Converts text-based PDFs to .docx"
         />
+
+        {file && (
+          <OutputFilenameInput
+            value={downloadFilename}
+            onChange={setDownloadFilename}
+          />
+        )}
 
         <button
           type="submit"

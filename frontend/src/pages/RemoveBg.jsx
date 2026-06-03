@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
-
 function RemoveBg() {
   const validateFile = useCallback((selectedFile) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
@@ -24,10 +23,8 @@ function RemoveBg() {
       validateFile={validateFile}
       apiEndpoint="/removeBg"
       fileFieldName="image"
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.split(".")[0];
-        return `${originalName}_no_bg.png`;
-      }}
+      toolName="no bg"
+      outputExtension="png"
       submitButtonText="Remove Background"
       loadingButtonText="Removing..."
       onSuccessMessage="Background removed successfully!"

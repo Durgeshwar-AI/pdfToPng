@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from "react";
+import { Check, Copy, Download, Info } from "lucide-react";
+import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
-import { Info, Copy, Check, Download } from "lucide-react";
+import { triggerDownload } from "../utils/downloadFile";
 
 export default function ImageMetadata() {
   const [metadata, setMetadata] = useState(null);
@@ -59,7 +60,7 @@ export default function ImageMetadata() {
     }
   };
 
-  const handleStripMetadata = async (file, setLoading, setStatusMessage, setStatusType) => {
+  const handleStripMetadata = async (file, setLoading, setStatusMessage, setStatusType, resolveFilename, nameOverrides) => {
     if (!file) return;
     setLoading(true);
     setStatusMessage("");
@@ -79,22 +80,10 @@ export default function ImageMetadata() {
       }
 
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-
-      const extension = file.name.includes(".")
-        ? file.name.slice(file.name.lastIndexOf("."))
-        : ".png";
-      const baseName = file.name.includes(".")
-        ? file.name.replace(/\.[^.]+$/, "")
-        : file.name;
-      a.download = `${baseName}_stripped${extension}`;
-
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      triggerDownload(
+        blob,
+        resolveFilename?.(`${file.name.replace(/\.[^.]+$/, "")}_stripped.png`, nameOverrides),
+      );
 
       setStatusMessage("Success! Metadata stripped and image downloaded.");
       setStatusType("success");
@@ -106,7 +95,7 @@ export default function ImageMetadata() {
       setTimeout(() => setStatusMessage(""), 5000);
     }
   };
-  const handleCleanAndDownload = async (file, setLoading, setStatusMessage, setStatusType) => {
+  const handleCleanAndDownload = async (file, setLoading, setStatusMessage, setStatusType, resolveFilename, nameOverrides) => {
   if (!file) return;
 
   setLoading(true);
@@ -124,21 +113,10 @@ export default function ImageMetadata() {
     if (!response.ok) throw new Error("Failed to clean image");
 
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-
-    const baseName = file.name.replace(/\.[^.]+$/, "");
-    const extension = file.name.includes(".") ? file.name.split(".").pop() : "png";
-
-    a.download = `${baseName}_privacy_cleaned.${extension}`;
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    URL.revokeObjectURL(url);
+    triggerDownload(
+      blob,
+      resolveFilename?.(`${file.name.replace(/\.[^.]+$/, "")}_privacy_cleaned.png`, nameOverrides),
+    );
 
     setStatusMessage("Privacy cleaned successfully!");
     setStatusType("success");
@@ -160,7 +138,7 @@ export default function ImageMetadata() {
     setTimeout(() => setCopiedKey(null), 1500);
   };
 
-  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
+  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType, resolveFilename }) => {
     if (!metadata) return null;
 
     const keys = Object.keys(metadata);
@@ -170,7 +148,11 @@ export default function ImageMetadata() {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-[#1a1a2e]">Image Metadata</h3>
           <button
-            onClick={() => handleStripMetadata(file, setLoading, setStatusMessage, setStatusType)}
+            onClick={() =>
+              handleStripMetadata(file, setLoading, setStatusMessage, setStatusType, resolveFilename, {
+                detail: "stripped",
+              })
+            }
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-red-600 hover:to-rose-700 transition-all cursor-pointer disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
           >
@@ -179,8 +161,11 @@ export default function ImageMetadata() {
           </button>
            <button
     onClick={() =>
-      handleCleanAndDownload(file, setLoading, setStatusMessage, setStatusType)
-    }
+   
+        handleCleanAndDownload(file, setLoading, setStatusMessage, setStatusType, resolveFilename, {
+          detail: "privacy cleaned",
+        })
+      }
     disabled={loading}
     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-green-600 hover:to-emerald-700 transition-all cursor-pointer disabled:opacity-50"
   >
@@ -317,6 +302,7 @@ export default function ImageMetadata() {
       loadingButtonText="Reading Metadata..."
       extraContent={extraContent}
       showSubmitButton={!metadata}
+      toolName="metadata"
       maxWidthClass="max-w-[800px]"
       inputId="metadata-input"
       defaultIcon={<Info className="w-16 h-16" />}

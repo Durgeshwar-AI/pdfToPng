@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from "react";
-
 import JSZip from "jszip";
-
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
+import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { buildDownloadName, sanitizeForFilename } from "../utils/fileNames";
 
 // Set worker source for PDF.js
 
@@ -103,6 +104,17 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       const zip = new JSZip();
       const results = [];
 
+      const extractFirstText = async (page) => {
+        try {
+          const textContent = await page.getTextContent();
+          const items = textContent.items.map((it) => (it && it.str ? it.str.trim() : "")).filter(Boolean);
+          const candidate = items.find((s) => s.length > 3) || items[0] || null;
+          return candidate ? sanitizeForFilename(candidate).slice(0, 60) : null;
+        } catch (e) {
+          return null;
+        }
+      };
+
       for (let i = 0; i < pagesToRender.length; i++) {
         const pageNum = pagesToRender[i];
         setStatusMessage(
@@ -120,14 +132,23 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         const blob = await new Promise((resolve) =>
           canvas.toBlob(resolve, "image/png"),
         );
-        results.push({ name: `page-${pageNum}.png`, blob });
+        // Try to extract meaningful text from the page to use as filename
+        const pageTitle = await extractFirstText(page);
+        const filename = buildDownloadName({
+          originalName: file.name,
+          tool: "pdf-to-png",
+          detail: pageTitle ? `page ${pageNum} ${pageTitle}` : `page ${pageNum}`,
+          extension: "png",
+        });
+
+        results.push({ name: filename, blob });
       }
 
       if (results.length === 1) {
         const url = window.URL.createObjectURL(results[0].blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = file.name.replace(/\.pdf$/i, ".png");
+        a.download = results[0].name;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -141,7 +162,14 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         const url = window.URL.createObjectURL(zipBlob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${file.name.replace(/\.pdf$/i, "")}_pages.zip`;
+        // Make a descriptive zip name using page range
+        const rangeStr = `${pagesToRender[0]}-${pagesToRender[pagesToRender.length - 1]}`;
+        a.download = buildDownloadName({
+          originalName: file.name,
+          tool: "pdf-to-png",
+          detail: `pages ${rangeStr}`,
+          extension: "zip",
+        });
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -181,7 +209,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
           const downloadUrl = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = downloadUrl;
-          a.download = file.name.replace(/\.pdf$/i, ".png");
+          // Use a descriptive fallback name when server returns a single image
+          a.download = buildDownloadName({ originalName: file.name, tool: "pdf-to-png", extension: "png" });
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -310,6 +339,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       submitButtonText="Convert to PNG"
       loadingButtonText="Converting..."
       extraFields={extraFields}
+      toolName="pdf-to-png"
+      outputExtension="png"
       maxWidthClass="max-w-[600px]"
       inputId="file-input"
       defaultIcon={

@@ -49,10 +49,9 @@ function ImageUpscale() {
       apiEndpoint="/upscale"
       fileFieldName="image"
       modifyFormData={modifyFormData}
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.split(".")[0];
-        return `${originalName}_${scaleFactor}x.png`;
-      }}
+      toolName="upscale"
+      filenameDetail={`${scaleFactor}x`}
+      outputExtension="png"
       submitButtonText="Upscale Image"
       loadingButtonText="Upscaling..."
       onSuccessMessage="Image upscaled successfully!"

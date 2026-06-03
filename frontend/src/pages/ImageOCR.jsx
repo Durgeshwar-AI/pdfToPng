@@ -1,7 +1,8 @@
+import { FileText } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createWorker } from "tesseract.js";
-import { FileText } from "lucide-react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { triggerDownload } from "../utils/downloadFile";
 
 function ImageOCR() {
   const [extractedText, setExtractedText] = useState("");
@@ -128,26 +129,21 @@ function ImageOCR() {
     }
   };
 
-  const handleDownloadText = (file) => {
+  const handleDownloadText = (file, downloadFilename, resolveFilename) => {
     if (!extractedText) {
       return;
     }
 
-    const content = extractedText;
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = file
-      ? `${file.name.replace(/\.[^.]+$/, "") || "ocr-result"}.txt`
-      : "ocr-result.txt";
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
+    const blob = new Blob([extractedText], { type: "text/plain;charset=utf-8" });
+    triggerDownload(
+      blob,
+      resolveFilename?.(
+        file ? `${file.name.replace(/\.[^.]+$/, "") || "ocr-result"}.txt` : "ocr-result.txt",
+      ) || downloadFilename,
+    );
   };
 
-  const extraContent = ({ file, loading, setStatusMessage, setStatusType }) => (
+  const extraContent = ({ file, loading, setStatusMessage, setStatusType, downloadFilename, resolveFilename }) => (
     <div className="w-full text-left mt-8">
       <div className="mb-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
         <div className="mb-3 flex items-center gap-3 text-sm font-semibold text-gray-700">
@@ -206,7 +202,7 @@ function ImageOCR() {
         </button>
         <button
           type="button"
-          onClick={() => handleDownloadText(file)}
+          onClick={() => handleDownloadText(file, downloadFilename, resolveFilename)}
           disabled={!extractedText}
           className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
         >
@@ -227,6 +223,8 @@ function ImageOCR() {
       submitButtonText="Extract Text"
       loadingButtonText="Recognizing..."
       showSubmitButton
+      toolName="ocr"
+      outputExtension="txt"
       maxWidthClass="max-w-[840px]"
       defaultIcon={<FileText />}
       defaultText="Drop your image here or click to select a file"

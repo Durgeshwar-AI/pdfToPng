@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { buildDownloadName } from "../utils/fileNames";
 import { Sliders, Zap, ShieldCheck, Maximize } from "lucide-react";
 
 function ImageCompress() {
@@ -86,12 +87,13 @@ function ImageCompress() {
       apiEndpoint="/compress"
       fileFieldName="image"
       modifyFormData={modifyFormData}
+      toolName="compressed"
       getDownloadFilename={(fileName) => {
-        let extension = fileName.split('.').pop().toLowerCase();
+        let extension = fileName.split(".").pop().toLowerCase();
         if (!["jpg", "jpeg", "webp"].includes(extension)) {
           extension = "jpg";
         }
-        return fileName.replace(/\.[^.]+$/, `_compressed.${extension}`);
+        return buildDownloadName({ originalName: fileName, tool: "compressed", extension });
       }}
       submitButtonText="Compress Image"
       loadingButtonText="Compressing..."
