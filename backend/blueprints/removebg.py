@@ -5,74 +5,51 @@ from PIL import Image, ImageFilter
 from rembg import remove
 from skimage import morphology
 
-from utils.decorators import process_image_request
-from utils.helpers import safe_gc_collect, send_file_and_cleanup
+from utils.helpers import error, safe_gc_collect, send_file_and_cleanup, log_memory
+from werkzeug.utils import secure_filename
 
 remove_bp = Blueprint("removebg", __name__)
 
 
-def refine_alpha_mask(alpha, disk_radius=2, blur_radius=1.0):
-    """
-    Refine alpha mask using morphological operations and edge smoothing.
-
-    1. Morphological opening removes stray pixels outside the subject
-    2. Morphological closing fills small holes inside the subject
-    3. Gaussian blur softens the edges for a more natural matte
-    """
-    mask = np.array(alpha)
-
-    binary = mask > 128
-
-    selem = morphology.disk(disk_radius)
-
-    opened = morphology.binary_opening(binary, selem)
+@remove_bp.route("/removeBg", methods=["POST"])
+def remove_bg():
+    try:
+        file = request.files.get("image")
 
     cleaned = morphology.binary_closing(opened, selem)
 
     clean_mask = (cleaned * 255).astype(np.uint8)
 
-    result = Image.fromarray(clean_mask, mode="L").filter(
-        ImageFilter.GaussianBlur(radius=blur_radius)
-    )
+        log_memory("removeBg - before read")
 
-    return result
+        # Read uploaded file bytes into memory
+        input_bytes = file.read()
 
+        log_memory("removeBg - after read")
 
-@remove_bp.route("/removeBg", methods=["POST"])
-@process_image_request
-def remove_bg(img, filename, file_bytes):
-    base = filename.rsplit('.', 1)[0]
+        output_bytes = remove(input_bytes)
 
-    # Run background removal using the uploaded file bytes
-    output_bytes = remove(file_bytes)
+        # Clean up input bytes reference promptly
+        del input_bytes
+        safe_gc_collect()
+        log_memory("removeBg - after remove and gc")
 
-    out_img = None
-    try:
-        out_img = Image.open(io.BytesIO(output_bytes)).convert("RGBA")
+        # Use context managers for PIL and BytesIO to ensure cleanup
+        from io import BytesIO
 
-        # Refine alpha mask for smoother edges and better matting
-        alpha = out_img.split()[3]
-        refined_alpha = refine_alpha_mask(alpha)
-        out_img.putalpha(refined_alpha)
+        with Image.open(BytesIO(output_bytes)) as img:
+            with BytesIO() as buf:
+                img.save(buf, format="PNG", optimize=True)
+                buf.seek(0)
+                data = buf.getvalue()
 
-        # Save processed image to memory buffer
-        buf = io.BytesIO()
-        out_img.save(buf, format="PNG", optimize=True)
-        buf.seek(0)
-        data = buf.getvalue()
-    finally:
-        if out_img:
-            try:
-                out_img.close()
-            except Exception:
-                pass
-            out_img = None
-
+        # Free output bytes and collect
         try:
             del output_bytes
-            safe_gc_collect()
         except Exception:
             pass
+        safe_gc_collect()
+        log_memory("removeBg - before return")
 
     return send_file_and_cleanup(
         data,

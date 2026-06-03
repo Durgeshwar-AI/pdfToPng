@@ -5,9 +5,8 @@ from io import BytesIO
 from flask import Blueprint, request
 from PIL import Image, ImageEnhance
 
-from utils.decorators import process_image_request
-from utils.helpers import send_file_and_cleanup, error
-from utils.validators import validate_image_file, validate_uploaded_file
+from utils.helpers import error, send_file_and_cleanup, log_memory
+from werkzeug.utils import secure_filename
 
 image_bp = Blueprint("image", __name__)
 
@@ -66,92 +65,39 @@ def _convert_alpha_to_rgb(img):
 
 
 @image_bp.route("/convertWebP", methods=["POST"])
-@process_image_request
-def convert_to_webp(img, filename, file_bytes):
-    if img.mode not in ("RGB", "RGBA"):
-        img = img.convert("RGBA")
-
-    buf = BytesIO()
-    img.save(buf, format="WEBP", quality=85, method=6)
-    buf.seek(0)
-    data = buf.getvalue()
-
-    base = os.path.splitext(filename)[0]
-
-    return send_file_and_cleanup(
-        data,
-        mimetype="image/webp",
-        as_attachment=True,
-        download_name=f"{base}.webp",
-    )
-
-
-@image_bp.route("/upscale", methods=["POST"])
-@process_image_request
-def upscale_image(img, filename, file_bytes):
-    temp_output_path = None
+def convert_to_webp():
     try:
         scale_factor = request.form.get("scale", 2, type=int)
 
         # Limit scale factor
         scale_factor = max(1, min(4, scale_factor))
 
-        # Upscale using LANCZOS (High quality)
-        new_size = (img.width * scale_factor, img.height * scale_factor)
-        upscaled = img.resize(new_size, resample=Image.Resampling.LANCZOS)
+        log_memory("convertWebP - before open")
+        with Image.open(file) as img:
+            if img.mode not in ("RGB", "RGBA"):
+                img = img.convert("RGBA")
 
-        # Apply Sharpness Enhancement
-        enhancer = ImageEnhance.Sharpness(upscaled)
-        upscaled = enhancer.enhance(1.5) # Slight boost
+            with BytesIO() as buf:
+                img.save(buf, format="WEBP", quality=85, method=6)
+                buf.seek(0)
+                data = buf.getvalue()
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_out:
-            temp_output_path = temp_out.name
-
-        upscaled.save(temp_output_path, format="PNG", optimize=True)
+        log_memory("convertWebP - before return")
 
         base = os.path.splitext(filename)[0]
 
         return send_file_and_cleanup(
-            temp_output_path,
-            mimetype="image/png",
+            data,
+            mimetype="image/webp",
             as_attachment=True,
-            download_name=f"{base}_upscaled_{scale_factor}x.png",
+            download_name=f"{base}.webp",
         )
-    except Exception:
-        if temp_output_path and os.path.exists(temp_output_path):
-            try:
-                os.remove(temp_output_path)
-            except Exception:
-                pass
-        raise
+    except Exception as e:
+        return error(str(e), 500)
 
 
 @image_bp.route("/convertJpeg", methods=["POST"])
-@process_image_request
-def convert_to_jpeg(img, filename, file_bytes):
-    if img.mode != "RGB":
-        img = img.convert("RGB")
-
-    buf = BytesIO()
-    img.save(buf, format="JPEG", quality=90, optimize=True)
-    buf.seek(0)
-    data = buf.getvalue()
-
-    base = os.path.splitext(filename)[0]
-
-    return send_file_and_cleanup(
-        data,
-        mimetype="image/jpeg",
-        as_attachment=True,
-        download_name=f"{base}.jpg",
-    )
-
-
-@image_bp.route("/convertGrayscale", methods=["POST"])
-def convert_to_grayscale():
-    img = None
-    grayscale_img = None
-
+def convert_to_jpeg():
     try:
         file, filename, upload_error = validate_uploaded_file(
             request,
@@ -161,30 +107,26 @@ def convert_to_grayscale():
         if upload_error:
             return upload_error
 
-        img, file_bytes, image_error = validate_image_file(file)
+        log_memory("convertJpeg - before open")
+        with Image.open(file) as img:
+            if img.mode != "RGB":
+                img = img.convert("RGB")
 
-        if image_error:
-            return image_error
+            with BytesIO() as buf:
+                img.save(buf, format="JPEG", quality=90, optimize=True)
+                buf.seek(0)
+                data = buf.getvalue()
 
-        grayscale_img = img.convert("L")
-
-        buf = BytesIO()
-
-        grayscale_img.save(buf, format="PNG")
-
-        buf.seek(0)
-
-        data = buf.getvalue()
+        log_memory("convertJpeg - before return")
 
         base = os.path.splitext(filename)[0]
 
         return send_file_and_cleanup(
             data,
-            mimetype="image/png",
+            mimetype="image/jpeg",
             as_attachment=True,
-            download_name=f"{base}_grayscale.png",
+            download_name=f"{base}.jpg",
         )
-
     except Exception as e:
         return error(str(e), 500)
 
@@ -204,8 +146,6 @@ def convert_to_grayscale():
 
 @image_bp.route("/compress", methods=["POST"])
 def compress_image():
-    img = None
-
     try:
         file, filename, upload_error = validate_uploaded_file(
             request,
@@ -223,36 +163,26 @@ def compress_image():
         quality = request.form.get("quality", 70, type=int)
 
         quality = max(1, min(100, quality))
+        
+        filename = secure_filename(file.filename)
 
-        img_format = (
-            img.format
-            if img.format in ["JPEG", "WEBP"]
-            else "JPEG"
-        )
+        log_memory("compress - before open")
+        with Image.open(file) as img:
+            # Determine format - if it's not a format that supports quality, 
+            # we'll convert to JPEG for the best compression results
+            img_format = img.format if img.format in ["JPEG", "WEBP"] else "JPEG"
+            if img_format == "JPEG" and img.mode != "RGB":
+                img = img.convert("RGB")
+            
+            extension = ".jpg" if img_format == "JPEG" else ".webp"
+            mimetype = "image/jpeg" if img_format == "JPEG" else "image/webp"
 
-        if img_format == "JPEG" and img.mode != "RGB":
-            img = img.convert("RGB")
+            with BytesIO() as buf:
+                img.save(buf, format=img_format, quality=quality, optimize=True)
+                buf.seek(0)
+                data = buf.getvalue()
 
-        extension = ".jpg" if img_format == "JPEG" else ".webp"
-
-        mimetype = (
-            "image/jpeg"
-            if img_format == "JPEG"
-            else "image/webp"
-        )
-
-        buf = BytesIO()
-
-        img.save(
-            buf,
-            format=img_format,
-            quality=quality,
-            optimize=True,
-        )
-
-        buf.seek(0)
-
-        data = buf.getvalue()
+        log_memory("compress - before return")
 
         base = os.path.splitext(filename)[0]
 
@@ -262,7 +192,6 @@ def compress_image():
             as_attachment=True,
             download_name=f"{base}_compressed{extension}",
         )
-
     except Exception as e:
         return error(str(e), 500)
 

@@ -1,6 +1,7 @@
 import gc
 import os
-from flask import jsonify, after_this_request, send_file
+import psutil
+from flask import jsonify, after_this_request, send_file, make_response
 
 
 def error(msg, code=400):
@@ -14,27 +15,48 @@ def safe_gc_collect():
         pass
 
 
+def log_memory(tag: str = ""):
+    try:
+        p = psutil.Process(os.getpid())
+        rss = p.memory_info().rss / 1024.0 / 1024.0
+        print(f"[MEM] {tag}: {rss:.2f} MB")
+    except Exception:
+        pass
+
+
 def send_file_and_cleanup(filename, **kwargs):
     """
-    Sends a file and deletes it after the request is completed.
+    Sends a file or bytes and ensures in-memory buffers are closed after the
+    request finishes. Supports bytes, file-like objects, or filesystem paths.
     """
-    # Support bytes or file-like objects to avoid touching disk
     try:
-        # Lazy import to avoid unused import when not needed
         from io import BytesIO
 
-        # If raw bytes are passed, wrap in BytesIO and send directly
+        # If raw bytes are passed, wrap in BytesIO and send directly.
+        # Do NOT close the buffer in an after_this_request handler because
+        # Werkzeug may still read from the buffer after that hook runs.
+        # Rely on Python GC to reclaim the buffer once the response is sent.
         if isinstance(filename, (bytes, bytearray)):
-            bio = BytesIO(filename)
-            bio.seek(0)
-            return send_file(bio, **kwargs)
+            # Return a direct Response for raw bytes to avoid streaming
+            # issues where the underlying file-like gets closed prematurely.
+            resp = make_response(bytes(filename))
+            mimetype = kwargs.get("mimetype") or kwargs.get("content_type") or "application/octet-stream"
+            resp.headers["Content-Type"] = mimetype
+            if kwargs.get("as_attachment"):
+                download_name = kwargs.get("download_name", "file")
+                resp.headers["Content-Disposition"] = f'attachment; filename="{download_name}"'
+            # support caching directives
+            if "max_age" in kwargs:
+                resp.cache_control.max_age = int(kwargs.get("max_age") or 0)
+            return resp
 
-        # If a file-like object is passed, ensure it's at start and send
+        # If a file-like object is passed, ensure it's at start and schedule close
         if hasattr(filename, "read"):
             try:
                 filename.seek(0)
             except Exception:
                 pass
+            # Avoid closing here; let the WSGI server finish reading.
             return send_file(filename, **kwargs)
 
         # Otherwise treat as a filesystem path and schedule cleanup

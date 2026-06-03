@@ -2,11 +2,7 @@ import fitz  # PyMuPDF
 
 from flask import Blueprint, request
 
-from utils.helpers import error, send_file_and_cleanup
-from utils.validators import (
-    validate_pdf_file,
-    validate_uploaded_file,
-)
+from utils.helpers import error, send_file_and_cleanup, safe_gc_collect, log_memory
 
 pdf_bp = Blueprint("pdf", __name__)
 
@@ -29,13 +25,12 @@ def convert_pdf_to_png():
         if pdf_error:
             return pdf_error
 
+        log_memory("convertPng - before read")
         # Read PDF into memory and open from bytes
         pdf_bytes = pdf_file.read()
+        log_memory("convertPng - after read")
 
-        doc = fitz.open(
-            stream=pdf_bytes,
-            filetype="pdf",
-        )
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
         try:
             if doc.page_count == 0:
@@ -62,6 +57,13 @@ def convert_pdf_to_png():
         finally:
             if doc:
                 doc.close()
+            # release references and collect
+            try:
+                del pdf_bytes
+            except Exception:
+                pass
+            safe_gc_collect()
+            log_memory("convertPng - after close and gc")
 
         return send_file_and_cleanup(
             png_bytes,
