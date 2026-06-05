@@ -19,6 +19,7 @@
     "motion": "^12.38.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.7.284",
+    "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-dropzone": "^15.0.0",

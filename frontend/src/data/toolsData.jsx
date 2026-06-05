@@ -13,7 +13,8 @@ import {
   PenTool,
   Expand,
   Palette,
-  Droplets, 
+  Droplets,
+  QrCode, 
 } from "lucide-react";
 
 const tools = [
@@ -258,7 +259,19 @@ const tools = [
     path: "/image-blur",
     gradient: "from-gray-500/10 to-gray-700/10",
     iconGradient: "from-gray-500 to-gray-700",
+  },
+  {
+    id: "url-to-qr",
+    name: "URL to QR Code",
+    category: "Utilities",
+    icon: <QrCode />,
+    description:
+      "Generate QR codes from website URLs for quick sharing and access.",
+    path: "/url-to-qr",
+    gradient: "from-emerald-500/10 to-green-500/10",
+    iconGradient: "from-emerald-500 to-green-500",
   }
+
 ];
 
 export default tools;

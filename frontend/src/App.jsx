@@ -6,6 +6,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
 
+const UrlToQr = lazy(() => import("./pages/UrlToQr"));
+
 const PdfMerge = lazy(() => import("./pages/PdfMerge"));
 const PdfSign = lazy(() => import("./pages/PdfSign"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -71,6 +73,7 @@ function App() {
             <Route path="/image-metadata" element={<ImageMetadata />} />
             <Route path="/image-to-base64" element={<ImageBase64 />} />
             <Route path="/md-to-html" element={<MdToHtml />} />
+            <Route path="/url-to-qr" element={<UrlToQr />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
