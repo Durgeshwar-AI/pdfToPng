@@ -1,4 +1,58 @@
 @import "tailwindcss";
-html{
-    scroll-behavior: smooth;
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ==========================================================================
+   1. Tailwind v4 Theme Extensions
+   ========================================================================== */
+@theme {
+  /* This maps your CSS variables to Tailwind utility classes */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-custom: var(--border-color);
+  --color-card-bg: var(--card-bg);
+  --color-navbar-bg: var(--navbar-bg);
+  
+  --shadow-sm: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   2. Theme Variable Values
+   ========================================================================== */
+:root {
+  /* Light Mode (Defaults) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --navbar-bg: #ffffff;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+[data-theme="dark"] {
+  /* Dark Mode Overrides */
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --card-bg: #1e1e1e;
+  --navbar-bg: #181818;
+  --shadow-sm: 0 1px 2px 0 rgb(255 255 255 / 0.05);
+}
+
+/* ==========================================================================
+   3. Global Element Resets
+   ========================================================================== */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  /* Smoothly transition colors when theme toggles */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
