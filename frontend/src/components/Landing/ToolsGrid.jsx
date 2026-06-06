@@ -6,15 +6,6 @@ import { Sparkles } from "lucide-react";
 const ToolsGrid = () => {
 
 const [searchQuery, setSearchQuery] = useState("");
-const suggestions = searchQuery
-  ? tools
-      .filter((tool) =>
-        tool.name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      )
-      .slice(0, 5)
-  : [];
 
 const filteredTools = tools.filter((tool) => {
   const query = searchQuery
@@ -56,7 +47,7 @@ const filteredTools = tools.filter((tool) => {
 
  
 
-<div className="max-w-md mx-auto mb-10 relative">
+<div className="max-w-md mx-auto mb-10">
   <input
     type="text"
     aria-label="Search converters and tools"
@@ -65,20 +56,6 @@ const filteredTools = tools.filter((tool) => {
     onChange={(e) => setSearchQuery(e.target.value)}
     className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
   />
-
-  {searchQuery && suggestions.length > 0 && (
-    <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl bg-white/30 backdrop-blur-xl border border-white/20 shadow-2xl overflow-hidden">
-      {suggestions.map((tool) => (
-        <button
-          key={tool.id}
-          type="button" 
-          onClick={() => setSearchQuery(tool.name)}
-          className="w-full px-4 py-3 text-left text-slate-700 transition-all hover:bg-white/40 hover:text-orange-600">
-          {tool.name}
-        </button>
-      ))}
-    </div>
-  )}
 </div>
 
 {filteredTools.length > 0 ? (
