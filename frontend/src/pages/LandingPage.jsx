@@ -27,7 +27,7 @@ const LandingPage = () => {
  
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-purple-100 selection:text-purple-900 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 font-sans selection:bg-purple-100 selection:text-purple-900 overflow-x-hidden">
       {/* Animated Background Gradients */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
   <div className="absolute top-0 -left-40 w-72 h-72 bg-purple-200/20 rounded-full blur-3xl" />

@@ -259,7 +259,7 @@ function BlurImage() {
       loadingButtonText="Loading..."
       extraContent={extraContent}
       showSubmitButton={true}
-      maxWidthClass="max-w-[1200px]"
+      maxWidthClass="max-w-[800px]"
       defaultIcon={<Image size={64} />}
       defaultText="Choose image file or drag & drop here"
       supportText="Supports PNG, JPG, JPEG, WEBP"

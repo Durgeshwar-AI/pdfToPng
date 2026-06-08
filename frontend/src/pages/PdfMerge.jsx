@@ -62,13 +62,13 @@ export default function MergePdf() {
 
   const inputRef = useRef(null);
 
-  const showStatus = (msg, type = "info", ttl = 5000) => {
+  const showStatus = useCallback((msg, type = "info", ttl = 5000) => {
     setStatusMsg(msg);
     setStatusType(type);
     if (ttl) setTimeout(() => setStatusMsg(""), ttl);
-  };
+  }, []);
 
-  const addFiles = (incoming) => {
+  const addFiles = useCallback((incoming) => {
     const pdfs = Array.from(incoming).filter(
       (f) => f.type === "application/pdf",
     );
@@ -81,7 +81,7 @@ export default function MergePdf() {
       const names = new Set(prev.map((f) => f.name));
       return [...prev, ...pdfs.filter((f) => !names.has(f.name))];
     });
-  };
+  }, [showStatus]);
 
   const onDrop = useCallback((e) => {
     e.preventDefault();

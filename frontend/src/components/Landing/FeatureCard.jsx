@@ -1,6 +1,6 @@
 const FeatureCard = ({ icon, title, description, gradient, index }) => (
   <div
-    className=" group relative p-8 rounded-2xl bg-white shadow-sm border border-slate-200 hover:shadow-xl hover:border-slate-300 transition-colors duration-500 hover:-translate-y-2 animate-fade-in-up"
+    className="group relative p-8 rounded-2xl bg-white shadow-sm border border-slate-200 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:border-slate-300 animate-fade-in-up"
     style={{ animationDelay: `${800 + index * 100}ms` }}
   >
     <div

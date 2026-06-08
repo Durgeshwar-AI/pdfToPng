@@ -1,5 +1,11 @@
 ## PDF to PNG & Image Tools
 
+<p align="center">
+  <img src="assets/banner.png" alt="PDF to PNG Banner" width="100%">
+</p>
+
+---
+
 This project is a comprehensive full‑stack web app for doing simple, local file manipulations:
 
 **PDF Tools:**
@@ -29,6 +35,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 - Convert images to Base64
 
 **MD tools**
+
 - Convert Markdown files to HTML with optional theme styling
 
 The backend is a Flask API and the frontend is a React app (Vite).
@@ -82,7 +89,7 @@ pdfToPng/
 │   │   ├── watermark.py
 │   │   ├── md2html.py
 │   │   └── markdown.py
-|   |   
+|   |
 │   └── utils/
 │       ├── __init__.py
 │       ├── helpers.py
@@ -285,7 +292,7 @@ Available endpoints:
 - `POST /pdf-to-docx` – Convert PDF to DOCX
 - `POST /docx-to-pdf` – Convert DOCX to PDF
 - `POST /rotate-flip-pdf` – Rotate or flip PDF pages
-- `POST /watermark-pdf` – Add watermarks to PDF 
+- `POST /watermark-pdf` – Add watermarks to PDF
 
 **Image Endpoints:**
 

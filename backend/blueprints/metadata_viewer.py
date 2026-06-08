@@ -244,8 +244,8 @@ def _extract_metadata(img, file_bytes, filename):
     if dpi:
         metadata["DPI"] = f"{int(dpi[0])} x {int(dpi[1])}"
 
-    # EXIF via PIL (JPEG + TIFF)
-    if ext in (".jpg", ".jpeg", ".tiff", ".tif"):
+    # EXIF via PIL (JPEG + TIFF + WEBP)
+    if ext in (".jpg", ".jpeg", ".tiff", ".tif", ".webp"):
         exif_fields = _get_pil_exif(img)
         metadata.update(exif_fields)
 
@@ -372,13 +372,15 @@ def strip_metadata(img, filename, file_bytes):
         clean.save(buf, format="PNG")
         mimetype, out_ext = "image/png", ".png"
     elif ext in (".tiff", ".tif"):
-        img.save(buf, format="TIFF")
+        clean = Image.new(img.mode, img.size)
+        clean.putdata(list(img.getdata()))
+        clean.save(buf, format="TIFF")
         mimetype, out_ext = "image/tiff", ".tiff"
     elif ext == ".bmp":
         img.save(buf, format="BMP")
         mimetype, out_ext = "image/bmp", ".bmp"
     elif ext == ".webp":
-        img.save(buf, format="WEBP", quality=95)
+        img.save(buf, format="WEBP", quality=95, exif=b"")
         mimetype, out_ext = "image/webp", ".webp"
     else:
         raise ValueError("Unsupported file format")

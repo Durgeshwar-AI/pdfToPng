@@ -200,7 +200,7 @@ function ImageOCR() {
           type="button"
           onClick={() => handleCopyText(setStatusMessage, setStatusType)}
           disabled={!extractedText || loading}
-          className="inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-[#4361ee] to-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(67,97,238,0.2)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+          className="inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-[#4361ee] to-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(67,97,238,0.2)] disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-300 disabled:text-slate-700"
         >
           Copy Text
         </button>
@@ -208,7 +208,7 @@ function ImageOCR() {
           type="button"
           onClick={() => handleDownloadText(file)}
           disabled={!extractedText}
-          className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+          className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
         >
           Download TXT
         </button>

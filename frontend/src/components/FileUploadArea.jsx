@@ -26,7 +26,7 @@ const FileUploadArea = ({
       className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none ${
         isDragging
           ? "border-[#3b82f6] bg-[#ebf5ff] scale-[1.02]"
-          : "border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
+          : "border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] dark:bg-gray-700 dark:border-gray-600 hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
       }`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -44,7 +44,7 @@ const FileUploadArea = ({
       />
       <label
         htmlFor={inputId}
-        className="flex flex-col items-center text-xl text-[#4b5563] cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e] w-full"
+        className="flex flex-col items-center text-xl text-[#4b5563] dark:text-gray-300 cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e] w-full"
       >
         {file ? (
           <div className="relative group w-full flex flex-col items-center">
@@ -140,7 +140,7 @@ const FileUploadArea = ({
               {defaultIcon}
             </div>
             {defaultText}
-            <div className="text-[0.95rem] text-[#6b7280] mt-3">
+            <div className="text-[0.95rem] text-[#6b7280] dark:text-gray-400 mt-3">
               {supportText}
             </div>
           </>

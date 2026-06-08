@@ -1,5 +1,5 @@
-import React, { useState, useCallback, lazy, Suspense } from "react";import { useFileUpload } from "../hooks/useFileUpload";
-
+import React, { useState, useCallback, lazy, Suspense } from "react";
+import { useFileUpload } from "../hooks/useFileUpload";
 
 const FileUploadArea = lazy(() => import("./FileUploadArea"));
 
@@ -16,6 +16,7 @@ const ToolPageTemplate = ({
   submitButtonText = "Submit",
   loadingButtonText = "Processing...",
   onSuccessMessage,
+  onSuccess, // New prop for callback
   getDownloadFilename,
   extraFields,
   extraContent,
@@ -26,7 +27,7 @@ const ToolPageTemplate = ({
   supportText,
   inputId = "file-input",
 }) => {
-  const [statusType, setStatusType] = useState("info"); // info, success, error
+  const [statusType, setStatusType] = useState("info");
 
   const internalValidate = useCallback(
     async (selectedFile) => {
@@ -125,7 +126,13 @@ const ToolPageTemplate = ({
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
 
-        setStatusMessage(onSuccessMessage || "Success! File downloaded.");
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          const customMessage = onSuccess(blob, file.name);
+          setStatusMessage(customMessage || (onSuccessMessage || "Success! File downloaded."));
+        } else {
+          setStatusMessage(onSuccessMessage || "Success! File downloaded.");
+        }
         setStatusType("success");
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -157,11 +164,11 @@ const ToolPageTemplate = ({
   };
 
   return (
-    <div className={`w-full ${maxWidthClass} mx-auto p-10 text-center flex flex-col justify-center items-center bg-linear-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden`}>
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
+    <div className={`w-full ${maxWidthClass} mx-auto p-10 text-center flex flex-col justify-center items-center bg-linear-to-br from-[#f6f8fa] to-white dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden`}>
+      <h1 className="mb-10 text-[#1a1a2e] dark:text-white text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         {title}
       </h1>
-      {description && <p className="text-gray-800 mb-8">{description}</p>}
+      {description && <p className="text-gray-800 dark:text-gray-300 mb-8">{description}</p>}
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
         <Suspense fallback={<div>Loading upload...</div>}>

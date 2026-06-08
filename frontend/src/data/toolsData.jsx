@@ -13,13 +13,15 @@ import {
   PenTool,
   Expand,
   Palette,
-  Droplets, 
+  Droplets,
+  QrCode, 
 } from "lucide-react";
 
 const tools = [
   {
     id: "pdf-to-png",
     name: "PDF to PNG",
+    category: "PDF Tools",
     icon: <FileText />,
     description:
       "Convert single-page PDF documents into high-quality PNG images instantly.",
@@ -30,6 +32,7 @@ const tools = [
   {
     id: "image-to-pdf",
     name: "Image to PDF",
+    category: "Conversion Tools",
     icon: <FileImage />,
     description: "Combine images into a single PDF document quickly.",
     path: "/image-to-pdf",
@@ -39,6 +42,7 @@ const tools = [
   {
     id: "pdf-merge",
     name: "PDF Merge",
+    category: "PDF Tools",
     icon: <FileText />,
     description: "Merge multiple PDF files into one document.",
     path: "/pdf-merge",
@@ -48,6 +52,7 @@ const tools = [
   {
     id: "pdf-split",
     name: "PDF Split",
+    category: "PDF Tools",
     icon: <FileText />,
     description: "Extract a page range from a PDF into a new document.",
     path: "/pdf-split",
@@ -57,6 +62,7 @@ const tools = [
   {
     id: "pdf-rotate-flip",
     name: "PDF Rotate & Flip",
+    category: "PDF Tools",
     icon: <RotateCcw />,
     description:
       "Rotate or flip all PDF pages, or only selected pages and ranges (e.g. 1,3,7 or 1-10).",
@@ -67,6 +73,7 @@ const tools = [
   {
     id: "pdf-sign",
     name: "PDF Sign",
+    category: "PDF Tools",
     icon: <PenTool />,
     description: "Add signatures to your PDF files securely.",
     path: "/pdf-sign",
@@ -76,6 +83,7 @@ const tools = [
   {
     id: "pdf-watermark",
     name: "PDF Watermark",
+    category: "PDF Tools",
     icon: <FileText />,
     description: "Add text or image watermarks to PDF files.",
     path: "/pdf-watermark",
@@ -85,6 +93,7 @@ const tools = [
   {
     id: "image-compress",
     name: "Image Compressor",
+    category: "Image Tools",
     icon: <Sliders />,
     description: "Reduce image size with adjustable quality settings.",
     path: "/image-compress",
@@ -94,6 +103,7 @@ const tools = [
   {
     id: "image-upscale",
     name: "AI Upscaler",
+    category: "AI Tools",
     icon: <Sparkles />,
     description: "Increase image resolution using AI-powered upscaling.",
     path: "/image-upscale",
@@ -103,6 +113,7 @@ const tools = [
   {
     id: "image-to-webp",
     name: "Image to WebP",
+    category: "Conversion Tools",
     icon: <Image />,
     description: "Optimize your images for the web by converting them to WebP.",
     path: "/image-to-webp",
@@ -112,6 +123,7 @@ const tools = [
   {
     id: "image-to-jpg",
     name: "Image to JPG",
+    category: "Conversion Tools",
     icon: <FileImage />,
     description: "Standardize your image formats by converting to JPG.",
     path: "/image-to-jpg",
@@ -121,6 +133,7 @@ const tools = [
   {
     id: "image-ocr",
     name: "Image OCR",
+    category: "AI Tools",
     icon: <FileText />,
     description: "Extract editable text from images using OCR.",
     path: "/image-ocr",
@@ -130,6 +143,7 @@ const tools = [
   {
   id: "image-watermark",
   name: "Image Watermark",
+  category: "Image Tools",
   icon: <Droplets />,
   description: "Add text or image watermarks to protect your photos with custom positioning and opacity.",
   path: "/image-watermark",
@@ -139,6 +153,7 @@ const tools = [
   {
     id: "image-to-grayscale",
     name: "Image to Grayscale",
+    category: "Image Tools",
     icon: <Palette />,
     description: "Convert images to grayscale quickly.",
     path: "/image-to-grayscale",
@@ -148,6 +163,7 @@ const tools = [
   {
     id: "remove-bg",
     name: "Remove Background",
+    category: "AI Tools",
     icon: <Eraser />,
     description: "Extract subjects from their backgrounds with AI processing.",
     path: "/remove-bg",
@@ -157,6 +173,7 @@ const tools = [
   {
     id: "rotate-flip",
     name: "Rotate & Flip",
+    category: "Image Tools",
     icon: <RotateCcw />,
     description: "Rotate or flip images quickly with lossless transforms.",
     path: "/rotate-flip",
@@ -166,6 +183,7 @@ const tools = [
   {
     id: "image-resize",
     name: "Image Resize",
+    category: "Image Tools",
     icon: <Expand />,
     description: "Resize images to exact dimensions or aspect ratios.",
     path: "/image-resize",
@@ -175,6 +193,7 @@ const tools = [
   {
     id: "image-dpi",
     name: "Image DPI Converter",
+    category: "Image Tools",
     icon: <Gauge />,
     description: "Change the DPI of your images for print-ready output.",
     path: "/image-dpi",
@@ -184,6 +203,7 @@ const tools = [
   {
     id: "image-metadata",
     name: "Metadata Viewer",
+    category: "Utilities",
     icon: <Info />,
     description: "View, copy and strip hidden EXIF metadata from your images.",
     path: "/image-metadata",
@@ -193,6 +213,7 @@ const tools = [
   {
     id: "image-to-base64",
     name: "Image to Base64",
+    category: "Conversion Tools",
     icon: <Code />,
     description: "Convert images into Base64 Data URIs for embedding.",
     path: "/image-to-base64",
@@ -202,6 +223,7 @@ const tools = [
   {
     id: "image-to-svg",
     name: "Image to SVG",
+    category: "Conversion Tools",
     icon: <Code />,
     description: "Convert PNG/JPG images into scalable SVG vector graphics.",
     path: "/image-to-svg",
@@ -211,6 +233,7 @@ const tools = [
   {
     id: "docx-to-pdf",
     name: "DOCX to PDF",
+    category: "Conversion Tools",
     icon: <FileText />,
     description: "Convert .docx files to PDF using the server",
     path: "/docx-to-pdf",
@@ -220,6 +243,7 @@ const tools = [
   {
     id: "md-to-html",
     name: "Markdown to HTML",
+    category: "Conversion Tools",
     icon: <FileText />,
     description: "Convert Markdown files to HTML with optional themes (light, dark, blue)",
     path: "/md-to-html",
@@ -229,12 +253,25 @@ const tools = [
   {
     id: "image-blur",
     name: "Image Blur",
+    category: "Image Tools",
     icon: <Image />,
     description: "Blur images with adjustable blur intensity.",
     path: "/image-blur",
     gradient: "from-gray-500/10 to-gray-700/10",
     iconGradient: "from-gray-500 to-gray-700",
+  },
+  {
+    id: "url-to-qr",
+    name: "URL to QR Code",
+    category: "Utilities",
+    icon: <QrCode />,
+    description:
+      "Generate QR codes from website URLs for quick sharing and access.",
+    path: "/url-to-qr",
+    gradient: "from-emerald-500/10 to-green-500/10",
+    iconGradient: "from-emerald-500 to-green-500",
   }
+
 ];
 
 export default tools;

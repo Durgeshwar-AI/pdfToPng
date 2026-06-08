@@ -48,16 +48,14 @@ const filteredTools = tools.filter((tool) => {
  
 
 <div className="max-w-md mx-auto mb-10">
-<input
-  type="text"
-  aria-label="Search converters and tools"
-  placeholder="Search converters and tools..."
-  value={searchQuery}
-  onChange={(e) => setSearchQuery(e.target.value)}
-  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
-/>
-
-
+  <input
+    type="text"
+    aria-label="Search converters and tools"
+    placeholder="Search converters and tools..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+  />
 </div>
 
 {filteredTools.length > 0 ? (
