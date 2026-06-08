@@ -35,19 +35,23 @@ const Layout = () => {
         onClose={closeMobileMenu}
       />
       <main className="flex-1 overflow-y-auto relative">
-        <button
-          onClick={toggleTheme}
-          className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-all duration-300"
-          aria-label="Toggle dark mode"
-        >
-          {isDark ? (
-            <Sun className="w-5 h-5 text-yellow-400" />
-          ) : (
-            <Moon className="w-5 h-5 text-slate-600" />
-          )}
-        </button>
+        {/* Floating Theme Toggle - Desktop only. Moved mobile toggle into header */}
+        {!isMobile && (
+          <button
+            onClick={toggleTheme}
+            className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-all duration-300"
+            aria-label="Toggle dark mode"
+          >
+            {isDark ? (
+              <Sun className="w-5 h-5 text-yellow-400" />
+            ) : (
+              <Moon className="w-5 h-5 text-slate-600" />
+            )}
+          </button>
+        )}
 
-        {!isLandingPage && (
+        {/* Floating Home Button - Desktop only. Removed fixed positioning for mobile */}
+        {!isLandingPage && !isMobile && (
           <button
             onClick={() => navigate("/")}
             className="fixed top-4 right-16 z-40 flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#4361ee] to-[#3b82f6] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(59,130,246,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(59,130,246,0.35)]"
@@ -57,22 +61,49 @@ const Layout = () => {
           </button>
         )}
 
+        {/* Mobile Header - Updated to hold controls properly */}
         {isMobile && (
-          <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-30 border-b border-gray-200 dark:border-gray-700">
+          <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between p-4">
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <Menu className="w-6 h-6 text-slate-700 dark:text-slate-300" />
-              </button>
-              <h1 className="text-lg font-bold text-blue-600">pdfToPng</h1>
-              <div className="w-10" />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={toggleMobileMenu}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <Menu className="w-6 h-6 text-slate-700 dark:text-slate-300" />
+                </button>
+                <h1 className="text-lg font-bold text-blue-600 truncate max-w-[120px] sm:max-w-none">pdfToPng</h1>
+              </div>
+
+              {/* Action Buttons grouped together to prevent overlap */}
+              <div className="flex items-center gap-2 shrink-0">
+                {!isLandingPage && (
+                  <button
+                    onClick={() => navigate("/")}
+                    className="p-2 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 transition-colors"
+                    aria-label="Go home"
+                  >
+                    <Home className="w-5 h-5" />
+                  </button>
+                )}
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-slate-700 dark:text-slate-300 hover:bg-gray-200 transition-colors"
+                  aria-label="Toggle dark mode"
+                >
+                  {isDark ? (
+                    <Sun className="w-5 h-5 text-yellow-400" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-slate-600" />
+                  )}
+                </button>
+              </div>
             </div>
           </header>
         )}
 
-        <div className="min-h-full flex justify-center items-center py-8">
+        {/* Adjusted padding top for mobile so content isn't hidden under sticky header */}
+        <div className={`min-h-full flex justify-center items-center pb-8 ${isMobile ? 'pt-4' : 'py-8'}`}>
           <Outlet />
         </div>
       </main>
