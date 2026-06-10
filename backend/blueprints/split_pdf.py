@@ -21,7 +21,7 @@ def split_pdf():
     except (ValueError, TypeError):
         return jsonify({"error": "start_page and end_page must be valid integers."}), 400
 
-    data = file.read()
+        data = file.read()
     src = None
     output = None
 
@@ -64,6 +64,8 @@ def split_pdf():
 
     except fitz.FileDataError:
         return jsonify({"error": "The uploaded file appears to be corrupted or is not a valid PDF."}), 400
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
     finally:
         if src:
