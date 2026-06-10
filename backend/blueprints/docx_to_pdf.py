@@ -1,8 +1,10 @@
-from io import BytesIO
+import os
+import subprocess
+import tempfile
 import traceback
+from io import BytesIO
 
 from flask import Blueprint, request
-from docx import Document
 
 from utils.helpers import error, send_file_and_cleanup
 
@@ -22,52 +24,58 @@ def convert_docx_to_pdf():
 
         docx_bytes = docx_file.read()
 
-        # Load docx from bytes
-        doc = Document(BytesIO(docx_bytes))
+        # Use LibreOffice for high-fidelity conversion
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            input_path = os.path.join(tmp_dir, "document.docx")
+            with open(input_path, "wb") as f:
+                f.write(docx_bytes)
 
-        # Build PDF in memory using ReportLab Platypus (import lazily)
-        try:
-            from reportlab.lib.pagesizes import A4
-            from reportlab.lib.styles import getSampleStyleSheet
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        except ImportError:
-            return error("Server missing 'reportlab' library; install reportlab to enable DOCX→PDF conversion", 500)
+            try:
+                # Execute LibreOffice headless conversion
+                # Using --convert-to pdf --outdir
+                result = subprocess.run(
+                    [
+                        "libreoffice",
+                        "--headless",
+                        "--convert-to",
+                        "pdf",
+                        "--outdir",
+                        tmp_dir,
+                        input_path,
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=60,  # 60 second timeout
+                )
 
-        output = BytesIO()
-        pdf_doc = SimpleDocTemplate(output, pagesize=A4)
-        styles = getSampleStyleSheet()
-        normal = styles["Normal"]
+                if result.returncode != 0:
+                    print(f"LibreOffice error: {result.stderr}")
+                    return error(f"Conversion failed: {result.stderr}", 500)
 
-        story = []
+                # LibreOffice names the output file same as input but with .pdf extension
+                pdf_path = os.path.join(tmp_dir, "document.pdf")
+                
+                if not os.path.exists(pdf_path):
+                    return error("Conversion failed: PDF not generated", 500)
 
-        for para in doc.paragraphs:
-            text = para.text or ""
-            if not text.strip():
-                # keep paragraph spacing
-                story.append(Spacer(1, 6))
-                continue
-            # Use Paragraph to support simple wrapping
-            story.append(Paragraph(text.replace("\n", "<br/>"), normal))
-            story.append(Spacer(1, 6))
+                with open(pdf_path, "rb") as f:
+                    pdf_bytes = f.read()
 
-        # If no content, return an error
-        if not story:
-            return error("DOCX contains no extractable text")
+                output = BytesIO(pdf_bytes)
+                output.seek(0)
 
-        try:
-            pdf_doc.build(story)
-        except Exception:
-            traceback.print_exc()
-            return error("Failed to generate PDF", 500)
+                return send_file_and_cleanup(
+                    output,
+                    mimetype="application/pdf",
+                    as_attachment=True,
+                    download_name="converted.pdf",
+                )
 
-        output.seek(0)
-
-        return send_file_and_cleanup(
-            output,
-            mimetype="application/pdf",
-            as_attachment=True,
-            download_name="converted.pdf",
-        )
+            except subprocess.TimeoutExpired:
+                return error("Conversion timed out", 500)
+            except Exception as e:
+                traceback.print_exc()
+                return error(f"Error during conversion: {str(e)}", 500)
 
     except Exception as e:
         traceback.print_exc()
