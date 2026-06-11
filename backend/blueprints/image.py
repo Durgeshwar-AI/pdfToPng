@@ -1,5 +1,4 @@
 import os
-import tempfile
 from io import BytesIO
 
 from flask import Blueprint, request
@@ -89,7 +88,6 @@ def convert_to_webp(img, filename, file_bytes):
 @image_bp.route("/upscale", methods=["POST"])
 @process_image_request
 def upscale_image(img, filename, file_bytes):
-    temp_output_path = None
     try:
         scale_factor = request.form.get("scale", 2, type=int)
 
@@ -104,25 +102,20 @@ def upscale_image(img, filename, file_bytes):
         enhancer = ImageEnhance.Sharpness(upscaled)
         upscaled = enhancer.enhance(1.5) # Slight boost
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_out:
-            temp_output_path = temp_out.name
-
-        upscaled.save(temp_output_path, format="PNG", optimize=True)
+        buf = BytesIO()
+        upscaled.save(buf, format="PNG", optimize=True)
+        buf.seek(0)
+        data = buf.getvalue()
 
         base = os.path.splitext(filename)[0]
 
         return send_file_and_cleanup(
-            temp_output_path,
+            data,
             mimetype="image/png",
             as_attachment=True,
             download_name=f"{base}_upscaled_{scale_factor}x.png",
         )
     except Exception:
-        if temp_output_path and os.path.exists(temp_output_path):
-            try:
-                os.remove(temp_output_path)
-            except Exception:
-                pass
         raise
 
 
