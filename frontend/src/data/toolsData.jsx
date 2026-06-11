@@ -17,6 +17,7 @@ import {
   QrCode,
   Lock,
   Tags,
+  BookOpen,
 } from "lucide-react";
 
 const tools = [
@@ -111,6 +112,17 @@ const tools = [
     path: "/pdf-metadata",
     gradient: "from-blue-500/10 to-indigo-500/10",
     iconGradient: "from-blue-500 to-indigo-500",
+  },
+  {
+    id: "pdf-info",
+    name: "PDF Info",
+    category: "PDF Tools",
+    icon: <BookOpen />,
+    description:
+      "Instantly check page count, file size, dimensions, PDF version and encryption status.",
+    path: "/pdf-info",
+    gradient: "from-violet-500/10 to-indigo-500/10",
+    iconGradient: "from-violet-500 to-indigo-500",
   },
   {
     id: "image-compress",
