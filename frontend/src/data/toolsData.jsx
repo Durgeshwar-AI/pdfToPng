@@ -14,8 +14,9 @@ import {
   Expand,
   Palette,
   Droplets,
-  QrCode, 
+  QrCode,
   Lock,
+  Tags,
 } from "lucide-react";
 
 const tools = [
@@ -100,6 +101,16 @@ const tools = [
     path: "/pdf-protect",
     gradient: "from-red-500/10 to-rose-500/10",
     iconGradient: "from-red-500 to-rose-500",
+  },
+  {
+    id: "pdf-metadata",
+    name: "PDF Metadata Editor",
+    category: "PDF Tools",
+    icon: <Tags />,
+    description: "View, edit, or sanitize metadata properties from your PDF documents.",
+    path: "/pdf-metadata",
+    gradient: "from-blue-500/10 to-indigo-500/10",
+    iconGradient: "from-blue-500 to-indigo-500",
   },
   {
     id: "image-compress",

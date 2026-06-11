@@ -7,7 +7,8 @@ from utils.helpers import error
 
 ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 ALLOWED_PDF_EXTENSIONS = {".pdf"}
-
+ALLOWED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
+ALLOWED_PDF_MIME_TYPES = {"application/pdf"}
 
 def validate_uploaded_file(request, field_name):
     if field_name not in request.files:
@@ -36,13 +37,29 @@ def validate_file_extension(
 
     return None
 
+def validate_mime_type(
+    file,
+    allowed_types,
+    message,
+):
+    if file.mimetype not in allowed_types:
+        return error(message, 400)
+
+    return None
 
 def validate_image_file(file):
+    mime_error = validate_mime_type(
+        file,
+        ALLOWED_IMAGE_MIME_TYPES,
+        "Invalid image MIME type.",
+    )
+
+    if mime_error:
+        return None, None, mime_error
+
     try:
         file_bytes = file.read()
-
         img = Image.open(io.BytesIO(file_bytes))
-
         img.load()
 
         return img, file_bytes, None
@@ -53,10 +70,20 @@ def validate_image_file(file):
             400,
         )
 
-
-def validate_pdf_file(filename):
-    return validate_file_extension(
+def validate_pdf_file(
+    file,
+    filename,
+):
+    extension_error = validate_file_extension(
         filename,
-        ALLOWED_PDF_EXTENSIONS,
-        "Invalid file format. Please upload a PDF file.",
-    )
+        ALLOWED_PDF_EXTENSIONS, "Invalid file format. Please upload a PDF file.")
+
+    if extension_error:
+        return extension_error
+
+    mime_error = validate_mime_type(file, ALLOWED_PDF_MIME_TYPES, "Invalid PDF MIME type.")
+
+    if mime_error:
+        return mime_error
+
+    return None
