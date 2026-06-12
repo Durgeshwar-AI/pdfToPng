@@ -17,6 +17,7 @@ import {
   QrCode,
   Lock,
   Tags,
+  Type,
 } from "lucide-react";
 
 const tools = [
@@ -271,6 +272,16 @@ const tools = [
     path: "/md-to-html",
     gradient: "from-slate-500/10 to-slate-700/10",
     iconGradient: "from-slate-500 to-slate-700",
+  },
+  {
+    id: "pdf-to-text",
+    name: "PDF to Text",
+    category: "Conversion Tools",
+    icon: <Type />,
+    description: "Extract native text content from selectable PDF documents client-side.",
+    path: "/pdf-to-text",
+    gradient: "from-sky-500/10 to-indigo-500/10",
+    iconGradient: "from-sky-500 to-indigo-500",
   },
   {
     id: "image-blur",
