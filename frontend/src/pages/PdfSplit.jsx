@@ -151,10 +151,10 @@ function PdfSplit() {
   };
 
   return (
-    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0f172a] dark:to-[#111827] dark:border dark:border-slate-700 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
 
       {/* Title — matches ToolPageTemplate exactly */}
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
+      <h1 className="mb-10 text-[#1a1a2e] dark:text-white text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         Split PDF
       </h1>
 
@@ -162,8 +162,8 @@ function PdfSplit() {
       <div
         className={`w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-6 ${
           isDragging
-            ? "border-[#4361ee] bg-blue-50 scale-[1.02]"
-            : "border-gray-300 bg-[#fafbfc] hover:border-[#4361ee] hover:bg-blue-50"
+            ? "border-[#4361ee] bg-blue-50 dark:bg-slate-800 scale-[1.02]"
+            : "border-gray-300 bg-[#fafbfc] dark:bg-slate-900 dark:border-slate-700 hover:border-[#4361ee] hover:bg-blue-50"
         }`}
         onDrop={onDrop}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -246,11 +246,11 @@ function PdfSplit() {
               <line x1="12" y1="18" x2="12" y2="12" strokeLinecap="round" />
               <line x1="9" y1="15" x2="15" y2="15" strokeLinecap="round" />
             </svg>
-            <p className="text-[#1a1a2e] font-semibold text-lg">
+            <p className="text-[#1a1a2e] dark:text-white font-semibold text-lg">
               {isDragging ? "Drop your PDF here" : "Choose a PDF file or drag & drop here"}
             </p>
-            <p className="text-gray-400 text-sm">Single PDF · Pages will be detected automatically</p>
-            <span className="mt-2 text-xs bg-gray-100 text-gray-500 rounded-full px-3 py-1 font-medium">
+            <p className="text-gray-400 dark:text-slate-400 text-sm">Single PDF · Pages will be detected automatically</p>
+            <span className="mt-2 text-xs bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-300 rounded-full px-3 py-1 font-medium">
               PDF only
             </span>
           </>
