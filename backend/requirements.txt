@@ -4,7 +4,6 @@ gunicorn>=20.1
 Pillow>=9.0.0
 PyMuPDF>=1.22.0
 python-docx>=0.8.11
-reportlab>=3.6.12
 etelemetry==0.3.1
 filelock==3.19.1
 Flask==3.1.2

@@ -59,7 +59,7 @@ If you contribute to this repository, you must respect all the rules above.
 
 ## Tech Stack
 
-- **Backend:** `Python`, `Flask`, `Flask‑CORS`, `PyMuPDF (fitz)`, `Pillow`, `rembg`, `python-docx`, `pdf2docx`, `OpenCV`, `pytesseract`,`markdown2`
+- **Backend:** `Python`, `Flask`, `Flask‑CORS`, `PyMuPDF (fitz)`, `Pillow`, `rembg`, `python-docx`, `pdf2docx`, `OpenCV`, `pytesseract`, `markdown2`, `LibreOffice`
 - **Frontend:** React, React Router, Vite, PDF.js
 
 ---
@@ -281,6 +281,8 @@ python main.py
 ```
 
 The Flask server will run at `http://localhost:5000`.
+
+**Note:** For high-fidelity DOCX to PDF conversion, `LibreOffice` must be installed on your system and available in the PATH. If running with Docker (recommended), this is automatically handled.
 
 Available endpoints:
 
