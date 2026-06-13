@@ -3,6 +3,7 @@ PDF Signing Blueprint
 Provides endpoint to add text-based signatures to PDF documents.
 """
 
+# pyrefly: ignore [missing-import]
 import fitz
 import io
 import logging
@@ -41,7 +42,7 @@ def sign_pdf():
             return upload_error
 
         # Validate PDF extension
-        pdf_error = validate_pdf_file(filename)
+        pdf_error = validate_pdf_file(pdf_file, filename)
         if pdf_error:
             return pdf_error
 
