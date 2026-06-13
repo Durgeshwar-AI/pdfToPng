@@ -1,5 +1,4 @@
 import os
-import tempfile
 from io import BytesIO
 
 from flask import Blueprint, request
@@ -89,41 +88,33 @@ def convert_to_webp(img, filename, file_bytes):
 @image_bp.route("/upscale", methods=["POST"])
 @process_image_request
 def upscale_image(img, filename, file_bytes):
-    temp_output_path = None
-    try:
-        scale_factor = request.form.get("scale", 2, type=int)
+    scale_factor = request.form.get("scale", 2, type=int)
 
-        # Limit scale factor
-        scale_factor = max(1, min(4, scale_factor))
+    # Limit scale factor
+    scale_factor = max(1, min(4, scale_factor))
 
-        # Upscale using LANCZOS (High quality)
-        new_size = (img.width * scale_factor, img.height * scale_factor)
-        upscaled = img.resize(new_size, resample=Image.Resampling.LANCZOS)
+    # Upscale using LANCZOS (High quality)
+    new_size = (img.width * scale_factor, img.height * scale_factor)
+    upscaled = img.resize(new_size, resample=Image.Resampling.LANCZOS)
 
-        # Apply Sharpness Enhancement
-        enhancer = ImageEnhance.Sharpness(upscaled)
-        upscaled = enhancer.enhance(1.5) # Slight boost
+    # Apply Sharpness Enhancement
+    enhancer = ImageEnhance.Sharpness(upscaled)
+    upscaled = enhancer.enhance(1.5)
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_out:
-            temp_output_path = temp_out.name
+    buf = BytesIO()
+    upscaled.save(buf, format="PNG", optimize=True)
+    buf.seek(0)
 
-        upscaled.save(temp_output_path, format="PNG", optimize=True)
+    data = buf.getvalue()
 
-        base = os.path.splitext(filename)[0]
+    base = os.path.splitext(filename)[0]
 
-        return send_file_and_cleanup(
-            temp_output_path,
-            mimetype="image/png",
-            as_attachment=True,
-            download_name=f"{base}_upscaled_{scale_factor}x.png",
-        )
-    except Exception:
-        if temp_output_path and os.path.exists(temp_output_path):
-            try:
-                os.remove(temp_output_path)
-            except Exception:
-                pass
-        raise
+    return send_file_and_cleanup(
+        data,
+        mimetype="image/png",
+        as_attachment=True,
+        download_name=f"{base}_upscaled_{scale_factor}x.png",
+    )
 
 
 @image_bp.route("/convertJpeg", methods=["POST"])
@@ -226,29 +217,26 @@ def compress_image():
 
         img_format = (
             img.format
-            if img.format in ["JPEG", "WEBP"]
+            if img.format in ["JPEG", "WEBP", "PNG"]
             else "JPEG"
         )
 
         if img_format == "JPEG" and img.mode != "RGB":
             img = img.convert("RGB")
 
-        extension = ".jpg" if img_format == "JPEG" else ".webp"
+        extension_map = {"JPEG": ".jpg", "WEBP": ".webp", "PNG": ".png"}
+        mimetype_map = {"JPEG": "image/jpeg", "WEBP": "image/webp", "PNG": "image/png"}
 
-        mimetype = (
-            "image/jpeg"
-            if img_format == "JPEG"
-            else "image/webp"
-        )
+        extension = extension_map[img_format]
+        mimetype = mimetype_map[img_format]
 
         buf = BytesIO()
 
-        img.save(
-            buf,
-            format=img_format,
-            quality=quality,
-            optimize=True,
-        )
+        save_kwargs = {"format": img_format, "optimize": True}
+        if img_format != "PNG":
+            save_kwargs["quality"] = quality
+
+        img.save(buf, **save_kwargs)
 
         buf.seek(0)
 

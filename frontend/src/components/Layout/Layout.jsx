@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useLocation, Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
 import { Menu, Sun, Moon, Home } from "lucide-react";
-import { useTheme } from "../../context/theme-context";
 
 const Layout = () => {
-  const { isDark, toggleTheme } = useTheme();
+  const  isDark = false;
+  const toggleTheme = () => {};
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();

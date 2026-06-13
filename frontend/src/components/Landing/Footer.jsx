@@ -6,13 +6,13 @@ import {
   Github, 
   Linkedin, 
   Mail, 
-  Twitter,
   Heart,
   Shield,
   Globe,
   Facebook,
   Instagram
 } from "lucide-react";
+import { SiX } from "react-icons/si";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -62,9 +62,10 @@ const Footer = () => {
               <a href={import.meta.env.VITE_TWITTER_URL} 
                  target="_blank" 
                  rel="noopener noreferrer"
+                 aria-label="X (formerly Twitter)"
                  className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Twitter className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
-              </a>
+                 <SiX className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 </a>
             </div>
           </div>
 

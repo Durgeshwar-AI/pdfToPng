@@ -184,7 +184,7 @@ const UrlToQr = () => {
   };
 
   return (
-    <div className="w-full max-w-[1000px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-linear-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div className="w-full max-w-[1000px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-linear-to-br from-[#f6f8fa] to-white dark:from-[#0f172a] dark:to-[#111827] dark:border dark:border-slate-700 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
       <h1 className="mb-4 text-[#1a1a2e] text-5xl font-bold tracking-tight">
         URL to QR Code
       </h1>
@@ -197,7 +197,7 @@ const UrlToQr = () => {
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <div className="space-y-6">
           <div className="w-full bg-white border border-[#c7d2fe] rounded-2xl p-6 shadow-sm text-left">
-        <label className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider mb-3">
+        <label className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] dark:text-white uppercase tracking-wider mb-3">
           <LinkIcon size={16} />
           Website URL
         </label>
@@ -207,13 +207,13 @@ const UrlToQr = () => {
           value={url}
           onChange={handleInputChange}
           placeholder="https://example.com"
-          className="w-full p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white"
+          className="w-full p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white dark:bg-slate-800 dark:text-white"
         />
 
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
 
-          <div className="w-full bg-white border border-[#c7d2fe] rounded-2xl p-6 shadow-sm text-left">
+          <div className="w-full bg-white dark:bg-slate-900 border border-[#c7d2fe] dark:border-slate-700 rounded-2xl p-6 shadow-sm text-left">
             <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider mb-4">
               <Shapes size={16} />
               Style Presets

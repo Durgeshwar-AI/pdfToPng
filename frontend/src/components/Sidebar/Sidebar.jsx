@@ -77,14 +77,14 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       <aside
         className={`
           ${isMobile ? "fixed" : "sticky"} 
-          top-0 left-0 h-screen bg-white
-          text-blue-500 transition-all duration-300 ease-in-out z-[10000]
+          top-0 left-0 h-screen bg-white dark:bg-gray-900
+          text-blue-500 dark:text-gray-200 transition-all duration-300 ease-in-out z-[10000]
           ${isMobile && !isMobileMenuOpen ? "-translate-x-full" : "translate-x-0"}
           ${!isMobile && isCollapsed ? "w-20" : "w-80"}
           flex flex-col shadow-2xl
         `}
       >
-        <div className="p-4 border-b border-slate-200">
+        <div className="p-4 border-b border-slate-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             {(!isCollapsed || isMobile) && (
               <Link
@@ -104,7 +104,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                   ? "Expand sidebar"
                   : "Collapse sidebar"
               }
-              className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${
+              className={`p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${
                 isCollapsed && !isMobile ? "mx-auto" : ""
               }`}
             >
@@ -127,7 +127,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                 placeholder="Search tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
           )}
@@ -140,7 +140,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
               return (
                 <div key={category} className="mb-6">
                   {!isCollapsed && (
-                    <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
                       {category}
                     </h3>
                   )}
@@ -157,7 +157,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                             ${
                               activeTab === item.id
                                 ? "bg-blue-600 text-white shadow-lg"
-                                : "hover:bg-slate-50 text-slate-600"
+                                : "hover:bg-slate-50 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300"
                             }
                             ${isCollapsed ? "justify-center" : ""}
                           `}
@@ -188,7 +188,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
               ); 
             })
           ) : (
-            <div className="text-center text-slate-500 py-4">
+            <div className="text-center text-slate-500 dark:text-gray-400 py-4">
               No tools found
             </div>
           )}
