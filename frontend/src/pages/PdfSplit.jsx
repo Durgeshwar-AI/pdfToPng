@@ -35,7 +35,6 @@ export default function PdfSplit() {
   const [previews, setPreviews] = useState([]);
   const [error, setError] = useState(null);
   const [resultUrl, setResultUrl] = useState(null);
-  // --- ADDED: deleted pages set and preview modal ---
   const [deletedPages, setDeletedPages] = useState(new Set());
   const [previewModal, setPreviewModal] = useState(null);
 
@@ -54,7 +53,6 @@ export default function PdfSplit() {
     for (let i = 1; i <= limit; i++) {
       const page = await pdf.getPage(i);
 
-      // CHANGED: scale 0.3 → 1.5 for clear preview
       const viewport = page.getViewport({ scale: 1.5 });
 
       const canvas = document.createElement("canvas");
@@ -72,7 +70,6 @@ export default function PdfSplit() {
         src: canvas.toDataURL("image/jpeg", 0.92),
       });
 
-      // ADDED: progressive rendering — show pages as they load
       setPreviews([...thumbs]);
     }
   };
@@ -99,7 +96,7 @@ export default function PdfSplit() {
     setError(null);
     setResultUrl(null);
     setPreviews([]);
-    setDeletedPages(new Set()); // ADDED: reset deleted pages on new file
+    setDeletedPages(new Set());
 
     try {
       const bytes = await f.arrayBuffer();
@@ -127,8 +124,8 @@ export default function PdfSplit() {
     setEndPage("1");
     setError(null);
     setResultUrl(null);
-    setDeletedPages(new Set()); // ADDED
-    setPreviewModal(null);      // ADDED
+    setDeletedPages(new Set());
+    setPreviewModal(null);
 
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -161,14 +158,12 @@ export default function PdfSplit() {
     return null;
   };
 
-  // ADDED: delete a page from output
   const deletePage = (e, pageNum) => {
     e.stopPropagation();
     setDeletedPages((prev) => new Set(prev).add(pageNum));
     toast(`Page ${pageNum} removed from output`, { icon: "🗑️" });
   };
 
-  // ADDED: restore a deleted page
   const restorePage = (e, pageNum) => {
     e.stopPropagation();
     setDeletedPages((prev) => {
@@ -204,14 +199,13 @@ export default function PdfSplit() {
       const startIdx = parseInt(startPage, 10) - 1;
       const endIdx = parseInt(endPage, 10) - 1;
 
-      // CHANGED: filter out deleted pages from the range
       const pageIndices = Array.from(
         { length: endIdx - startIdx + 1 },
-        (_, i) => startIdx + i
-      ).filter((idx) => !deletedPages.has(idx + 1)); // idx+1 = 1-based pageNum
+        (_, i) => startIdx + i,
+      ).filter((idx) => !deletedPages.has(idx + 1));
 
       if (pageIndices.length === 0) {
-        setError("All pages in range have been deleted. Restore at least one.");
+        setError("All pages removed. Restore at least one.");
         setIsLoading(false);
         return;
       }
@@ -309,7 +303,6 @@ export default function PdfSplit() {
               <div className="flex items-center gap-2 mb-4">
                 <Eye size={16} />
                 Preview
-                {/* ADDED: deleted count hint */}
                 {deletedPages.size > 0 && (
                   <span className="ml-auto text-xs text-red-400 font-medium">
                     {deletedPages.size} page{deletedPages.size !== 1 ? "s" : ""} removed — hover to restore
@@ -323,7 +316,6 @@ export default function PdfSplit() {
                   const inRange = isPageInRange(page.pageNum);
 
                   return (
-                    // CHANGED: added group, cursor, onClick for modal, delete/restore button
                     <div
                       key={page.pageNum}
                       onClick={() => !isDeleted && setPreviewModal(page.src)}
@@ -338,14 +330,12 @@ export default function PdfSplit() {
                     >
                       <img src={page.src} alt={`Page ${page.pageNum}`} />
 
-                      {/* ADDED: selected badge */}
                       {inRange && !isDeleted && (
                         <div className="absolute top-3 left-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                           Selected
                         </div>
                       )}
 
-                      {/* ADDED: removed badge */}
                       {isDeleted && (
                         <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                           Removed
@@ -356,7 +346,6 @@ export default function PdfSplit() {
                         Page {page.pageNum}
                       </p>
 
-                      {/* ADDED: delete button (visible on hover, hidden when deleted) */}
                       {!isDeleted && (
                         <button
                           onClick={(e) => deletePage(e, page.pageNum)}
@@ -367,7 +356,6 @@ export default function PdfSplit() {
                         </button>
                       )}
 
-                      {/* ADDED: restore button (visible on hover when deleted) */}
                       {isDeleted && (
                         <button
                           onClick={(e) => restorePage(e, page.pageNum)}
@@ -385,7 +373,7 @@ export default function PdfSplit() {
           )}
         </div>
 
-        {/* Right — UNCHANGED */}
+        {/* Right */}
         <div>
           <div className="border rounded-3xl p-8">
             <div className="flex items-center gap-2 mb-6">
@@ -473,7 +461,6 @@ export default function PdfSplit() {
         </div>
       </div>
 
-      {/* ADDED: full-screen preview modal */}
       {previewModal && (
         <div
           className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-6"
