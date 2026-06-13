@@ -45,7 +45,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 z-9999 w-full bg-white/50 backdrop-blur shadow-sm">
+    <nav className="fixed top-0 left-0 z-9999 w-full bg-white/70 dark:bg-slate-950/70 backdrop-blur shadow-sm border-b border-transparent dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-6 h-19 flex justify-between items-center">
         <a href="#home" className="group flex items-center gap-2">
           {/* Logo */}
@@ -53,7 +53,7 @@ const Navbar = () => {
             <div className="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
             <FileText className="relative w-8 h-8 text-purple-600" />
           </div>
-          <span className="text-2xl font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold text-slate-900 dark:text-white">
             pdfToPng
           </span>
         </a>
@@ -65,8 +65,8 @@ const Navbar = () => {
               onClick={() => handleDesktopNavClick(item.name)}
               className={`relative font-semibold hover:text-purple-600 py-2 px-4 rounded-xl text-lg transition-all duration-300 hover:bg-purple-100 hover:scale-105 ${
                 activeSection === item.name.toLowerCase()
-                  ? "text-purple-600"
-                  : "text-slate-700"
+                  ? "text-purple-600 dark:text-purple-300"
+                  : "text-slate-700 dark:text-slate-200"
               }`}
             >
               {item.name}
@@ -77,10 +77,10 @@ const Navbar = () => {
             href="https://github.com/Durgeshwar-AI/pdfToPng"
             target="_blank"
             rel="noreferrer"
-            className="group flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md hover:border-slate-300 transition-all duration-300 hover:scale-[1.02]"
+            className="group flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 hover:scale-[1.02]"
           >
-            <Github className="w-5 h-5 text-slate-600 group-hover:text-slate-900 transition-colors" />
-            <span className="text-slate-600 group-hover:text-slate-900 font-medium transition-colors hidden sm:inline">
+            <Github className="w-5 h-5 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+            <span className="text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white font-medium transition-colors hidden sm:inline">
               ⭐ Star on GitHub {stars !== null && `• ${stars}`}
             </span>
           </a>
@@ -98,27 +98,39 @@ const Navbar = () => {
         </div>
 
         {/* For Mobile */}
-        <div className="flex lg:hidden items-center space-x-4 px-2">
+        <div className="flex lg:hidden items-center space-x-3 px-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 shadow-sm"
+            aria-label="Toggle dark mode"
+          >
+            {isDark ? (
+              <Sun className="w-5 h-5 text-yellow-400" />
+            ) : (
+              <Moon className="w-5 h-5 text-slate-600" />
+            )}
+          </button>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            className="text-slate-700 dark:text-slate-200"
           >
             {isMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
 
         <div
-          className={`fixed inset-x-4 top-20 z-50 lg:hidden rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-md shadow-2xl p-4 flex flex-col gap-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] transform ${isMenuOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-6 scale-95 pointer-events-none"}`}
+          className={`fixed inset-x-4 top-20 z-50 lg:hidden rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl p-4 flex flex-col gap-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] transform ${isMenuOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-6 scale-95 pointer-events-none"}`}
         >
           {navItems.map((item) => (
             <a
               key={item.name}
               href={item.link}
               onClick={() => handleMobileNavClick(item.name)}
-              className={`w-full py-3 px-4 rounded-xl text-base font-semibold text-gray-700 transition-colors duration-200 hover:bg-purple-100 hover:text-purple-600 active:scale-[0.98] ${
+              className={`w-full py-3 px-4 rounded-xl text-base font-semibold transition-colors duration-200 hover:bg-purple-100 dark:hover:bg-purple-950 hover:text-purple-600 active:scale-[0.98] ${
                 activeSection === item.name.toLowerCase()
-                  ? "text-purple-700 bg-purple-100"
-                  : "text-slate-700"
+                  ? "text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950"
+                  : "text-slate-700 dark:text-slate-200"
               }`}
             >
               {item.name}
@@ -130,10 +142,10 @@ const Navbar = () => {
             target="_blank"
             rel="noreferrer"
             aria-label="Open GitHub repository"
-            className="group flex mx-auto items-center gap-2 px-4 py-2.5 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md hover:border-slate-300 transition-colors duration-300 hover:scale-105"
+            className="group flex mx-auto items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-colors duration-300 hover:scale-105"
           >
-            <Github className="w-5 h-5 text-slate-600 group-hover:text-slate-900 transition-colors" />
-            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-700 group-hover:bg-slate-200 transition-colors">
+            <Github className="w-5 h-5 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors">
               ⭐ {stars === null ? "..." : stars}
             </span>
           </a>
