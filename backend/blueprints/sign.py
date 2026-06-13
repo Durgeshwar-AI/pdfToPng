@@ -50,6 +50,10 @@ def sign_pdf():
         if not signature_text:
             return error("Signature text is required", 400)
 
+        MAX_SIGNATURE_LENGTH = 500
+        if len(signature_text) > MAX_SIGNATURE_LENGTH:
+            return error(f"Signature text must be {MAX_SIGNATURE_LENGTH} characters or fewer", 400)
+
         # Get and validate position
         position = request.form.get("position", "bottom-right")
         

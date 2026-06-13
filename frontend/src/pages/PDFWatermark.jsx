@@ -206,8 +206,8 @@ function PDFWatermark() {
   };
 
   return (
-    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
+    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
+      <h1 className="mb-10 text-[#1a1a2e] dark:text-white text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         PDF Watermark
       </h1>
 
@@ -215,7 +215,7 @@ function PDFWatermark() {
         className={`w-full border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-6 ${
           isDragging
             ? "border-[#4361ee] bg-blue-50"
-            : "border-gray-300 bg-[#fafbfc] hover:border-[#4361ee] hover:bg-blue-50"
+            : "border-gray-300 bg-[#fafbfc] dark:border-gray-700 dark:bg-gray-800 hover:border-[#4361ee] hover:bg-blue-50 dark:hover:bg-gray-700"
         }`}
         onDrop={onDrop}
         onDragOver={onDragOver}
@@ -237,11 +237,11 @@ function PDFWatermark() {
           <line x1="9" y1="15" x2="15" y2="15" strokeLinecap="round" />
         </svg>
 
-        <p className="text-[#1a1a2e] font-semibold text-lg">
+        <p className="text-[#1a1a2e] dark:text-white font-semibold text-lg">
           {isDragging ? "Drop your PDF here" : "Choose a PDF or drag & drop here"}
         </p>
-        <p className="text-gray-400 text-sm">Click to browse or drop your PDF</p>
-        <span className="mt-2 text-xs bg-gray-100 text-gray-500 rounded-full px-3 py-1 font-medium">
+        <p className="text-gray-400 dark:text-gray-300 text-sm">Click to browse or drop your PDF</p>
+        <span className="mt-2 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-full px-3 py-1 font-medium">
           PDF only · Watermark supported
         </span>
       </div>
@@ -249,7 +249,7 @@ function PDFWatermark() {
       {file && (
         <div className="w-full mb-6 flex flex-col gap-2">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-semibold text-gray-600">1 file selected</span>
+            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">1 file selected</span>
             <button
               onClick={clearFile}
               className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
@@ -258,7 +258,7 @@ function PDFWatermark() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 shadow-sm">
             <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#4361ee] to-[#7209b7] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
               1
             </span>
@@ -266,7 +266,7 @@ function PDFWatermark() {
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round" />
               <polyline points="14,2 14,8 20,8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="flex-1 text-sm text-gray-700 text-left truncate" title={file.name}>
+            <span className="flex-1 text-sm text-gray-700 dark:text-gray-200 text-left truncate" title={file.name}>
               {file.name}
             </span>
             <span className="text-xs text-gray-400 flex-shrink-0">{(file.size / 1024).toFixed(1)} KB</span>
@@ -274,10 +274,10 @@ function PDFWatermark() {
         </div>
       )}
 
-      <div className="w-full mb-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm text-left">
+      <div className="w-full mb-6 bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-xl p-6 shadow-sm text-left">
         <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-[0.2em] mb-3">Watermark Type</h2>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-white uppercase tracking-[0.2em] mb-3">Watermark Type</h2>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -287,8 +287,8 @@ function PDFWatermark() {
                 }}
                 className={`py-3 rounded-xl border text-sm font-medium transition-colors ${
                   watermarkType === "text"
-                    ? "border-[#4361ee] bg-[#eff6ff] text-[#1a1a2e]"
-                    : "border-gray-200 bg-white text-gray-600 hover:border-[#4361ee]"
+                    ? "border-[#4361ee] bg-[#eff6ff] text-[#1a1a2e] dark:bg-gray-700 dark:text-white"
+                    : "border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-[#4361ee]"
                 }`}
               >
                 Text
@@ -301,8 +301,8 @@ function PDFWatermark() {
                 }}
                 className={`py-3 rounded-xl border text-sm font-medium transition-colors ${
                   watermarkType === "image"
-                    ? "border-[#4361ee] bg-[#eff6ff] text-[#1a1a2e]"
-                    : "border-gray-200 bg-white text-gray-600 hover:border-[#4361ee]"
+                    ? "border-[#4361ee] bg-[#eff6ff] dark:bg-gray-700 text-[#1a1a2e] dark:text-white"
+                    : "border-gray-200 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-[#4361ee]"
                 }`}
               >
                 Image
@@ -311,13 +311,13 @@ function PDFWatermark() {
           </div>
 
           {watermarkType === "text" ? (
-            <label className="flex flex-col gap-2 text-sm text-gray-700">
+            <label className="flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-200">
               <span className="font-semibold">Watermark Text</span>
               <input
                 type="text"
                 value={watermarkText}
                 onChange={(e) => setWatermarkText(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm text-[#1a1a2e] focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-[#1a1a2e] dark:text-white focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
                 placeholder="Enter watermark text"
               />
             </label>
@@ -327,7 +327,7 @@ function PDFWatermark() {
                 <button
                   type="button"
                   onClick={() => imageInputRef.current?.click()}
-                  className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#1a1a2e] shadow-sm transition-colors hover:border-[#4361ee] hover:text-[#4361ee]"
+                  className="inline-flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm font-medium text-[#1a1a2e] dark:text-white shadow-sm transition-colors hover:border-[#4361ee] hover:text-[#4361ee]"
                 >
                   Upload watermark image
                 </button>
@@ -349,7 +349,7 @@ function PDFWatermark() {
                 onChange={handleWatermarkImageUpload}
               />
               {watermarkImage ? (
-                <div className="rounded-xl border border-gray-200 bg-[#f8fafc] px-4 py-3 text-sm text-gray-700">
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-[#f8fafc] dark:bg-gray-700 px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                   {watermarkImage.name}
                 </div>
               ) : (
@@ -359,12 +359,12 @@ function PDFWatermark() {
           )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm text-gray-700">
+            <label className="flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-300">
               <span className="font-semibold">Position</span>
               <select
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm text-[#1a1a2e] focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-[#1a1a2e] dark:text-white focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
               >
                 {POSITION_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -374,7 +374,7 @@ function PDFWatermark() {
               </select>
             </label>
 
-            <label className="flex flex-col gap-2 text-sm text-gray-700">
+            <label className="flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-300">
               <span className="font-semibold">Opacity</span>
               <div className="flex items-center gap-3">
                 <input
@@ -385,12 +385,12 @@ function PDFWatermark() {
                   onChange={(e) => setOpacity(Number(e.target.value))}
                   className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200"
                 />
-                <span className="min-w-[42px] text-sm font-semibold text-gray-700">{opacity}%</span>
+                <span className="min-w-[42px] text-sm font-semibold text-gray-700 dark:text-gray-300">{opacity}%</span>
               </div>
             </label>
           </div>
 
-          <label className="flex flex-col gap-2 text-sm text-gray-700">
+          <label className="flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-300">
             <span className="font-semibold">Size</span>
             <div className="flex items-center gap-3">
               <input
@@ -399,11 +399,11 @@ function PDFWatermark() {
                 max={100}
                 value={size}
                 onChange={(e) => setSize(Number(e.target.value))}
-                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200"
+                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-600"
               />
-              <span className="min-w-[42px] text-sm font-semibold text-gray-700">{size}%</span>
+              <span className="min-w-[42px] text-sm font-semibold text-gray-700 dark:text-gray-300">{size}%</span>
             </div>
-            <p className="text-xs text-gray-500">Adjust the watermark size relative to page dimensions.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Adjust the watermark size relative to page dimensions.</p>
           </label>
         </div>
       </div>
@@ -433,7 +433,7 @@ function PDFWatermark() {
             ? "text-green-600"
             : statusType === "error"
             ? "text-red-500"
-            : "text-[#4b5563]"
+            : "text-[#4b5563] dark:text-gray-300"
         }`}>
           {statusMessage}
         </p>

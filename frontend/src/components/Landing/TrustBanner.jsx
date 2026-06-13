@@ -4,9 +4,9 @@ import { Globe, Star } from "lucide-react";
 const TrustBanner = () => {
   return (
     <section id="privacy" className="max-w-5xl mx-auto px-6 pb-24">
-      <div className="relative overflow-hidden rounded-3xl bg-white shadow-xl border border-slate-200 p-8 md:p-12">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100 rounded-full blur-[80px] -z-10" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100 rounded-full blur-[80px] -z-10" />
+      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-700 p-8 md:p-12">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100 dark:bg-purple-900 rounded-full blur-[80px] -z-10" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100 dark:bg-blue-900 rounded-full blur-[80px] -z-10" />
 
         <div className="relative flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
@@ -16,15 +16,15 @@ const TrustBanner = () => {
                 Privacy-First Processing
               </span>
             </div>
-            <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2">
+            <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-2">
               Your privacy is our priority
             </h3>
-            <p className="text-slate-600 font-medium">
+            <p className="text-slate-600 dark:text-slate-400 font-medium">
               Open source, auditable, and designed to avoid persistent storage
               of your files.
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-6 py-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
@@ -33,10 +33,10 @@ const TrustBanner = () => {
                 />
               ))}
             </div>
-            <span className="text-slate-900 font-extrabold ml-2 text-lg">
+            <span className="text-slate-900 dark:text-white font-extrabold ml-2 text-lg">
               4.9
             </span>
-            <span className="text-slate-500 font-medium">/5</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">/5</span>
           </div>
         </div>
       </div>
