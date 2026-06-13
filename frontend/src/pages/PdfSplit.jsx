@@ -13,6 +13,8 @@ import {
   Eye,
   Scissors,
   ArrowRight,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -33,6 +35,8 @@ export default function PdfSplit() {
   const [previews, setPreviews] = useState([]);
   const [error, setError] = useState(null);
   const [resultUrl, setResultUrl] = useState(null);
+  const [deletedPages, setDeletedPages] = useState(new Set());
+  const [previewModal, setPreviewModal] = useState(null);
 
   const inputRef = useRef(null);
 
@@ -49,9 +53,7 @@ export default function PdfSplit() {
     for (let i = 1; i <= limit; i++) {
       const page = await pdf.getPage(i);
 
-      const viewport = page.getViewport({
-        scale: 0.3,
-      });
+      const viewport = page.getViewport({ scale: 1.5 });
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -61,18 +63,15 @@ export default function PdfSplit() {
       canvas.width = viewport.width;
       canvas.height = viewport.height;
 
-      await page.render({
-        canvasContext: ctx,
-        viewport,
-      }).promise;
+      await page.render({ canvasContext: ctx, viewport }).promise;
 
       thumbs.push({
         pageNum: i,
-        src: canvas.toDataURL(),
+        src: canvas.toDataURL("image/jpeg", 0.92),
       });
-    }
 
-    setPreviews(thumbs);
+      setPreviews([...thumbs]);
+    }
   };
 
   const pickFile = async (f) => {
@@ -97,13 +96,12 @@ export default function PdfSplit() {
     setError(null);
     setResultUrl(null);
     setPreviews([]);
+    setDeletedPages(new Set());
 
     try {
       const bytes = await f.arrayBuffer();
 
-      const pdf = await pdfjsLib.getDocument({
-        data: bytes,
-      }).promise;
+      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
 
       setTotalPages(pdf.numPages);
       setStartPage("1");
@@ -126,6 +124,8 @@ export default function PdfSplit() {
     setEndPage("1");
     setError(null);
     setResultUrl(null);
+    setDeletedPages(new Set());
+    setPreviewModal(null);
 
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -158,6 +158,22 @@ export default function PdfSplit() {
     return null;
   };
 
+  const deletePage = (e, pageNum) => {
+    e.stopPropagation();
+    setDeletedPages((prev) => new Set(prev).add(pageNum));
+    toast(`Page ${pageNum} removed from output`, { icon: "🗑️" });
+  };
+
+  const restorePage = (e, pageNum) => {
+    e.stopPropagation();
+    setDeletedPages((prev) => {
+      const next = new Set(prev);
+      next.delete(pageNum);
+      return next;
+    });
+    toast(`Page ${pageNum} restored`, { icon: "↩️" });
+  };
+
   const handleSplit = async () => {
     if (!file) {
       toast.error("Select a PDF first.");
@@ -183,24 +199,27 @@ export default function PdfSplit() {
       const startIdx = parseInt(startPage, 10) - 1;
       const endIdx = parseInt(endPage, 10) - 1;
 
-      const copiedPages = await newPdf.copyPages(
-        originalPdf,
-        Array.from({ length: endIdx - startIdx + 1 }, (_, i) => startIdx + i),
-      );
+      const pageIndices = Array.from(
+        { length: endIdx - startIdx + 1 },
+        (_, i) => startIdx + i,
+      ).filter((idx) => !deletedPages.has(idx + 1));
 
+      if (pageIndices.length === 0) {
+        setError("All pages removed. Restore at least one.");
+        setIsLoading(false);
+        return;
+      }
+
+      const copiedPages = await newPdf.copyPages(originalPdf, pageIndices);
       copiedPages.forEach((page) => newPdf.addPage(page));
 
       const pdfBytes = await newPdf.save();
 
-      const blob = new Blob([pdfBytes], {
-        type: "application/pdf",
-      });
-
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
 
       setResultUrl(url);
-
-      toast.success(`Pages ${startPage}-${endPage} extracted successfully`);
+      toast.success(`${pageIndices.length} page${pageIndices.length !== 1 ? "s" : ""} extracted successfully`);
     } catch (err) {
       setError(err.message);
       toast.error(err.message);
@@ -226,7 +245,6 @@ export default function PdfSplit() {
 
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Left */}
-
         <div>
           <div
             onDrop={(e) => {
@@ -258,13 +276,17 @@ export default function PdfSplit() {
             {file ? (
               <div className="flex items-center gap-3">
                 <FileText />
-
                 <div>
                   <p className="font-semibold">{file.name}</p>
-
-                  <p className="text-sm text-slate-500">{totalPages} pages</p>
+                  <p className="text-sm text-slate-500">
+                    {totalPages} pages
+                    {deletedPages.size > 0 && (
+                      <span className="ml-2 text-red-400">
+                        · {deletedPages.size} removed
+                      </span>
+                    )}
+                  </p>
                 </div>
-
                 <button onClick={clearFile} className="ml-auto">
                   <Trash2 />
                 </button>
@@ -282,33 +304,77 @@ export default function PdfSplit() {
               <div className="flex items-center gap-2 mb-4">
                 <Eye size={16} />
                 Preview
+                {deletedPages.size > 0 && (
+                  <span className="ml-auto text-xs text-red-400 font-medium">
+                    {deletedPages.size} page{deletedPages.size !== 1 ? "s" : ""} removed — hover to restore
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[450px] overflow-y-auto">
-                {previews.map((page) => (
-                  <div
-                    key={page.pageNum}
-                    className={cn(
-                      "border rounded-xl p-2",
-                      isPageInRange(page.pageNum)
-                        ? "border-blue-500"
-                        : "opacity-50",
-                    )}
-                  >
-                    <img src={page.src} alt={`Page ${page.pageNum}`} />
+                {previews.map((page) => {
+                  const isDeleted = deletedPages.has(page.pageNum);
+                  const inRange = isPageInRange(page.pageNum);
 
-                    <p className="text-center text-xs mt-2">
-                      Page {page.pageNum}
-                    </p>
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={page.pageNum}
+                      onClick={() => !isDeleted && setPreviewModal(page.src)}
+                      className={cn(
+                        "relative group border rounded-xl p-2 cursor-pointer transition-all duration-200",
+                        isDeleted
+                          ? "border-red-300 opacity-40 grayscale"
+                          : inRange
+                          ? "border-blue-500"
+                          : "opacity-50",
+                      )}
+                    >
+                      <img src={page.src} alt={`Page ${page.pageNum}`} />
+
+                      {inRange && !isDeleted && (
+                        <div className="absolute top-3 left-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Selected
+                        </div>
+                      )}
+
+                      {isDeleted && (
+                        <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Removed
+                        </div>
+                      )}
+
+                      <p className="text-center text-xs mt-2">
+                        Page {page.pageNum}
+                      </p>
+
+                      {!isDeleted && (
+                        <button
+                          onClick={(e) => deletePage(e, page.pageNum)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-red-500 text-gray-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md"
+                          aria-label={`Remove page ${page.pageNum}`}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+
+                      {isDeleted && (
+                        <button
+                          onClick={(e) => restorePage(e, page.pageNum)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-green-500 hover:bg-green-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md"
+                          aria-label={`Restore page ${page.pageNum}`}
+                        >
+                          <RotateCcw size={12} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
 
         {/* Right */}
-
         <div>
           <div className="border rounded-3xl p-8">
             <div className="flex items-center gap-2 mb-6">
@@ -345,15 +411,17 @@ export default function PdfSplit() {
             {file && !error && (
               <div className="mt-6 p-4 bg-blue-50 rounded-xl flex items-center gap-3">
                 <Scissors size={18} />
-
                 <div>
                   <p className="text-sm text-slate-500">Extracting</p>
-
                   <p className="font-semibold">
                     Pages {startPage} - {endPage}
+                    {deletedPages.size > 0 && (
+                      <span className="text-red-400 font-normal text-sm ml-1">
+                        (excl. {deletedPages.size} removed)
+                      </span>
+                    )}
                   </p>
                 </div>
-
                 <ArrowRight className="ml-auto" />
               </div>
             )}
@@ -374,11 +442,7 @@ export default function PdfSplit() {
             </button>
 
             {resultUrl && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-6 p-4 bg-blue-50 rounded-2xl"
-              >
+              <div className="mt-6 p-4 bg-blue-50 rounded-2xl">
                 <div className="flex items-center gap-2 mb-3">
                   <CheckCircle2 size={16} />
                   Ready for download
@@ -386,20 +450,42 @@ export default function PdfSplit() {
 
                 <a
                   href={resultUrl}
-                  download={`${file?.name.replace(
-                    /\.pdf$/i,
-                    "",
-                  )}_${startPage}-${endPage}.pdf`}
+                  download={`${file?.name.replace(/\.pdf$/i, "")}_${startPage}-${endPage}.pdf`}
                   className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl"
                 >
                   <Download size={18} />
                   Download PDF
                 </a>
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {previewModal && (
+        <div
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-6"
+          onClick={() => setPreviewModal(null)}
+        >
+          <div
+            className="relative bg-white rounded-2xl p-4 max-w-3xl max-h-[90vh] overflow-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewModal(null)}
+              className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white w-9 h-9 rounded-full flex items-center justify-center"
+              aria-label="Close preview"
+            >
+              <X size={16} />
+            </button>
+            <img
+              src={previewModal}
+              alt="Full page preview"
+              className="max-w-full max-h-[82vh] rounded-xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
