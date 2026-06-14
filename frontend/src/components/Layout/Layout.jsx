@@ -2,12 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useLocation, Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
 import { Menu, Sun, Moon, Home } from "lucide-react";
+import DependencyWarning from "../DependencyWarning";
 
 const Layout = () => {
   const  isDark = false;
   const toggleTheme = () => {};
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [dependencyState, setDependencyState] = useState({
+    status: "ok",
+    dependencies: [],
+  });
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,6 +25,42 @@ const Layout = () => {
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDependencyStatus = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/health/dependencies`);
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        if (cancelled) return;
+
+        const missingDependencies = Object.entries(payload.dependencies || {})
+          .filter(([, meta]) => !meta.installed)
+          .map(([name, meta]) => ({
+            name,
+            requiredFor: meta.required_for || [],
+            installCommand: meta.install_command || "",
+          }));
+
+        setDependencyState({
+          status: payload.status || "ok",
+          dependencies: missingDependencies,
+        });
+      } catch (error) {
+        console.warn("Unable to load dependency health:", error);
+      }
+    };
+
+    loadDependencyStatus();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -103,8 +144,14 @@ const Layout = () => {
         )}
 
         {/* Adjusted padding top for mobile so content isn't hidden under sticky header */}
-        <div className={`min-h-full flex justify-center items-center pb-8 ${isMobile ? 'pt-4' : 'py-8'}`}>
-          <Outlet />
+        <div className={`min-h-full flex flex-col items-stretch pb-8 ${isMobile ? 'pt-4' : 'py-8'}`}>
+          <DependencyWarning
+            status={dependencyState.status}
+            dependencies={dependencyState.dependencies}
+          />
+          <div className="flex justify-center items-center w-full">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>

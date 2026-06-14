@@ -40,6 +40,19 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 
 The backend is a Flask API and the frontend is a React app (Vite).
 
+### Manual dependency installation
+
+If you run the backend outside Docker, make sure the native tools required by
+the conversion pipeline are installed on the host:
+
+```bash
+sudo apt-get update
+sudo apt-get install poppler-utils tesseract-ocr ghostscript
+```
+
+You can also check whether the server image is missing anything by calling
+`GET /health/dependencies`.
+
 ### Project Rules
 
 These rules define how this project must be implemented and extended:
