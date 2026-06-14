@@ -1,46 +1,68 @@
-import React, { useCallback, useState } from "react";
-
+import React, { useCallback, useState, useRef } from "react";
 import JSZip from "jszip";
-
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import MultiFileResults from "../components/MultiFileResults";
+import useSSE from "../hooks/useSSE";
+import ProgressBar from "../components/ProgressBar";
+import axios from "axios";
 
 // Set worker source for PDF.js
-
-
 const PdfPng = () => {
-  const [scale, setScale] = useState(2.0); // Default scale (2x)
-  const [pageMode, setPageMode] = useState("all"); // all, single, range
+  const [scale, setScale] = useState(2.0);
+  const [pageMode, setPageMode] = useState("all");
   const [pageRange, setPageRange] = useState("");
   const [singlePage, setSinglePage] = useState("1");
   const [numPages, setNumPages] = useState(0);
   const [language, setLanguage] = useState("eng");
   const [outputFiles, setOutputFiles] = useState([]);
+  
+  // SSE Progress States
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [sseUrl, setSseUrl] = useState(null);
+  const [taskId, setTaskId] = useState(null);
+  const currentFileRef = useRef(null);
+
+  // SSE Hook for real-time progress
+  const { progress, isConnected, error: sseError } = useSSE(sseUrl, {
+    autoConnect: !!sseUrl,
+    onComplete: async (data) => {
+      setIsProcessing(false);
+      setSseUrl(null);
+      
+      // If we have a download URL from the server
+      if (data.message && data.message.includes('/download/')) {
+        window.location.href = data.message;
+      } else if (currentFileRef.current) {
+        // Fallback: Use client-side conversion if server didn't provide file
+        await performClientConversion(currentFileRef.current);
+      }
+    },
+    onError: (err) => {
+      console.error('SSE Error:', err);
+      setIsProcessing(false);
+      setSseUrl(null);
+      // Fallback to client-side conversion
+      if (currentFileRef.current) {
+        performClientConversion(currentFileRef.current);
+      }
+    }
+  });
 
   const validateFile = useCallback(async (selectedFile) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       try {
         const arrayBuffer = await selectedFile.arrayBuffer();
         const pdfjsLib = await import("pdfjs-dist");
-
-const pdfWorker = await import(
-  "pdfjs-dist/build/pdf.worker.min.mjs?url"
-);
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
-
-const pdf = await pdfjsLib.getDocument({
-  data: arrayBuffer,
-}).promise;
+        const pdfWorker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         setNumPages(pdf.numPages);
       } catch (err) {
         console.error("Error loading PDF info:", err);
       }
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`,
+        message: `File "${selectedFile.name}" selected (${(selectedFile.size / 1024).toFixed(1)} KB)`,
       };
     }
     return {
@@ -55,18 +77,18 @@ const pdf = await pdfjsLib.getDocument({
     setSinglePage("1");
     setPageMode("all");
     setOutputFiles([]);
+    setIsProcessing(false);
+    setSseUrl(null);
+    setTaskId(null);
+    currentFileRef.current = null;
   };
 
-  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
-    setStatusMessage("Processing PDF... This may take a while for large files.");
+  // Client-side conversion (existing logic)
+  const performClientConversion = async (file) => {
     try {
       const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
-
-const pdfWorker = await import(
-  "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"
-);
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+      const pdfWorker = await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const totalPages = pdf.numPages;
@@ -77,9 +99,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       } else if (pageMode === "single") {
         const pageNum = parseInt(singlePage);
         if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
-          throw new Error(
-            `Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`,
-          );
+          throw new Error(`Invalid page number: ${singlePage}`);
         }
         pagesToRender = [pageNum];
       } else if (pageMode === "range") {
@@ -97,23 +117,18 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         });
       }
 
-      // Deduplicate and sort
       pagesToRender = [...new Set(pagesToRender)].sort((a, b) => a - b);
 
       if (pagesToRender.length === 0) {
         throw new Error("No valid pages selected");
       }
 
-      setOutputFiles([]); // Clear previous results
-
+      setOutputFiles([]);
       const zip = new JSZip();
       const results = [];
 
       for (let i = 0; i < pagesToRender.length; i++) {
         const pageNum = pagesToRender[i];
-        setStatusMessage(
-          `Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})...`,
-        );
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale });
         const canvas = document.createElement("canvas");
@@ -123,9 +138,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
         await page.render({ canvasContext: context, viewport }).promise;
 
-        const blob = await new Promise((resolve) =>
-          canvas.toBlob(resolve, "image/png"),
-        );
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
         results.push({ name: `page-${pageNum}.png`, blob });
       }
 
@@ -140,10 +153,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        setStatusMessage("Success! Your PNG file has been downloaded.");
-        setStatusType("success");
       } else {
-        setStatusMessage("Packaging files into ZIP...");
         results.forEach((res) => zip.file(res.name, res.blob));
         const zipBlob = await zip.generateAsync({ type: "blob" });
         const url = window.URL.createObjectURL(zipBlob);
@@ -154,67 +164,75 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        setStatusMessage(
-          `Success! ZIP file with ${results.length} pages downloaded.`,
-        );
-        setStatusType("success");
       }
-
-      setTimeout(() => setStatusMessage(""), 5000);
     } catch (error) {
       console.error("Client-side conversion error:", error);
-      setStatusMessage("Client conversion failed — trying server fallback...");
+      throw error;
+    }
+  };
+
+  // Server-side conversion with SSE progress
+  const performServerConversion = async (file, setStatusMessage, setStatusType) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("language", language);
+    formData.append("scale", scale.toString());
+    formData.append("pageMode", pageMode);
+    formData.append("pageRange", pageRange);
+    formData.append("singlePage", singlePage);
+
+    try {
+      const response = await axios.post("/api/convert-pdf-progress", formData, {
+        baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      const { task_id, stream_url } = response.data;
+      setTaskId(task_id);
+      setSseUrl(stream_url);
+      setIsProcessing(true);
+      setStatusMessage("Connected to server. Processing with progress tracking...");
       setStatusType("info");
+      
+    } catch (error) {
+      console.error("Server conversion start error:", error);
+      throw new Error("Server conversion failed");
+    }
+  };
 
-      // Attempt server-side conversion fallback
+  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
+    currentFileRef.current = file;
+    setStatusMessage("Starting PDF conversion...");
+    
+    try {
+      // Try server-side conversion first (with SSE progress)
+      await performServerConversion(file, setStatusMessage, setStatusType);
+      setStatusMessage("Processing PDF with real-time progress tracking...");
+      setStatusType("info");
+      
+    } catch (serverError) {
+      console.warn("Server conversion failed, falling back to client-side:", serverError);
+      setStatusMessage("Server unavailable. Using client-side conversion...");
+      setStatusType("info");
+      
       try {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("language", language); 
-
-        const tryUrls = ["/convertPng", "http://localhost:5000/convertPng"];
-
-        let response = null;
-        for (const url of tryUrls) {
-          try {
-            response = await fetch(url, { method: "POST", body: form });
-            if (response && response.ok) break;
-          } catch (e) {
-            console.warn("Server convert attempt failed:", url, e);
-            response = null;
-          }
-        }
-
-        if (response && response.ok) {
-          const blob = await response.blob();
-          const name = file.name.replace(/\.pdf$/i, ".png");
-          setOutputFiles([{ name, blob }]);
-          const downloadUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = downloadUrl;
-          a.download = file.name.replace(/\.pdf$/i, ".png");
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(downloadUrl);
-          setStatusMessage("Success! PNG downloaded from server fallback.");
-          setStatusType("success");
-        } else {
-          const msg = response
-            ? await response.text()
-            : "Server conversion unavailable";
-          setStatusMessage(`Error: ${msg}`);
-          setStatusType("error");
-        }
-      } catch (serverErr) {
-        console.error("Server fallback error:", serverErr);
-        setStatusMessage(`Error: ${error.message || "Failed to convert file"}`);
+        await performClientConversion(file);
+        setStatusMessage("Success! Conversion completed in browser.");
+        setStatusType("success");
+      } catch (clientError) {
+        setStatusMessage(`Error: ${clientError.message || "Conversion failed"}`);
         setStatusType("error");
       }
-
-      setTimeout(() => setStatusMessage(""), 5000);
+      
     } finally {
       setLoading(false);
+      
+      // Clear status after delay
+      setTimeout(() => {
+        if (!isProcessing) {
+          setStatusMessage("");
+        }
+      }, 3000);
     }
   };
 
@@ -222,6 +240,22 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
     if (!file) return null;
     return (
       <div className="w-full space-y-6 mb-8 text-left bg-white/50 p-6 rounded-xl border border-[#c7d2fe] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        {/* Progress Bar - Shows when processing */}
+        {isProcessing && (
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+            <h4 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-3">
+              📊 Real-Time Progress
+            </h4>
+            <ProgressBar progress={progress} />
+            {!isConnected && (
+              <p className="text-xs text-yellow-600 mt-2">Connecting to server...</p>
+            )}
+            {sseError && (
+              <p className="text-xs text-red-600 mt-2">Connection issue: {sseError}</p>
+            )}
+          </div>
+        )}
+
         {/* Quality Slider */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
@@ -248,6 +282,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
           </div>
         </div>
         
+        {/* Document Language */}
         <div className="space-y-3">
           <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider block">
             Document Language
@@ -290,9 +325,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
           {pageMode === "single" && (
             <div className="animate-in zoom-in-95 duration-200">
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-[#6b7280] font-medium">
-                  Page:
-                </span>
+                <span className="text-sm text-[#6b7280] font-medium">Page:</span>
                 <input
                   type="number"
                   min="1"
@@ -301,9 +334,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
                   onChange={(e) => setSinglePage(e.target.value)}
                   className="w-24 p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white text-[#1a1a2e] font-bold text-center"
                 />
-                <span className="text-xs text-[#94a3b8]">
-                  of {numPages}
-                </span>
+                <span className="text-xs text-[#94a3b8]">of {numPages}</span>
               </div>
             </div>
           )}
@@ -330,17 +361,18 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
   return (
     <ToolPageTemplate
       title="PDF to PNG Converter"
-      description="Convert PDF pages to high-quality PNG images"
+      description="Convert PDF pages to high-quality PNG images with real-time progress tracking"
       accept=".pdf"
       validateFile={validateFile}
       onSubmit={handleCustomSubmit}
       onClear={handleClear}
-      submitButtonText="Convert to PNG"
+      submitButtonText={isProcessing ? "Processing..." : "Convert to PNG"}
       loadingButtonText="Converting..."
       extraFields={extraFields}
       extraContent={() => <MultiFileResults files={outputFiles} />}
       maxWidthClass="max-w-[600px]"
       inputId="file-input"
+      submitDisabled={isProcessing}
       defaultIcon={
         <svg
           width="64"
