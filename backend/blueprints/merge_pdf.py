@@ -20,7 +20,7 @@ def merge_pdfs():
             _, filename, upload_error = validate_uploaded_file(f, f.filename)
             if upload_error:
                 return upload_error
-            pdf_error = validate_pdf_file(filename)
+            pdf_error = validate_pdf_file(f, filename)
             if pdf_error:
                 return pdf_error
 

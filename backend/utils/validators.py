@@ -11,10 +11,13 @@ ALLOWED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 ALLOWED_PDF_MIME_TYPES = {"application/pdf"}
 
 def validate_uploaded_file(request, field_name):
-    if field_name not in request.files:
-        return None, None, error("No file provided", 400)
+    if hasattr(request, "files"):
+        if field_name not in request.files:
+            return None, None, error("No file provided", 400)
 
-    file = request.files[field_name]
+        file = request.files[field_name]
+    else:
+        file = request
 
     if not file or file.filename == "":
         return None, None, error("No file selected", 400)
@@ -37,6 +40,7 @@ def validate_file_extension(
 
     return None
 
+
 def validate_mime_type(
     file,
     allowed_types,
@@ -46,6 +50,7 @@ def validate_mime_type(
         return error(message, 400)
 
     return None
+
 
 def validate_image_file(file):
     mime_error = validate_mime_type(
@@ -70,20 +75,27 @@ def validate_image_file(file):
             400,
         )
 
+
 def validate_pdf_file(
     file,
     filename,
 ):
     extension_error = validate_file_extension(
         filename,
-        ALLOWED_PDF_EXTENSIONS, "Invalid file format. Please upload a PDF file.")
+        ALLOWED_PDF_EXTENSIONS,
+        "Invalid file format. Please upload a PDF file.",
+    )
 
     if extension_error:
         return extension_error
 
-    mime_error = validate_mime_type(file, ALLOWED_PDF_MIME_TYPES, "Invalid PDF MIME type.")
+    try:
+        header = file.read(1024)
+        file.seek(0)
+    except Exception:
+        return error("Unable to read uploaded PDF file.", 400)
 
-    if mime_error:
-        return mime_error
+    if b"%PDF-" not in header:
+        return error("Invalid PDF file. Please upload a real PDF document.", 400)
 
     return None

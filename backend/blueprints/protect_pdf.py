@@ -12,7 +12,7 @@ def protect_pdf():
     if upload_error:
         return upload_error
 
-    pdf_error = validate_pdf_file(filename)
+    pdf_error = validate_pdf_file(file, filename)
     if pdf_error:
         return pdf_error
 
