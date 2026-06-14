@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { PDFDocument } from "pdf-lib";
-import { motion } from "framer-motion";
 import {
   FileText,
   Download,
-  RefreshCcw,
   AlertCircle,
   CheckCircle2,
   Upload,
@@ -15,6 +13,8 @@ import {
   Eye,
   Scissors,
   ArrowRight,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -25,7 +25,7 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-function PdfSplit() {
+export default function PdfSplit() {
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +35,9 @@ function PdfSplit() {
   const [previews, setPreviews] = useState([]);
   const [error, setError] = useState(null);
   const [resultUrl, setResultUrl] = useState(null);
+  const [deletedPages, setDeletedPages] = useState(new Set());
+  const [previewModal, setPreviewModal] = useState(null);
+
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -49,57 +52,71 @@ function PdfSplit() {
 
     for (let i = 1; i <= limit; i++) {
       const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 0.3 });
+
+      const viewport = page.getViewport({ scale: 1.5 });
+
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
+
       if (!ctx) continue;
 
       canvas.width = viewport.width;
       canvas.height = viewport.height;
+
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       thumbs.push({
         pageNum: i,
-        src: canvas.toDataURL(),
+        src: canvas.toDataURL("image/jpeg", 0.92),
       });
+
+      setPreviews([...thumbs]);
     }
-    setPreviews(thumbs);
   };
 
   const pickFile = async (f) => {
     if (!f) return;
 
-    if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) {
+    if (
+      f.type !== "application/pdf" &&
+      !f.name.toLowerCase().endsWith(".pdf")
+    ) {
       toast.error("Only PDF files are accepted.");
       return;
     }
 
-    const MAX_FILE_SIZE_MB = 10;
-    if (f.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      toast.error(`File size exceeds the ${MAX_FILE_SIZE_MB} MB limit.`);
+    const MAX_SIZE_MB = 10;
+
+    if (f.size > MAX_SIZE_MB * 1024 * 1024) {
+      toast.error(`File size exceeds ${MAX_SIZE_MB} MB.`);
       return;
     }
 
     setFile(f);
-    setResultUrl(null);
     setError(null);
+    setResultUrl(null);
     setPreviews([]);
+    setDeletedPages(new Set());
 
     try {
       const bytes = await f.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: bytes, verbosity: 0 }).promise;
+
+      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+
       setTotalPages(pdf.numPages);
       setStartPage("1");
       setEndPage(String(pdf.numPages));
+
       await generateThumbnails(pdf);
     } catch {
+      setError("Unable to read PDF.");
       setTotalPages(null);
-      setError("Unable to read PDF page count.");
     }
   };
 
   const clearFile = (e) => {
-    if (e) e.stopPropagation();
+    e?.stopPropagation();
+
     setFile(null);
     setTotalPages(null);
     setPreviews([]);
@@ -107,30 +124,64 @@ function PdfSplit() {
     setEndPage("1");
     setError(null);
     setResultUrl(null);
-    if (inputRef.current) inputRef.current.value = "";
+    setDeletedPages(new Set());
+    setPreviewModal(null);
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   };
 
-  const clamp = (val, min, max) => Math.min(Math.max(Number(val), min), max);
+  const clamp = (value, min, max) =>
+    Math.min(Math.max(Number(value), min), max);
 
   const validatePages = () => {
     const sp = parseInt(startPage, 10);
     const ep = parseInt(endPage, 10);
 
-    if (isNaN(sp) || isNaN(ep)) return "Please enter valid page numbers.";
-    if (sp < 1) return "Start page must be at least 1.";
-    if (totalPages && ep > totalPages)
-      return `End page cannot exceed ${totalPages} (total pages).`;
-    if (sp > ep) return "Start page cannot be greater than end page.";
+    if (Number.isNaN(sp) || Number.isNaN(ep)) {
+      return "Please enter valid page numbers.";
+    }
+
+    if (sp < 1) {
+      return "Start page must be at least 1.";
+    }
+
+    if (totalPages && ep > totalPages) {
+      return `End page cannot exceed ${totalPages}.`;
+    }
+
+    if (sp > ep) {
+      return "Start page cannot be greater than end page.";
+    }
+
     return null;
+  };
+
+  const deletePage = (e, pageNum) => {
+    e.stopPropagation();
+    setDeletedPages((prev) => new Set(prev).add(pageNum));
+    toast(`Page ${pageNum} removed from output`, { icon: "🗑️" });
+  };
+
+  const restorePage = (e, pageNum) => {
+    e.stopPropagation();
+    setDeletedPages((prev) => {
+      const next = new Set(prev);
+      next.delete(pageNum);
+      return next;
+    });
+    toast(`Page ${pageNum} restored`, { icon: "↩️" });
   };
 
   const handleSplit = async () => {
     if (!file) {
-      toast.error("Please select a PDF file first.");
+      toast.error("Select a PDF first.");
       return;
     }
 
     const validationError = validatePages();
+
     if (validationError) {
       setError(validationError);
       return;
@@ -140,25 +191,35 @@ function PdfSplit() {
     setIsLoading(true);
 
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const originalPdfDoc = await PDFDocument.load(arrayBuffer);
-      const newPdfDoc = await PDFDocument.create();
+      const buffer = await file.arrayBuffer();
+
+      const originalPdf = await PDFDocument.load(buffer);
+      const newPdf = await PDFDocument.create();
 
       const startIdx = parseInt(startPage, 10) - 1;
       const endIdx = parseInt(endPage, 10) - 1;
 
-      if (startIdx < 0 || endIdx >= originalPdfDoc.getPageCount() || startIdx > endIdx) {
-        throw new Error("Invalid page range for splitting.");
+      const pageIndices = Array.from(
+        { length: endIdx - startIdx + 1 },
+        (_, i) => startIdx + i,
+      ).filter((idx) => !deletedPages.has(idx + 1));
+
+      if (pageIndices.length === 0) {
+        setError("All pages removed. Restore at least one.");
+        setIsLoading(false);
+        return;
       }
 
-      const pages = await newPdfDoc.copyPages(originalPdfDoc, Array.from({ length: endIdx - startIdx + 1 }, (_, i) => startIdx + i));
-      pages.forEach((page) => newPdfDoc.addPage(page));
+      const copiedPages = await newPdf.copyPages(originalPdf, pageIndices);
+      copiedPages.forEach((page) => newPdf.addPage(page));
 
-      const pdfBytes = await newPdfDoc.save();
+      const pdfBytes = await newPdf.save();
 
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      setResultUrl(URL.createObjectURL(blob));
-      toast.success(`Success! Pages ${startPage}–${endPage} extracted.`);
+      const url = URL.createObjectURL(blob);
+
+      setResultUrl(url);
+      toast.success(`${pageIndices.length} page${pageIndices.length !== 1 ? "s" : ""} extracted successfully`);
     } catch (err) {
       setError(err.message);
       toast.error(err.message);
@@ -170,39 +231,21 @@ function PdfSplit() {
   const isPageInRange = (pageNum) => {
     const sp = parseInt(startPage, 10);
     const ep = parseInt(endPage, 10);
+
     return pageNum >= sp && pageNum <= ep;
   };
 
   return (
-    <div className="w-full max-w-[600px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0f172a] dark:to-[#111827] dark:border dark:border-slate-700 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div className="w-full max-w-6xl mx-auto p-8">
+      <h1 className="text-5xl font-bold text-center mb-3">Split PDF</h1>
 
-      {/* Title — matches ToolPageTemplate exactly */}
-      <h1 className="mb-10 text-[#1a1a2e] dark:text-white text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
-        Split PDF
-      </h1>
-
-      {/* Drop Zone */}
-      <div
-        className={`w-full border-2 border-dashed rounded-xl p-8 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-6 ${
-          isDragging
-            ? "border-[#4361ee] bg-blue-50 dark:bg-slate-800 scale-[1.02]"
-            : "border-gray-300 bg-[#fafbfc] dark:bg-slate-900 dark:border-slate-700 hover:border-[#4361ee] hover:bg-blue-50"
-        }`}
-        onDrop={onDrop}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={() => setIsDragging(false)}
-        onClick={() => !file && inputRef.current?.click()}
-      >
-        Split PDF
-      </motion.h1>
-
-      <p className="text-slate-500 mb-10 max-w-xl text-base leading-relaxed">
-        Extract a specific range of pages from your PDF into a new document.
+      <p className="text-center text-slate-500 mb-10">
+        Extract a specific range of pages from your PDF.
       </p>
 
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        {/* Left Panel */}
-        <div className="space-y-6 text-left">
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Left */}
+        <div>
           <div
             onDrop={(e) => {
               e.preventDefault();
@@ -216,146 +259,176 @@ function PdfSplit() {
             onDragLeave={() => setIsDragging(false)}
             onClick={() => inputRef.current?.click()}
             className={cn(
-              "w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300",
+              "border-2 border-dashed rounded-3xl p-10 cursor-pointer transition-all",
               isDragging
-                ? "border-[#4361ee] bg-blue-50 scale-[1.03] shadow-lg"
-                : "border-slate-200 bg-slate-50/50 hover:border-[#4361ee] hover:bg-white hover:shadow-xl"
+                ? "border-blue-500 bg-blue-50"
+                : "border-slate-300 hover:border-blue-500",
             )}
           >
             <input
               ref={inputRef}
               type="file"
               accept="application/pdf"
-              className="hidden"
+              hidden
               onChange={(e) => pickFile(e.target.files?.[0] || null)}
             />
 
             {file ? (
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 text-blue-600 rounded-full">
-                  <FileText size={24} />
-                </div>
+                <FileText />
                 <div>
-                  <p className="text-[#1a1a2e] font-bold text-sm truncate max-w-[200px]">
-                    {file.name}
+                  <p className="font-semibold">{file.name}</p>
+                  <p className="text-sm text-slate-500">
+                    {totalPages} pages
+                    {deletedPages.size > 0 && (
+                      <span className="ml-2 text-red-400">
+                        · {deletedPages.size} removed
+                      </span>
+                    )}
                   </p>
-                  <p className="text-slate-500 text-xs">{totalPages} pages</p>
                 </div>
-                <button
-                  onClick={clearFile}
-                  className="ml-4 p-2 text-red-500 hover:bg-red-100 rounded-full"
-                  aria-label="Remove file"
-                >
-                  <Trash2 size={18} />
+                <button onClick={clearFile} className="ml-auto">
+                  <Trash2 />
                 </button>
               </div>
             ) : (
               <div className="text-center">
-                <div className="mx-auto w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
-                  <Upload size={24} />
-                </div>
-                <p className="text-[#1a1a2e] font-bold text-sm">
-                  Click or drag & drop a PDF
-                </p>
+                <Upload className="mx-auto mb-3" />
+                <p>Click or drag a PDF here</p>
               </div>
             )}
           </div>
 
           {previews.length > 0 && (
-            <div className="w-full bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider mb-4">
-                <Eye size={16} /> Preview Selection
+            <div className="mt-6 border rounded-3xl p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Eye size={16} />
+                Preview
+                {deletedPages.size > 0 && (
+                  <span className="ml-auto text-xs text-red-400 font-medium">
+                    {deletedPages.size} page{deletedPages.size !== 1 ? "s" : ""} removed — hover to restore
+                  </span>
+                )}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-[400px] p-2">
-                {previews.map((item) => (
-                  <div
-                    key={item.pageNum}
-                    className={cn(
-                      "relative group bg-white border rounded-2xl p-2 transition-all shadow-sm",
-                      isPageInRange(item.pageNum)
-                        ? "border-[#4361ee] ring-2 ring-blue-100"
-                        : "border-slate-100 opacity-50"
-                    )}
-                  >
-                    <div className="relative w-full h-36 flex items-center justify-center overflow-hidden rounded-xl mb-2">
-                      <img
-                        src={item.src}
-                        className="max-w-full max-h-full object-contain"
-                        alt={`Page ${item.pageNum}`}
-                      />
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[450px] overflow-y-auto">
+                {previews.map((page) => {
+                  const isDeleted = deletedPages.has(page.pageNum);
+                  const inRange = isPageInRange(page.pageNum);
+
+                  return (
+                    <div
+                      key={page.pageNum}
+                      onClick={() => !isDeleted && setPreviewModal(page.src)}
+                      className={cn(
+                        "relative group border rounded-xl p-2 cursor-pointer transition-all duration-200",
+                        isDeleted
+                          ? "border-red-300 opacity-40 grayscale"
+                          : inRange
+                          ? "border-blue-500"
+                          : "opacity-50",
+                      )}
+                    >
+                      <img src={page.src} alt={`Page ${page.pageNum}`} />
+
+                      {inRange && !isDeleted && (
+                        <div className="absolute top-3 left-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Selected
+                        </div>
+                      )}
+
+                      {isDeleted && (
+                        <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Removed
+                        </div>
+                      )}
+
+                      <p className="text-center text-xs mt-2">
+                        Page {page.pageNum}
+                      </p>
+
+                      {!isDeleted && (
+                        <button
+                          onClick={(e) => deletePage(e, page.pageNum)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-red-500 text-gray-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md"
+                          aria-label={`Remove page ${page.pageNum}`}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+
+                      {isDeleted && (
+                        <button
+                          onClick={(e) => restorePage(e, page.pageNum)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-green-500 hover:bg-green-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md"
+                          aria-label={`Restore page ${page.pageNum}`}
+                        >
+                          <RotateCcw size={12} />
+                        </button>
+                      )}
                     </div>
-                    <div className="text-center text-[10px] font-bold text-slate-500">
-                      Page {item.pageNum}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
 
-        {/* Right Panel */}
-        <div className="space-y-6">
-          <div className="w-full bg-white border border-gray-200 rounded-3xl p-8 shadow-sm text-left">
-            <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider mb-6">
-              <Scissors size={16} /> Extraction Range
+        {/* Right */}
+        <div>
+          <div className="border rounded-3xl p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Scissors size={16} />
+              Extraction Range
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-tight text-slate-400">
-                  Start Page
-                </label>
-                <input
-                  type="number"
-                  value={startPage}
-                  disabled={!file || isLoading}
-                  onChange={(e) => setStartPage(e.target.value)}
-                  onBlur={(e) => {
-                    const clamped = clamp(e.target.value, 1, totalPages || 1);
-                    setStartPage(String(clamped));
-                    if (clamped > parseInt(endPage)) setEndPage(String(clamped));
-                  }}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black uppercase tracking-tight text-slate-400">
-                  End Page
-                </label>
-                <input
-                  type="number"
-                  value={endPage}
-                  disabled={!file || isLoading}
-                  onChange={(e) => setEndPage(e.target.value)}
-                  onBlur={(e) => {
-                    const sp = parseInt(startPage) || 1;
-                    const clamped = clamp(e.target.value, sp, totalPages || sp);
-                    setEndPage(String(clamped));
-                  }}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="number"
+                value={startPage}
+                disabled={!file}
+                onChange={(e) => setStartPage(e.target.value)}
+                onBlur={(e) => {
+                  const v = clamp(e.target.value, 1, totalPages || 1);
+                  setStartPage(String(v));
+                }}
+                className="border rounded-xl p-3"
+              />
+
+              <input
+                type="number"
+                value={endPage}
+                disabled={!file}
+                onChange={(e) => setEndPage(e.target.value)}
+                onBlur={(e) => {
+                  const v = clamp(e.target.value, 1, totalPages || 1);
+                  setEndPage(String(v));
+                }}
+                className="border rounded-xl p-3"
+              />
             </div>
 
             {file && !error && (
-              <div className="mb-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
-                  <Scissors size={20} />
-                </div>
-                <div className="text-xs">
-                  <p className="text-slate-500 font-medium">Extracting</p>
-                  <p className="text-[#1a1a2e] font-black">
-                    Pages {startPage} to {endPage}
+              <div className="mt-6 p-4 bg-blue-50 rounded-xl flex items-center gap-3">
+                <Scissors size={18} />
+                <div>
+                  <p className="text-sm text-slate-500">Extracting</p>
+                  <p className="font-semibold">
+                    Pages {startPage} - {endPage}
+                    {deletedPages.size > 0 && (
+                      <span className="text-red-400 font-normal text-sm ml-1">
+                        (excl. {deletedPages.size} removed)
+                      </span>
+                    )}
                   </p>
                 </div>
-                <ArrowRight className="ml-auto text-blue-300" size={16} />
+                <ArrowRight className="ml-auto" />
               </div>
             )}
 
             {error && (
-              <div className="mb-6 flex items-center gap-2 p-4 bg-red-50 text-red-500 rounded-xl text-xs font-bold">
-                <AlertCircle size={14} />
+              <div className="mt-6 p-4 bg-red-50 rounded-xl flex items-center gap-2 text-red-500">
+                <AlertCircle size={16} />
                 {error}
               </div>
             )}
@@ -363,53 +436,56 @@ function PdfSplit() {
             <button
               onClick={handleSplit}
               disabled={!file || isLoading}
-              className="w-full bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-4 rounded-2xl font-bold shadow-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full mt-6 bg-blue-600 text-white py-4 rounded-2xl font-semibold disabled:opacity-50"
             >
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <polyline points="14,2 14,8 20,8" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="12" y1="18" x2="12" y2="12" strokeLinecap="round" />
-              <line x1="9" y1="15" x2="15" y2="15" strokeLinecap="round" />
-            </svg>
-            <p className="text-[#1a1a2e] dark:text-white font-semibold text-lg">
-              {isDragging ? "Drop your PDF here" : "Choose a PDF file or drag & drop here"}
-            </p>
-            <p className="text-gray-400 dark:text-slate-400 text-sm">Single PDF · Pages will be detected automatically</p>
-            <span className="mt-2 text-xs bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-300 rounded-full px-3 py-1 font-medium">
-              PDF only
-            </span>
-          </>
-        )}
-      </div>
+              {isLoading ? "Processing..." : "Extract Pages"}
+            </button>
 
-            {resultUrl && !isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-6 p-5 bg-[#f0f9ff] border border-blue-100 rounded-2xl space-y-4"
-              >
-                <div className="flex items-center gap-2 text-blue-700 text-xs font-bold uppercase">
+            {resultUrl && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-2xl">
+                <div className="flex items-center gap-2 mb-3">
                   <CheckCircle2 size={16} />
                   Ready for download
                 </div>
+
                 <a
                   href={resultUrl}
-                  download={`${file?.name.replace(/\.pdf$/i, "")}_split_${startPage}-${endPage}.pdf`}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all"
+                  download={`${file?.name.replace(/\.pdf$/i, "")}_${startPage}-${endPage}.pdf`}
+                  className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl"
                 >
-                  <Download size={20} />
-                  DOWNLOAD SPLIT PDF
+                  <Download size={18} />
+                  Download PDF
                 </a>
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {previewModal && (
+        <div
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-6"
+          onClick={() => setPreviewModal(null)}
+        >
+          <div
+            className="relative bg-white rounded-2xl p-4 max-w-3xl max-h-[90vh] overflow-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewModal(null)}
+              className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white w-9 h-9 rounded-full flex items-center justify-center"
+              aria-label="Close preview"
+            >
+              <X size={16} />
+            </button>
+            <img
+              src={previewModal}
+              alt="Full page preview"
+              className="max-w-full max-h-[82vh] rounded-xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-export default PdfSplit;

@@ -30,6 +30,7 @@ function PdfSign() {
           placeholder="Enter signature text"
           value={signature}
           onChange={(e) => setSignature(e.target.value)}
+          maxLength={500}
           className="w-full border border-[#d1d5db] p-3 rounded-xl focus:ring-2 focus:ring-[#4361ee] focus:border-[#4361ee] transition-all bg-[#f9fafb] text-[#111827]"
         />
       </div>

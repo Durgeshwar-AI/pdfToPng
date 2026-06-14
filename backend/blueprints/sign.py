@@ -41,7 +41,7 @@ def sign_pdf():
             return upload_error
 
         # Validate PDF extension
-        pdf_error = validate_pdf_file(filename)
+        pdf_error = validate_pdf_file(pdf_file, filename)
         if pdf_error:
             return pdf_error
 
@@ -49,6 +49,10 @@ def sign_pdf():
         signature_text = request.form.get("signature", "").strip()
         if not signature_text:
             return error("Signature text is required", 400)
+
+        MAX_SIGNATURE_LENGTH = 500
+        if len(signature_text) > MAX_SIGNATURE_LENGTH:
+            return error(f"Signature text must be {MAX_SIGNATURE_LENGTH} characters or fewer", 400)
 
         # Get and validate position
         position = request.form.get("position", "bottom-right")

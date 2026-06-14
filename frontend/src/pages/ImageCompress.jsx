@@ -171,7 +171,7 @@ function ImageCompress() {
       modifyFormData={modifyFormData}
       getDownloadFilename={(fileName) => {
         let extension = fileName.split(".").pop().toLowerCase();
-        if (!["jpg", "jpeg", "webp"].includes(extension)) {
+        if (!["jpg", "jpeg", "webp", "png"].includes(extension)) {
           extension = "jpg";
         }
         return fileName.replace(/\.[^.]+$/, `_compressed.${extension}`);
