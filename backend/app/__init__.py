@@ -64,6 +64,7 @@ def create_app():
     from blueprints.sign import sign_bp
     from blueprints.markdown import markdown_bp
     from blueprints.protect_pdf import protect_pdf_bp
+    from blueprints.pdf_info import pdf_info_bp
     from blueprints.compress_pdf import compress_pdf_bp
 
     app.register_blueprint(pdf_bp)
@@ -81,6 +82,7 @@ def create_app():
     app.register_blueprint(sign_bp)
     app.register_blueprint(markdown_bp)
     app.register_blueprint(protect_pdf_bp)
+    app.register_blueprint(pdf_info_bp)
     app.register_blueprint(compress_pdf_bp)
 
     return app
