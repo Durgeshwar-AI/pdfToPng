@@ -1,10 +1,11 @@
 from app import create_app
-
+from blueprints.pdf_extract_images import pdf_extract_images_bp
 import os
 
 app = create_app()
 
- # ← moved AFTER app is created
+# ✅ YAHAN PE REGISTER KARO (app create hone ke turant baad)
+app.register_blueprint(pdf_extract_images_bp)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
