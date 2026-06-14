@@ -6,13 +6,13 @@ import {
   Github, 
   Linkedin, 
   Mail, 
-  Twitter,
   Heart,
   Shield,
   Globe,
   Facebook,
   Instagram
 } from "lucide-react";
+import { SiX } from "react-icons/si";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -34,7 +34,7 @@ const Footer = () => {
               <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl group-hover:shadow-lg transition-all duration-300">
                 <FileText className="w-6 h-6 text-purple-600" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
                 pdfToPng
               </span>
             </Link>
@@ -46,31 +46,32 @@ const Footer = () => {
               <a href="https://github.com/Durgeshwar-AI" 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Github className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                <Github className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
               </a>
               <a href={import.meta.env.VITE_LINKEDIN_URL} 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Linkedin className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                <Linkedin className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
               </a>
               <a href={`mailto:${import.meta.env.VITE_EMAIL}`}
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Mail className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                <Mail className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
               </a>
               <a href={import.meta.env.VITE_TWITTER_URL} 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Twitter className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
-              </a>
+                 aria-label="X (formerly Twitter)"
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                 <SiX className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
+                 </a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-slate-900 mb-4 text-lg relative inline-block">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4 text-lg relative inline-block">
               Quick Links
               <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-purple-600 rounded-full"></div>
             </h3>
@@ -108,7 +109,7 @@ const Footer = () => {
 
           {/* Legal & Connect */}
           <div>
-            <h3 className="font-semibold text-slate-900 mb-4 text-lg relative inline-block">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4 text-lg relative inline-block">
               Legal
               <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-purple-600 rounded-full"></div>
             </h3>
@@ -138,7 +139,7 @@ const Footer = () => {
                 <input 
                   type="email" 
                   placeholder="Enter your email"
-                  className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
                 <button className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-all duration-300">
                   Subscribe
@@ -184,10 +185,10 @@ const Footer = () => {
 
         {/* Additional Tech Stack Badges */}
         <div className="mt-6 pt-4 flex flex-wrap justify-center gap-3">
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">React</span>
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">Tailwind CSS</span>
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">Vite</span>
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">PDF.js</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">React</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">Tailwind CSS</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">Vite</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">PDF.js</span>
         </div>
       </div>
     </footer>
