@@ -34,7 +34,7 @@ const Footer = () => {
               <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl group-hover:shadow-lg transition-all duration-300">
                 <FileText className="w-6 h-6 text-purple-600" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
                 pdfToPng
               </span>
             </Link>
@@ -46,32 +46,32 @@ const Footer = () => {
               <a href="https://github.com/Durgeshwar-AI" 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Github className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                <Github className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
               </a>
               <a href={import.meta.env.VITE_LINKEDIN_URL} 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Linkedin className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                <Linkedin className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
               </a>
               <a href={`mailto:${import.meta.env.VITE_EMAIL}`}
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                <Mail className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                <Mail className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
               </a>
               <a href={import.meta.env.VITE_TWITTER_URL} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  aria-label="X (formerly Twitter)"
-                 className="p-2 bg-slate-100 hover:bg-purple-100 rounded-lg transition-all duration-300 group">
-                 <SiX className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+                 className="p-2 bg-slate-100 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-all duration-300 group">
+                 <SiX className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-purple-600" />
                  </a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-slate-900 mb-4 text-lg relative inline-block">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4 text-lg relative inline-block">
               Quick Links
               <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-purple-600 rounded-full"></div>
             </h3>
@@ -109,7 +109,7 @@ const Footer = () => {
 
           {/* Legal & Connect */}
           <div>
-            <h3 className="font-semibold text-slate-900 mb-4 text-lg relative inline-block">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4 text-lg relative inline-block">
               Legal
               <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-purple-600 rounded-full"></div>
             </h3>
@@ -185,10 +185,10 @@ const Footer = () => {
 
         {/* Additional Tech Stack Badges */}
         <div className="mt-6 pt-4 flex flex-wrap justify-center gap-3">
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">React</span>
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">Tailwind CSS</span>
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">Vite</span>
-          <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">PDF.js</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">React</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">Tailwind CSS</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">Vite</span>
+          <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-slate-400 rounded-full">PDF.js</span>
         </div>
       </div>
     </footer>
