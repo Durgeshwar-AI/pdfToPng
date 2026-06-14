@@ -1,6 +1,8 @@
-from flask import Flask, request
+from flask import Flask, jsonify, request
 import os
 from flask_cors import CORS
+
+from utils.dependency_checker import check_dependency_status
 
 def create_app():
     app = Flask(__name__)
@@ -46,6 +48,10 @@ def create_app():
     @app.route("/health", methods=["GET", "OPTIONS"])
     def _health():
         return {"status": "ok"}, 200
+
+    @app.route("/health/dependencies", methods=["GET", "OPTIONS"])
+    def _dependency_health():
+        return jsonify(check_dependency_status()), 200
     
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
     
