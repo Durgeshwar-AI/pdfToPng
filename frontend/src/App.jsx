@@ -30,6 +30,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const DocxPdf = lazy(() => import("./pages/DocxPdf"));
 const PdfSplit = lazy(() => import("./pages/PdfSplit"));
 const PdfRotateFlip = lazy(() => import("./pages/PdfRotateFlip"));
+const PdfReorder = lazy(() => import("./pages/PdfReorder"));
 const PDFWatermark = lazy(() => import("./pages/PDFWatermark"));
 const ImageOCR = lazy(() => import("./pages/ImageOCR"));
 const ImageWatermark = lazy(() => import("./pages/ImageWatermark"));
@@ -75,6 +76,7 @@ function App() {
             <Route path="/pdf-merge" element={<PdfMerge />} />
             <Route path="/pdf-split" element={<PdfSplit />} />
             <Route path="/pdf-rotate-flip" element={<PdfRotateFlip />} />
+            <Route path="/pdf-reorder" element={<PdfReorder />} />
             <Route path="/pdf-sign" element={<PdfSign />} />
             <Route path="/pdf-watermark" element={<PDFWatermark />} />
             <Route path="/pdf-protect" element={<PdfProtect />} />

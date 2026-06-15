@@ -6,6 +6,7 @@ import {
   Eraser,
   RotateCcw,
   Sliders,
+  ArrowDownUp,
   Gauge,
   Info,
   Code,
@@ -76,6 +77,17 @@ const tools = [
     path: "/pdf-rotate-flip",
     gradient: "from-indigo-500/10 to-violet-500/10",
     iconGradient: "from-indigo-500 to-violet-500",
+  },
+  {
+    id: "pdf-reorder",
+    name: "PDF Reorder Pages",
+    category: "PDF Tools",
+    icon: <ArrowDownUp />,
+    description:
+      "Reorder PDF pages by dragging and dropping thumbnails into a new sequence.",
+    path: "/pdf-reorder",
+    gradient: "from-fuchsia-500/10 to-pink-500/10",
+    iconGradient: "from-fuchsia-500 to-pink-500",
   },
   {
     id: "pdf-sign",
