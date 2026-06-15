@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
 import ScrollToTop from "./components/ScrollToTop";
-
+import DependencyWarning from './components/DependencyWarning';
 import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
 import PdfExtractImages from './pages/PdfExtractImages';
@@ -103,6 +103,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
+      <DependencyWarning />
     </ErrorBoundary>
   );
 }
