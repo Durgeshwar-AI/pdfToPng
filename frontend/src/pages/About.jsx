@@ -52,13 +52,13 @@ const About = () => (
         {highlights.map((item) => (
           <div
             key={item.title}
-            className="p-5 rounded-2xl bg-white shadow-sm border border-slate-200"
+            className="p-5 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors duration-300"
           >
-            <div className="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center mb-3">
+            <div className="w-11 h-11 rounded-xl bg-slate-50 dark:bg-slate-700 flex items-center justify-center mb-3">
               {item.icon}
             </div>
-            <h3 className="font-bold text-slate-900 mb-1">{item.title}</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{item.title}</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               {item.description}
             </p>
           </div>
@@ -83,7 +83,7 @@ const About = () => (
         </a>
         <Link
           to="/#tools"
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-slate-700 text-sm font-semibold px-5 py-2.5 transition-colors duration-300"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-500 text-slate-700 dark:text-slate-300 text-sm font-semibold px-5 py-2.5 transition-colors duration-300"
         >
           Explore the tools
         </Link>
