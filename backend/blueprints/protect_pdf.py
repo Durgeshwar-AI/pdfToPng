@@ -1,14 +1,21 @@
 from flask import Blueprint, request, send_file, jsonify
 import fitz  # PyMuPDF
 import io
-from utils.validators import validate_uploaded_file, validate_pdf_file
+from utils.validators import (
+    validate_uploaded_file,
+    validate_pdf_file,
+)
 
 protect_pdf_bp = Blueprint("protect_pdf", __name__)
 
 
 @protect_pdf_bp.route("/protect-pdf", methods=["POST"])
 def protect_pdf():
-    file, filename, upload_error = validate_uploaded_file(request, "file")
+    file, filename, upload_error = validate_uploaded_file(
+    request,
+    "file",
+)
+
     if upload_error:
         return upload_error
 
@@ -45,7 +52,7 @@ def protect_pdf():
         )
         buf.seek(0)
 
-        base_name = file.filename.rsplit(".", 1)[0] or "document"
+        base_name = filename.rsplit(".", 1)[0] or "document"
         download_name = f"{base_name}_protected.pdf"
 
         return send_file(

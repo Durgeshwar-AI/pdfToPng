@@ -24,6 +24,8 @@ def merge_pdfs():
             if pdf_error:
                 return pdf_error
 
+            if pdf_error:
+                return pdf_error
             data = f.read()
             try:
                 src = fitz.open(stream=data, filetype="pdf")

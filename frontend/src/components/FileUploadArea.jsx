@@ -25,8 +25,8 @@ const FileUploadArea = ({
       ref={dropAreaRef}
       className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none ${
         isDragging
-          ? "border-[#3b82f6] bg-[#ebf5ff] dark:bg-slate-800 scale-[1.02]"
-          : "border-[#c7d2fe] bg-white bg-[rgba(239,246,255,0.6)] dark:bg-gray-900 dark:border-gray-700 hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] dark:hover:bg-slate-800 active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
+          ? "border-[var(--color-app-primary)] bg-[var(--color-app-surface-soft)] scale-[1.02]"
+          : "border-[var(--color-app-border-strong)] bg-[var(--color-app-surface)] hover:border-[var(--color-app-primary)] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[var(--color-app-surface-soft)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)]"
       }`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -44,7 +44,7 @@ const FileUploadArea = ({
       />
       <label
         htmlFor={inputId}
-        className="flex flex-col items-center text-xl text-[#4b5563] dark:text-gray-700 dark:text-slate-300 cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e] dark:hover:text-white w-full"
+        className="flex flex-col items-center text-xl theme-muted cursor-pointer font-medium transition-colors duration-200 hover:text-[var(--color-app-text)] w-full"
       >
         {file ? (
           <div className="relative group w-full flex flex-col items-center">
@@ -126,7 +126,7 @@ const FileUploadArea = ({
               </button>
             </div>
             <div
-              className="bg-[#f0f9ff] dark:bg-slate-800 px-4 py-2 rounded-lg mt-4 text-[#0369a1] dark:text-sky-300 font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] dark:border-sky-500 max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+              className="bg-[var(--color-app-surface-soft)] px-4 py-2 rounded-lg mt-4 text-[#0369a1] dark:text-sky-300 font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] dark:border-sky-500 max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
               title={file.name}
             >
               {file.name.length > 30
