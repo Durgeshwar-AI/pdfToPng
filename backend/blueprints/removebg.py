@@ -5,7 +5,7 @@ from PIL import Image, ImageFilter
 from rembg import remove
 from skimage import morphology
 
-from utils.decorators import process_image_request
+from utils.decorators import process_image_request, validate_mime
 from utils.helpers import safe_gc_collect, send_file_and_cleanup
 
 remove_bp = Blueprint("removebg", __name__)
@@ -39,6 +39,7 @@ def refine_alpha_mask(alpha, disk_radius=2, blur_radius=1.0):
 
 
 @remove_bp.route("/removeBg", methods=["POST"])
+@validate_mime('png')  # ✅ Added MIME validation for PNG
 @process_image_request
 def remove_bg(img, filename, file_bytes):
     base = filename.rsplit('.', 1)[0]

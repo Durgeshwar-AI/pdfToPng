@@ -5,12 +5,14 @@ from docx import Document
 
 from flask import Blueprint, request
 
+from utils.decorators import validate_mime  # ✅ Import added
 from utils.helpers import error, send_file_and_cleanup
 
 pdf_docx_bp = Blueprint("pdf_docx", __name__)
 
 
 @pdf_docx_bp.route("/convertDocx", methods=["POST"])
+@validate_mime('pdf')  # ✅ Added MIME validation
 def convert_pdf_to_docx():
     doc = None
     try:

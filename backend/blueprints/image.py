@@ -4,7 +4,7 @@ from io import BytesIO
 from flask import Blueprint, request
 from PIL import Image, ImageEnhance
 
-from utils.decorators import process_image_request
+from utils.decorators import process_image_request, validate_mime
 from utils.helpers import send_file_and_cleanup, error
 from utils.validators import validate_image_file, validate_uploaded_file
 
@@ -65,6 +65,7 @@ def _convert_alpha_to_rgb(img):
 
 
 @image_bp.route("/convertWebP", methods=["POST"])
+@validate_mime('png')  # ✅ Added MIME validation
 @process_image_request
 def convert_to_webp(img, filename, file_bytes):
     if img.mode not in ("RGB", "RGBA"):
@@ -86,6 +87,7 @@ def convert_to_webp(img, filename, file_bytes):
 
 
 @image_bp.route("/upscale", methods=["POST"])
+@validate_mime('png')  # ✅ Added MIME validation
 @process_image_request
 def upscale_image(img, filename, file_bytes):
     scale_factor = request.form.get("scale", 2, type=int)
@@ -118,6 +120,7 @@ def upscale_image(img, filename, file_bytes):
 
 
 @image_bp.route("/convertJpeg", methods=["POST"])
+@validate_mime('jpg')  # ✅ Added MIME validation
 @process_image_request
 def convert_to_jpeg(img, filename, file_bytes):
     if img.mode != "RGB":
@@ -139,6 +142,7 @@ def convert_to_jpeg(img, filename, file_bytes):
 
 
 @image_bp.route("/convertGrayscale", methods=["POST"])
+@validate_mime('png')  # ✅ Added MIME validation
 def convert_to_grayscale():
     img = None
     grayscale_img = None
@@ -194,6 +198,7 @@ def convert_to_grayscale():
 
 
 @image_bp.route("/compress", methods=["POST"])
+@validate_mime('jpg')  # ✅ Added MIME validation
 def compress_image():
     img = None
 
@@ -263,6 +268,7 @@ def compress_image():
 
 
 @image_bp.route("/resizeImage", methods=["POST"])
+@validate_mime('jpg')  # ✅ Added MIME validation
 @process_image_request
 def resize_image(img, filename, file_bytes):
     unit = request.form.get("unit", "px").lower()

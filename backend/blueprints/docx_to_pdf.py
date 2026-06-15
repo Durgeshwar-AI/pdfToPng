@@ -4,12 +4,14 @@ import traceback
 from flask import Blueprint, request
 from docx import Document
 
+from utils.decorators import validate_mime  # ✅ Import added
 from utils.helpers import error, send_file_and_cleanup
 
 docx_pdf_bp = Blueprint("docx_pdf", __name__)
 
 
 @docx_pdf_bp.route("/convertDocxToPdf", methods=["POST"])
+@validate_mime('docx')  # ✅ Added MIME validation for DOCX
 def convert_docx_to_pdf():
     try:
         if "file" not in request.files:

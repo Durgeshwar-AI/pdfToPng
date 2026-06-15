@@ -2,7 +2,7 @@ import fitz  # PyMuPDF
 import base64  
 
 from flask import Blueprint, request
-
+from utils.decorators import validate_mime
 from utils.helpers import error, send_file_and_cleanup
 from utils.validators import (
     validate_pdf_file,
@@ -13,6 +13,7 @@ pdf_bp = Blueprint("pdf", __name__)
 
 
 @pdf_bp.route("/convertPng", methods=["POST"])
+@validate_mime('pdf')  # ✅ Decorator yahan lagega
 def convert_pdf_to_png():
     doc = None
 
@@ -34,7 +35,6 @@ def convert_pdf_to_png():
         pdf_bytes = pdf_file.read()
 
         target_lang = request.form.get("language", "eng")
-
 
         doc = fitz.open(
             stream=pdf_bytes,

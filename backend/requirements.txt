@@ -48,6 +48,7 @@ PyMuPDF==1.26.4
 pyparsing==3.2.3
 pyreadline3==3.5.4
 python-dateutil==2.9.0.post0
+python-magic-bin==0.4.14
 pytz==2025.2
 pyxnat==1.6.3
 rdflib==7.1.4
