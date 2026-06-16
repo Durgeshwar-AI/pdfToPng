@@ -1,0 +1,22 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Frontend (React/JS/TS/JSON/CSS) follows the existing 2-space style
+[*.{js,jsx,ts,tsx,json,css,scss,html,yml,yaml}]
+indent_size = 2
+
+# Python backend follows PEP 8 (4-space indentation)
+[*.py]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab

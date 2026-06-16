@@ -6,6 +6,7 @@ import {
   Eraser,
   RotateCcw,
   Sliders,
+  ArrowDownUp,
   Gauge,
   Info,
   Code,
@@ -16,9 +17,12 @@ import {
   Droplets,
   QrCode,
   Lock,
+  FileDown,
+  LockOpen,
   Tags,
   Type,
   BookOpen,
+  Hash,
 } from "lucide-react";
 
 const tools = [
@@ -75,6 +79,17 @@ const tools = [
     iconGradient: "from-indigo-500 to-violet-500",
   },
   {
+    id: "pdf-reorder",
+    name: "PDF Reorder Pages",
+    category: "PDF Tools",
+    icon: <ArrowDownUp />,
+    description:
+      "Reorder PDF pages by dragging and dropping thumbnails into a new sequence.",
+    path: "/pdf-reorder",
+    gradient: "from-fuchsia-500/10 to-pink-500/10",
+    iconGradient: "from-fuchsia-500 to-pink-500",
+  },
+  {
     id: "pdf-sign",
     name: "PDF Sign",
     category: "PDF Tools",
@@ -105,6 +120,26 @@ const tools = [
     iconGradient: "from-red-500 to-rose-500",
   },
   {
+    id: "pdf-compress",
+    name: "PDF Compressor",
+    category: "PDF Tools",
+    icon: <FileDown />,
+    description: "Reduce PDF file size with adjustable compression levels.",
+    path: "/pdf-compress",
+    gradient: "from-blue-500/10 to-cyan-500/10",
+    iconGradient: "from-blue-500 to-cyan-500",
+  },
+  {
+    id: "pdf-unlock",
+    name: "Unlock PDF",
+    category: "PDF Tools",
+    icon: <LockOpen />,
+    description: "Remove password protection from your PDF documents.",
+    path: "/pdf-unlock",
+    gradient: "from-green-500/10 to-emerald-500/10",
+    iconGradient: "from-green-500 to-emerald-500",
+  },
+  {
     id: "pdf-metadata",
     name: "PDF Metadata Editor",
     category: "PDF Tools",
@@ -124,6 +159,16 @@ const tools = [
     path: "/pdf-info",
     gradient: "from-violet-500/10 to-indigo-500/10",
     iconGradient: "from-violet-500 to-indigo-500",
+  },
+  {
+    id: "pdf-page-number",
+    name: "PDF Page Numbering",
+    category: "PDF Tools",
+    icon: <Hash />,
+    description: "Add custom page numbers to your PDF documents with custom positioning.",
+    path: "/pdf-page-number",
+    gradient: "from-orange-500/10 to-amber-500/10",
+    iconGradient: "from-orange-500 to-amber-500",
   },
   {
     id: "image-compress",

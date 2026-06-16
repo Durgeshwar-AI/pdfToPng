@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useLocation, Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
 import { Menu, Sun, Moon, Home } from "lucide-react";
+import { useTheme } from "../../context/theme-context";
 
 const Layout = () => {
-  const  isDark = false;
-  const toggleTheme = () => {};
+  const { isDark, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ const Layout = () => {
   const isLandingPage = location.pathname === "/";
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="flex h-screen theme-page overflow-hidden">
       <Sidebar
         activeTab={location.pathname.substring(1)}
         isMobileMenuOpen={isMobileMenuOpen}
