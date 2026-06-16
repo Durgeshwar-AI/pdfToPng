@@ -1,6 +1,7 @@
 import React, { useState, useCallback, lazy, Suspense } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 
+
 const FileUploadArea = lazy(() => import("./FileUploadArea"));
 
 const ToolPageTemplate = ({

@@ -1,4 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
+import ReactCrop from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 
 import JSZip from "jszip";
 
@@ -14,6 +16,64 @@ const PdfPng = () => {
   const [singlePage, setSinglePage] = useState("1");
   const [numPages, setNumPages] = useState(0);
   const [language, setLanguage] = useState("eng");
+  const [previewImage , setPreviewImage] = useState(null);
+  const [cropEnabled , setCropEnabled] = useState(false);
+  const [crop , setCrop] = useState({
+    unit : "%",
+    x : 10,
+    y : 10,
+    width : 80,
+    height : 80,
+
+  });
+  useEffect(() => {
+  const generatePreview = async () => {
+    try {
+      if (!cropEnabled) return;
+
+      const input = document.querySelector('input[type="file"]');
+      const selectedFile = input?.files?.[0];
+
+      if (!selectedFile) return;
+
+      const pdfjsLib = await import("pdfjs-dist");
+
+      const pdfWorker = await import(
+        "pdfjs-dist/build/pdf.worker.min.mjs?url"
+      );
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+
+      const arrayBuffer = await selectedFile.arrayBuffer();
+
+      const pdf = await pdfjsLib.getDocument({
+        data: arrayBuffer,
+      }).promise;
+
+      const page = await pdf.getPage(1);
+
+      const viewport = page.getViewport({ scale: 1.5 });
+
+      const canvas = document.createElement("canvas");
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      const ctx = canvas.getContext("2d");
+
+      await page.render({
+        canvasContext: ctx,
+        viewport,
+      }).promise;
+
+      setPreviewImage(canvas.toDataURL("image/png"));
+    } catch (err) {
+      console.error("Preview error:", err);
+    }
+  };
+
+  generatePreview();
+}, [cropEnabled]);
 
   const validateFile = useCallback(async (selectedFile) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
@@ -118,10 +178,49 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
         await page.render({ canvasContext: context, viewport }).promise;
 
-        const blob = await new Promise((resolve) =>
-          canvas.toBlob(resolve, "image/png"),
-        );
-        results.push({ name: `page-${pageNum}.png`, blob });
+if (cropEnabled) {
+  const croppedCanvas = document.createElement("canvas");
+
+  const sx = (crop.x / 100) * canvas.width;
+  const sy = (crop.y / 100) * canvas.height;
+  const sw = (crop.width / 100) * canvas.width;
+  const sh = (crop.height / 100) * canvas.height;
+
+  croppedCanvas.width = sw;
+  croppedCanvas.height = sh;
+
+  const croppedCtx = croppedCanvas.getContext("2d");
+
+  croppedCtx.drawImage(
+    canvas,
+    sx,
+    sy,
+    sw,
+    sh,
+    0,
+    0,
+    sw,
+    sh
+  );
+
+  const blob = await new Promise((resolve) =>
+    croppedCanvas.toBlob(resolve, "image/png")
+  );
+
+  results.push({
+    name: `page-${pageNum}.png`,
+    blob,
+  });
+} else {
+  const blob = await new Promise((resolve) =>
+    canvas.toBlob(resolve, "image/png")
+  );
+
+  results.push({
+    name: `page-${pageNum}.png`,
+    blob,
+  });
+}
       }
 
       if (results.length === 1) {
@@ -238,6 +337,17 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
             <span>Ultra (5x)</span>
           </div>
         </div>
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 font-medium">
+            <input
+            type="checkbox"
+            checked={cropEnabled}
+            onChange={(e) => setCropEnabled(e.target.checked)}
+            />
+            Enable Crop Tool
+          </label>
+        </div>
+        
         
         <div className="space-y-3">
           <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider block">
@@ -313,6 +423,23 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
               </p>
             </div>
           )}
+          {previewImage && cropEnabled && (
+  <div className="mt-6">
+    <h3 className="font-semibold mb-3">
+      Select Area To Convert
+    </h3>
+
+    <ReactCrop
+      crop={crop}
+      onChange={(c) => setCrop(c)}
+    >
+      <img
+        src={previewImage}
+        alt="PDF Preview"
+      />
+    </ReactCrop>
+  </div>
+)}
         </div>
       </div>
     );
