@@ -1,5 +1,156 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --color-app-bg: #f8fafc;
+  --color-app-surface: #ffffff;
+  --color-app-surface-muted: #f8fafc;
+  --color-app-surface-soft: #eff6ff;
+  --color-app-border: #e2e8f0;
+  --color-app-border-strong: #c7d2fe;
+  --color-app-text: #111827;
+  --color-app-text-muted: #475569;
+  --color-app-text-subtle: #64748b;
+  --color-app-primary: #4361ee;
+  --color-app-primary-hover: #3b82f6;
+  --color-app-focus: rgb(67 97 238 / 0.18);
+  --shadow-app-card: 0 10px 30px rgb(15 23 42 / 0.08);
+}
+
+.dark {
+  --color-app-bg: #0f172a;
+  --color-app-surface: #111827;
+  --color-app-surface-muted: #1f2937;
+  --color-app-surface-soft: #172554;
+  --color-app-border: #334155;
+  --color-app-border-strong: #475569;
+  --color-app-text: #f8fafc;
+  --color-app-text-muted: #cbd5e1;
+  --color-app-text-subtle: #94a3b8;
+  --color-app-primary: #60a5fa;
+  --color-app-primary-hover: #93c5fd;
+  --color-app-focus: rgb(96 165 250 / 0.28);
+  --shadow-app-card: 0 18px 45px rgb(0 0 0 / 0.28);
+}
+
+@layer components {
+  .theme-page {
+    background: var(--color-app-bg);
+    color: var(--color-app-text);
+  }
+
+  .theme-panel {
+    background: linear-gradient(135deg, var(--color-app-surface-muted), var(--color-app-surface));
+    border: 1px solid var(--color-app-border);
+    color: var(--color-app-text);
+    box-shadow: var(--shadow-app-card);
+  }
+
+  .theme-card {
+    background: var(--color-app-surface);
+    border: 1px solid var(--color-app-border);
+    color: var(--color-app-text);
+  }
+
+  .theme-field {
+    background: var(--color-app-surface);
+    border: 1px solid var(--color-app-border);
+    color: var(--color-app-text);
+  }
+
+  .theme-field::placeholder {
+    color: var(--color-app-text-subtle);
+  }
+
+  .theme-muted {
+    color: var(--color-app-text-muted);
+  }
+
+  .theme-subtle {
+    color: var(--color-app-text-subtle);
+  }
+}
+
+@layer utilities {
+  .dark .bg-white,
+  .dark .bg-\[\#fff\],
+  .dark .bg-\[\#ffffff\],
+  .dark .bg-\[\#fafbfc\],
+  .dark .bg-\[\#f8fafc\],
+  .dark .bg-\[\#f9fafb\],
+  .dark .bg-\[\#f1f5f9\],
+  .dark .bg-slate-50,
+  .dark .bg-gray-50,
+  .dark .bg-white\/50,
+  .dark .bg-slate-50\/50,
+  .dark .bg-slate-50\/30,
+  .dark .bg-slate-50\/10 {
+    background-color: var(--color-app-surface) !important;
+  }
+
+  .dark .bg-\[rgba\(239\,246\,255\,0\.6\)\],
+  .dark .bg-\[rgba\(239\,246\,255\,0\.8\)\],
+  .dark .bg-\[\#ebf5ff\],
+  .dark .bg-\[\#eff6ff\],
+  .dark .bg-blue-50,
+  .dark .bg-sky-50 {
+    background-color: var(--color-app-surface-soft) !important;
+  }
+
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-gray-300,
+  .dark .border-slate-100,
+  .dark .border-slate-200,
+  .dark .border-slate-300,
+  .dark .border-\[\#e2e8f0\],
+  .dark .border-\[\#e5e7eb\],
+  .dark .border-\[\#d1d5db\],
+  .dark .border-\[\#c7d2fe\] {
+    border-color: var(--color-app-border) !important;
+  }
+
+  .dark .text-\[\#1a1a2e\],
+  .dark .text-\[\#111827\],
+  .dark .text-\[\#334155\],
+  .dark .text-\[\#475569\],
+  .dark .text-black,
+  .dark .text-gray-600,
+  .dark .text-gray-700,
+  .dark .text-gray-800,
+  .dark .text-gray-900,
+  .dark .text-slate-600,
+  .dark .text-slate-700,
+  .dark .text-slate-800,
+  .dark .text-slate-900 {
+    color: var(--color-app-text) !important;
+  }
+
+  .dark .text-\[\#4b5563\],
+  .dark .text-\[\#6b7280\],
+  .dark .text-\[\#64748b\],
+  .dark .text-\[\#94a3b8\],
+  .dark .text-gray-400,
+  .dark .text-gray-500,
+  .dark .text-slate-400,
+  .dark .text-slate-500 {
+    color: var(--color-app-text-muted) !important;
+  }
+
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: var(--color-app-surface) !important;
+    border-color: var(--color-app-border) !important;
+    color: var(--color-app-text) !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: var(--color-app-text-subtle) !important;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }

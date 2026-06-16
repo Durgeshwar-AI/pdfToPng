@@ -142,12 +142,12 @@ function PdfToText() {
   };
 
   return (
-    <div className="w-full max-w-[750px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-      <h1 className="mb-10 text-[#1a1a2e] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
+    <div className="w-full max-w-[750px] mx-auto p-10 text-center flex flex-col justify-center items-center theme-panel rounded-2xl overflow-hidden">
+      <h1 className="mb-10 text-[var(--color-app-text)] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         PDF to Text
       </h1>
 
-      <p className="text-gray-500 text-sm mb-8 -mt-6">
+      <p className="theme-muted text-sm mb-8 -mt-6">
         Extract raw text content from digital/selectable PDF documents client-side.
       </p>
 
@@ -172,9 +172,9 @@ function PdfToText() {
         />
 
         {file && !loading && extractedText && (
-          <div className="w-full mb-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm text-left animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="w-full mb-6 theme-card rounded-xl p-6 shadow-sm text-left animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="flex justify-between items-center mb-4">
-              <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <p className="text-sm font-semibold text-[var(--color-app-text)] flex items-center gap-2">
                 <Type className="w-4 h-4 text-[#4361ee]" />
                 Extracted Text Preview
               </p>
@@ -185,7 +185,7 @@ function PdfToText() {
                   className={`text-xs px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1 transition-all cursor-pointer ${
                     copied
                       ? "bg-green-50 border-green-200 text-green-600"
-                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      : "theme-card theme-muted hover:bg-[var(--color-app-surface-muted)] hover:text-[var(--color-app-text)]"
                   }`}
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -194,7 +194,7 @@ function PdfToText() {
                 <button
                   type="button"
                   onClick={handleDownloadText}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 font-semibold flex items-center gap-1 hover:bg-gray-50 hover:text-gray-900 transition-all cursor-pointer"
+                  className="text-xs px-3 py-1.5 rounded-lg theme-card theme-muted font-semibold flex items-center gap-1 hover:bg-[var(--color-app-surface-muted)] hover:text-[var(--color-app-text)] transition-all cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Download .txt
@@ -203,7 +203,7 @@ function PdfToText() {
             </div>
 
             {/* Scrollable Text Box */}
-            <div className="w-full max-h-[300px] overflow-y-auto bg-slate-50 border border-slate-200 rounded-lg p-4 font-mono text-sm text-[#1a1a2e] whitespace-pre-wrap select-text">
+            <div className="w-full max-h-[300px] overflow-y-auto bg-[var(--color-app-surface-muted)] border border-[var(--color-app-border)] rounded-lg p-4 font-mono text-sm text-[var(--color-app-text)] whitespace-pre-wrap select-text">
               {extractedText}
             </div>
 
@@ -226,7 +226,7 @@ function PdfToText() {
                 ? "text-red-500"
                 : statusMessage.toLowerCase().includes("success") || statusMessage.toLowerCase().includes("copied")
                 ? "text-green-600"
-                : "text-[#4b5563]"
+                : "theme-muted"
             }`}
           >
             {(statusMessage.toLowerCase().includes("success") || statusMessage.toLowerCase().includes("copied")) && (

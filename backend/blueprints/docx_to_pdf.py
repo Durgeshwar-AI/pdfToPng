@@ -1,5 +1,6 @@
 from io import BytesIO
 import traceback
+from xml.sax.saxutils import escape
 
 from flask import Blueprint, request
 from docx import Document
@@ -49,7 +50,8 @@ def convert_docx_to_pdf():
                 story.append(Spacer(1, 6))
                 continue
             # Use Paragraph to support simple wrapping
-            story.append(Paragraph(text.replace("\n", "<br/>"), normal))
+            safe_text = escape(text)
+            story.append(Paragraph(safe_text.replace("\n", "<br/>"), normal))
             story.append(Spacer(1, 6))
 
         # If no content, return an error

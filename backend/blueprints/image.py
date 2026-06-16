@@ -68,84 +68,111 @@ def _convert_alpha_to_rgb(img):
 @validate_mime('png')  # ✅ Added MIME validation
 @process_image_request
 def convert_to_webp(img, filename, file_bytes):
-    if img.mode not in ("RGB", "RGBA"):
-        img = img.convert("RGBA")
+    buf = None
+    try:
+        if img.mode not in ("RGB", "RGBA"):
+            img = img.convert("RGBA")
 
-    buf = BytesIO()
-    img.save(buf, format="WEBP", quality=85, method=6)
-    buf.seek(0)
-    data = buf.getvalue()
+        buf = BytesIO()
+        img.save(buf, format="WEBP", quality=85, method=6)
+        buf.seek(0)
+        data = buf.getvalue()
 
-    base = os.path.splitext(filename)[0]
+        base = os.path.splitext(filename)[0]
 
-    return send_file_and_cleanup(
-        data,
-        mimetype="image/webp",
-        as_attachment=True,
-        download_name=f"{base}.webp",
-    )
-
+        return send_file_and_cleanup(
+            data,
+            mimetype="image/webp",
+            as_attachment=True,
+            download_name=f"{base}.webp",
+        )
+    finally:
+        if buf:
+            try:
+                buf.close()
+            except Exception:
+                pass
 
 @image_bp.route("/upscale", methods=["POST"])
 @validate_mime('png')  # ✅ Added MIME validation
 @process_image_request
 def upscale_image(img, filename, file_bytes):
-    scale_factor = request.form.get("scale", 2, type=int)
+    buf = None
+    upscaled = None
+    try:
+        scale_factor = request.form.get("scale", 2, type=int)
 
-    # Limit scale factor
-    scale_factor = max(1, min(4, scale_factor))
+        # Limit scale factor
+        scale_factor = max(1, min(4, scale_factor))
 
-    # Upscale using LANCZOS (High quality)
-    new_size = (img.width * scale_factor, img.height * scale_factor)
-    upscaled = img.resize(new_size, resample=Image.Resampling.LANCZOS)
+        # Upscale using LANCZOS (High quality)
+        new_size = (img.width * scale_factor, img.height * scale_factor)
+        upscaled = img.resize(new_size, resample=Image.Resampling.LANCZOS)
 
-    # Apply Sharpness Enhancement
-    enhancer = ImageEnhance.Sharpness(upscaled)
-    upscaled = enhancer.enhance(1.5)
+        # Apply Sharpness Enhancement
+        enhancer = ImageEnhance.Sharpness(upscaled)
+        upscaled = enhancer.enhance(1.5)
 
-    buf = BytesIO()
-    upscaled.save(buf, format="PNG", optimize=True)
-    buf.seek(0)
+        buf = BytesIO()
+        upscaled.save(buf, format="PNG", optimize=True)
+        buf.seek(0)
 
-    data = buf.getvalue()
+        data = buf.getvalue()
 
-    base = os.path.splitext(filename)[0]
+        base = os.path.splitext(filename)[0]
 
-    return send_file_and_cleanup(
-        data,
-        mimetype="image/png",
-        as_attachment=True,
-        download_name=f"{base}_upscaled_{scale_factor}x.png",
-    )
-
-
+        return send_file_and_cleanup(
+            data,
+            mimetype="image/png",
+            as_attachment=True,
+            download_name=f"{base}_upscaled_{scale_factor}x.png",
+        )
+    finally:
+        if buf:
+            try:
+                buf.close()
+            except Exception:
+                pass
+        if upscaled and upscaled is not img:
+            try:
+                upscaled.close()
+            except Exception:
+                pass
 @image_bp.route("/convertJpeg", methods=["POST"])
 @validate_mime('jpg')  # ✅ Added MIME validation
 @process_image_request
 def convert_to_jpeg(img, filename, file_bytes):
-    if img.mode != "RGB":
-        img = img.convert("RGB")
+    buf = None
+    try:
+        if img.mode != "RGB":
+            img = img.convert("RGB")
 
-    buf = BytesIO()
-    img.save(buf, format="JPEG", quality=90, optimize=True)
-    buf.seek(0)
-    data = buf.getvalue()
+        buf = BytesIO()
+        img.save(buf, format="JPEG", quality=90, optimize=True)
+        buf.seek(0)
+        data = buf.getvalue()
 
-    base = os.path.splitext(filename)[0]
+        base = os.path.splitext(filename)[0]
 
-    return send_file_and_cleanup(
-        data,
-        mimetype="image/jpeg",
-        as_attachment=True,
-        download_name=f"{base}.jpg",
-    )
-
+        return send_file_and_cleanup(
+            data,
+            mimetype="image/jpeg",
+            as_attachment=True,
+            download_name=f"{base}.jpg",
+        )
+    finally:
+        if buf:
+            try:
+                buf.close()
+            except Exception:
+                pass
 
 @image_bp.route("/convertGrayscale", methods=["POST"])
 @validate_mime('png')  # ✅ Added MIME validation
 def convert_to_grayscale():
     img = None
     grayscale_img = None
+    buf = None 
 
     try:
         file, filename, upload_error = validate_uploaded_file(
@@ -195,12 +222,18 @@ def convert_to_grayscale():
                 img.close()
             except Exception:
                 pass
+        if buf:  
+            try:
+                buf.close()
+            except Exception:
+                pass
 
 
 @image_bp.route("/compress", methods=["POST"])
 @validate_mime('jpg')  # ✅ Added MIME validation
 def compress_image():
     img = None
+    buf = None
 
     try:
         file, filename, upload_error = validate_uploaded_file(
@@ -265,43 +298,47 @@ def compress_image():
                 img.close()
             except Exception:
                 pass
-
-
+        if buf:
+            try:
+                buf.close()
+            except Exception:
+                pass
 @image_bp.route("/resizeImage", methods=["POST"])
 @validate_mime('jpg')  # ✅ Added MIME validation
 @process_image_request
 def resize_image(img, filename, file_bytes):
-    unit = request.form.get("unit", "px").lower()
-    if unit not in {"px", "mm", "cm"}:
-        raise ValueError("unit must be one of: px, mm, cm")
-
-    maintain_aspect_ratio = (
-        request.form.get("maintainAspectRatio", "false").lower() == "true"
-    )
-
-    original_ext = os.path.splitext(filename)[1].lower()
-    format_map = {
-        "PNG": ("PNG", "image/png", ".png"),
-        "JPEG": ("JPEG", "image/jpeg", ".jpg"),
-        "WEBP": ("WEBP", "image/webp", ".webp"),
-    }
-
-    if img.format not in format_map:
-        raise ValueError("Unsupported image format. Please use PNG, JPG, JPEG, or WEBP.")
-
-    width = _convert_to_pixels(request.form.get("width"), unit, "width")
-    if maintain_aspect_ratio:
-        height = round(width * img.height / img.width)
-        if height <= 0:
-            raise ValueError("Calculated height must be a positive pixel value")
-    else:
-        height = _convert_to_pixels(request.form.get("height"), unit, "height")
-
-    output_format, mimetype, default_ext = format_map[img.format]
-    output_ext = original_ext if original_ext in {".png", ".jpg", ".jpeg", ".webp"} else default_ext
-
+    buf = None
     resized_img = None
     try:
+        unit = request.form.get("unit", "px").lower()
+        if unit not in {"px", "mm", "cm"}:
+            raise ValueError("unit must be one of: px, mm, cm")
+
+        maintain_aspect_ratio = (
+            request.form.get("maintainAspectRatio", "false").lower() == "true"
+        )
+
+        original_ext = os.path.splitext(filename)[1].lower()
+        format_map = {
+            "PNG": ("PNG", "image/png", ".png"),
+            "JPEG": ("JPEG", "image/jpeg", ".jpg"),
+            "WEBP": ("WEBP", "image/webp", ".webp"),
+        }
+
+        if img.format not in format_map:
+            raise ValueError("Unsupported image format. Please use PNG, JPG, JPEG, or WEBP.")
+
+        width = _convert_to_pixels(request.form.get("width"), unit, "width")
+        if maintain_aspect_ratio:
+            height = round(width * img.height / img.width)
+            if height <= 0:
+                raise ValueError("Calculated height must be a positive pixel value")
+        else:
+            height = _convert_to_pixels(request.form.get("height"), unit, "height")
+
+        output_format, mimetype, default_ext = format_map[img.format]
+        output_ext = original_ext if original_ext in {".png", ".jpg", ".jpeg", ".webp"} else default_ext
+
         if output_format == "JPEG":
             resized_img = _convert_alpha_to_rgb(img.resize((width, height), Image.Resampling.LANCZOS))
         else:
@@ -311,11 +348,26 @@ def resize_image(img, filename, file_bytes):
         resized_img.save(buf, format=output_format)
         buf.seek(0)
         data = buf.getvalue()
+
+        base = os.path.splitext(filename)[0] or "image"
+
+        return send_file_and_cleanup(
+            data,
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=f"{base}_resized{output_ext}",
+        )
     finally:
+        if buf:
+            try:
+                buf.close()
+            except Exception:
+                pass
         if resized_img and resized_img is not img:
             try:
                 resized_img.close()
             except Exception:
+
                 pass
 
     base = os.path.splitext(filename)[0] or "image"
@@ -326,3 +378,5 @@ def resize_image(img, filename, file_bytes):
         as_attachment=True,
         download_name=f"{base}_resized{output_ext}",
     )
+
+                pass

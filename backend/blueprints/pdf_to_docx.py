@@ -36,7 +36,7 @@ def convert_pdf_to_docx():
             text = page.get_text("text")
 
             if not text.strip():
-                return error("PDF appears scanned or contains no extractable text")
+                continue
 
             word_doc.add_paragraph(text)
 
