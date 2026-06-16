@@ -184,8 +184,8 @@ const UrlToQr = () => {
   };
 
   return (
-    <div className="w-full max-w-[1000px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-linear-to-br from-[#f6f8fa] to-white dark:from-[#0f172a] dark:to-[#111827] dark:border dark:border-slate-700 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
-      <h1 className="mb-4 text-[#1a1a2e] text-5xl font-bold tracking-tight">
+    <div className="w-full max-w-[1000px] mx-auto p-6 md:p-10 text-center flex flex-col items-center theme-panel rounded-2xl overflow-hidden">
+      <h1 className="mb-4 text-[var(--color-app-text)] text-5xl font-bold tracking-tight">
         URL to QR Code
       </h1>
 

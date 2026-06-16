@@ -269,18 +269,18 @@ const transformAndDownload = async () => {
   const scopeLabel = scope === "all" ? "All" : "Selected";
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-gradient-to-br from-gray-50 to-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="w-full max-w-[1100px] mx-auto p-6 md:p-10 text-center flex flex-col items-center theme-panel rounded-3xl overflow-hidden">
       <Toaster position="top-right" richColors />
 
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4 text-[#1a1a2e] text-5xl font-extrabold tracking-tight"
+        className="mb-4 text-[var(--color-app-text)] text-5xl font-extrabold tracking-tight"
       >
         PDF Rotate & Flip
       </motion.h1>
 
-      <p className="text-slate-500 mb-10 max-w-xl text-base leading-relaxed">
+      <p className="theme-muted mb-10 max-w-xl text-base leading-relaxed">
         Easily adjust the orientation of your PDF documents. Reorder pages, rotate or flip specific ranges.
       </p>
 
@@ -302,8 +302,8 @@ const transformAndDownload = async () => {
             className={cn(
               "w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300",
               isDragging
-                ? "border-[#4361ee] bg-blue-50 scale-[1.03] shadow-lg"
-                : "border-slate-200 bg-slate-50/50 hover:border-[#4361ee] hover:bg-white hover:shadow-xl"
+                ? "border-[var(--color-app-primary)] bg-[var(--color-app-surface-soft)] scale-[1.03] shadow-lg"
+                : "border-[var(--color-app-border)] bg-[var(--color-app-surface-muted)] hover:border-[var(--color-app-primary)] hover:bg-[var(--color-app-surface)] hover:shadow-xl"
             )}
           >
             <input
@@ -320,7 +320,7 @@ const transformAndDownload = async () => {
                   <FileText size={24} />
                 </div>
                 <div>
-                  <p className="text-[#1a1a2e] font-bold text-sm truncate max-w-[200px]">
+                  <p className="text-[var(--color-app-text)] font-bold text-sm truncate max-w-[200px]">
                     {file.name}
                   </p>
                   <p className="text-slate-500 text-xs">{totalPages} pages</p>
@@ -343,7 +343,7 @@ const transformAndDownload = async () => {
                 <div className="mx-auto w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
                   <Upload size={24} />
                 </div>
-                <p className="text-[#1a1a2e] font-bold text-sm">
+                <p className="text-[var(--color-app-text)] font-bold text-sm">
                   Click or drag & drop a PDF
                 </p>
               </div>
@@ -351,7 +351,7 @@ const transformAndDownload = async () => {
           </div>
 
           {previews.length > 0 && (
-            <div className="w-full bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+            <div className="w-full theme-card rounded-3xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-[#1a12e] uppercase tracking-wider">
                   <Eye size={16} />Preview & Reorder
@@ -383,7 +383,7 @@ const transformAndDownload = async () => {
                   <div
                     key={item.originalPageNum}
                     className={cn(
-                      "relative group bg-white border rounded-2xl p-2 transition-all hover:shadow-lg cursor-pointer",
+                      "relative group theme-card rounded-2xl p-2 transition-all hover:shadow-lg cursor-pointer",
                       selectedPreviewPages.includes(item.originalPageNum)
                         ? "border-[#4361ee] ring-2 ring-blue-100"
                         : "border-slate-100"
@@ -462,8 +462,8 @@ const transformAndDownload = async () => {
 
         {/* Right Panel */}
         <div className="space-y-6">
-          <div className="w-full bg-white border border-gray-200 rounded-3xl p-8 shadow-sm text-left">
-            <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider mb-6">
+          <div className="w-full theme-card rounded-3xl p-8 shadow-sm text-left">
+            <div className="flex items-center gap-2 text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider mb-6">
               <RefreshCcw size={16} />Actions
             </div>
 
@@ -479,8 +479,8 @@ const transformAndDownload = async () => {
                   className={cn(
                     "group relative flex flex-col items-center justify-center gap-3 p-6 rounded-3xl border-2 transition-all duration-300",
                     file && !loading
-                      ? "border-slate-50 bg-slate-50/30 text-[#1a1a2e] hover:border-[#4361ee] hover:bg-white hover:shadow-2xl active:scale-95"
-                      : "border-slate-50 bg-slate-50/10 text-slate-300 cursor-not-allowed opacity-40"
+                      ? "border-[var(--color-app-border)] bg-[var(--color-app-surface-muted)] text-[var(--color-app-text)] hover:border-[var(--color-app-primary)] hover:bg-[var(--color-app-surface)] hover:shadow-2xl active:scale-95"
+                      : "border-[var(--color-app-border)] bg-[var(--color-app-surface-muted)] theme-subtle cursor-not-allowed opacity-40"
                   )}
                   aria-label={label}
                 >
@@ -549,7 +549,7 @@ const transformAndDownload = async () => {
             )}
 
             {resultUrl && !loading && (
-              <div className="mt-4 p-5 bg-[#f0f9ff] border border-blue-100 rounded-2xl space-y-4">
+              <div className="mt-4 p-5 bg-[var(--color-app-surface-soft)] border border-[var(--color-app-border)] rounded-2xl space-y-4">
                 <div className="flex items-center gap-2 text-blue-700 text-xs font-bold uppercase">
                   <CheckCircle2 size={16} />
                   Ready for download
