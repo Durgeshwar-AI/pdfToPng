@@ -65,6 +65,7 @@ def create_app():
     from blueprints.compress_pdf import compress_pdf_bp
     from blueprints.protect_pdf import protect_pdf_bp
     from blueprints.unlock_pdf import unlock_pdf_bp
+    from blueprints.searchable_pdf_ocr import searchable_pdf_ocr_bp
 
     app.register_blueprint(pdf_bp)
     app.register_blueprint(pdf_docx_bp)
@@ -82,5 +83,6 @@ def create_app():
     app.register_blueprint(compress_pdf_bp)
     app.register_blueprint(protect_pdf_bp)
     app.register_blueprint(unlock_pdf_bp)
+    app.register_blueprint(searchable_pdf_ocr_bp)
 
     return app
