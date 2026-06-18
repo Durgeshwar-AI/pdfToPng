@@ -2,9 +2,10 @@ import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
 import ScrollToTop from "./components/ScrollToTop";
-
+import DependencyWarning from './components/DependencyWarning';
 import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
+import PdfExtractImages from './pages/PdfExtractImages';
 
 const UrlToQr = lazy(() => import("./pages/UrlToQr"));
 
@@ -60,6 +61,8 @@ function App() {
           {/* The Landing Page has its own clean view */}
           <Route path="/" element={<LandingPage />} />
 
+          <Route path="/pdf/extract-images" element={<PdfExtractImages />} />
+
           {/* Informational pages (Navbar + Footer wrapper, no tool sidebar) */}
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />
@@ -108,6 +111,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
+      <DependencyWarning />
     </ErrorBoundary>
   );
 }

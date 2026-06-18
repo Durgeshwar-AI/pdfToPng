@@ -360,7 +360,18 @@ const tools = [
     path: "/url-to-qr",
     gradient: "from-emerald-500/10 to-green-500/10",
     iconGradient: "from-emerald-500 to-green-500",
-  }
+  },
+  
+{
+  id: 'pdf-extract-images',
+  name: 'Extract PDF Images',
+  category: 'PDF Tools',
+  description: 'Extract all embedded images from PDF files',
+  icon: '🖼️',
+  path: '/pdf/extract-images',
+  component: lazy(() => import('../pages/PdfExtractImages')),
+  comingSoon: false,
+},
 
 ];
 
