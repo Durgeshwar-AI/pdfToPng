@@ -5,6 +5,7 @@ import ScrollToTop from "./components/ScrollToTop";
 
 import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
+import PdfExtractImages from './pages/PdfExtractImages';
 
 const UrlToQr = lazy(() => import("./pages/UrlToQr"));
 
@@ -59,6 +60,8 @@ function App() {
         <Routes>
           {/* The Landing Page has its own clean view */}
           <Route path="/" element={<LandingPage />} />
+
+          <Route path="/pdf/extract-images" element={<PdfExtractImages />} />
 
           {/* Informational pages (Navbar + Footer wrapper, no tool sidebar) */}
           <Route path="/about" element={<About />} />
