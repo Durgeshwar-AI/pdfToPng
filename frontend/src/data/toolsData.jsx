@@ -360,6 +360,17 @@ const tools = [
     path: "/url-to-qr",
     gradient: "from-emerald-500/10 to-green-500/10",
     iconGradient: "from-emerald-500 to-green-500",
+  },
+  {
+    id: "pdf-to-word",
+    name: "PDF to Word",
+    category: "Conversion Tools",
+    icon: <FileText />,
+    description:
+      "Convert text-based PDF documents into editable Word (.docx) files.",
+    path: "/pdf-to-word",
+    gradient: "from-blue-500/10 to-sky-500/10",
+    iconGradient: "from-blue-500 to-sky-500",
   }
 
 ];
