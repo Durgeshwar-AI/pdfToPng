@@ -24,6 +24,11 @@ def add_watermark():
     - scale: scale percentage for image watermark (default: 20)
     """
     
+    output = None
+    img = None
+    watermark_layer = None
+    result_img = None
+    
     try:
         # Validate inputs
         if 'image' not in request.files:
@@ -91,8 +96,33 @@ def add_watermark():
     
     except Exception as e:
         return {'error': str(e)}, 500
-
-
+    
+    finally:
+        # Clean up buffer
+        if output:
+            try:
+                output.close()
+            except Exception:
+                pass
+        
+        # Clean up images
+        if img:
+            try:
+                img.close()
+            except Exception:
+                pass
+        
+        if watermark_layer and watermark_layer is not img:
+            try:
+                watermark_layer.close()
+            except Exception:
+                pass
+        
+        if result_img and result_img is not img and result_img is not watermark_layer:
+            try:
+                result_img.close()
+            except Exception:
+                pass
 def create_text_watermark(text, font_size, color, opacity):
     """Create a text-based watermark layer"""
     try:
