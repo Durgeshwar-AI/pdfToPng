@@ -37,6 +37,7 @@ export default function PdfReorder() {
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
   const [pageLimitWarning, setPageLimitWarning] = useState(false);
+  const [deletedPages, setDeletedPages] = useState([]);
 
   // Refs
   const inputRef = useRef(null);
@@ -86,6 +87,7 @@ export default function PdfReorder() {
     setError(null);
     setPages([]);
     setPageLimitWarning(false);
+    setDeletedPages([]);
 
     try {
       const bytes = await f.arrayBuffer();
@@ -141,7 +143,33 @@ export default function PdfReorder() {
   };
 
   const deletePage = (index) => {
+    const deletedPage = pages[index];
+
+    setDeletedPages((prev) => [
+      ...prev,
+      {
+        page: deletedPage,
+        index,
+      },
+    ]);
+
     setPages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  //Undo Function
+
+  const undoDelete = () => {
+    if (deletedPages.length === 0) return;
+
+    const lastDeleted = deletedPages[deletedPages.length - 1];
+
+    setPages((prev) => {
+      const next = [...prev];
+      next.splice(lastDeleted.index, 0, lastDeleted.page);
+      return next;
+    });
+
+    setDeletedPages((prev) => prev.slice(0, -1));
   };
 
   const resetOrder = () => {
@@ -258,6 +286,7 @@ export default function PdfReorder() {
                     setFile(null);
                     setPages([]);
                     setPageLimitWarning(false);
+                    setDeletedPages([]);
                   }}
                   className="ml-4 p-2 text-red-500 hover:bg-red-100 rounded-full"
                   aria-label="Remove file"
@@ -296,6 +325,13 @@ export default function PdfReorder() {
                   className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white uppercase transition-colors"
                 >
                   Reset Order
+                </button>
+                <button
+                  onClick={undoDelete}
+                  disabled={deletedPages.length === 0}
+                  className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white uppercase transition-colors disabled:opacity-50"
+                >
+                  Undo Delete
                 </button>
               </div>
 
