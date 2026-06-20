@@ -260,11 +260,11 @@ if (cropEnabled) {
         a.href = url;
         a.download = file.name.replace(/\.pdf$/i, ".png");
         document.body.appendChild(a);
-        a.click();
+        // a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         toastDismiss(loadingToastId);
-        toastSuccess("Your PNG file has been downloaded successfully!");
+        // toastSuccess("Your PNG file has been downloaded successfully!");
       } else {
         setStatusMessage("Packaging files into ZIP…");
         results.forEach((res) => zip.file(res.name, res.blob));
@@ -274,14 +274,14 @@ if (cropEnabled) {
         a.href = url;
         a.download = `${file.name.replace(/\.pdf$/i, "")}_pages.zip`;
         document.body.appendChild(a);
-        a.click();
+        // a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         setStatusMessage("");
         toastDismiss(loadingToastId);
-        toastSuccess(
-          `ZIP file with ${results.length} pages downloaded successfully!`,
-        );
+        // toastSuccess(
+        //   `ZIP file with ${results.length} pages downloaded successfully!`,
+        // );
       }
     } catch (error) {
       console.error("Client-side conversion error:", error);
@@ -320,12 +320,12 @@ if (cropEnabled) {
           a.href = downloadUrl;
           a.download = file.name.replace(/\.pdf$/i, ".png");
           document.body.appendChild(a);
-          a.click();
+          // a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(downloadUrl);
           setStatusMessage("");
           toastDismiss(serverLoadingId);
-          toastSuccess("PNG downloaded via server fallback!");
+          // toastSuccess("PNG downloaded via server fallback!");
         } else {
           const msg = response
             ? await parseApiError(null, response)
