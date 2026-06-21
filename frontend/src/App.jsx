@@ -4,6 +4,7 @@ import "./App.css";
 import ScrollToTop from "./components/ScrollToTop";
 
 import Layout from "./components/Layout/Layout";
+import CookieBanner from "./components/CookieBanner";
 import ErrorBoundary from "./ErrorBoundary";
 
 const UrlToQr = lazy(() => import("./pages/UrlToQr"));
