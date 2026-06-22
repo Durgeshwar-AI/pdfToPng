@@ -1,22 +1,32 @@
+import os
+import gc
+from io import BytesIO
+from flask import send_file, jsonify, after_this_request
+
+
+def error(message, status_code=400):
+    return jsonify({"error": message}), status_code
+
+
+def safe_gc_collect():
+    try:
+        gc.collect()
+    except Exception:
+        pass
+
+
 def send_file_and_cleanup(filename, **kwargs):
     """
     Sends a file and deletes it after the request is completed.
     Also forces garbage collection for large responses.
     """
-    # Support bytes or file-like objects to avoid touching disk
     try:
-        from io import BytesIO
-
-        # If raw bytes are passed, wrap in BytesIO and send directly
         if isinstance(filename, (bytes, bytearray)):
             bio = BytesIO(filename)
             bio.seek(0)
             response = send_file(bio, **kwargs)
-            
-            # Force garbage collection after response
             safe_gc_collect()
-            
-            # Close the buffer after response
+
             @after_this_request
             def cleanup_buffer(response):
                 try:
@@ -25,10 +35,9 @@ def send_file_and_cleanup(filename, **kwargs):
                     pass
                 safe_gc_collect()
                 return response
-            
+
             return response
 
-        # If a file-like object is passed, ensure it's at start and send
         if hasattr(filename, "read"):
             try:
                 filename.seek(0)
@@ -38,7 +47,6 @@ def send_file_and_cleanup(filename, **kwargs):
             safe_gc_collect()
             return response
 
-        # Otherwise treat as a filesystem path and schedule cleanup
         filepath = filename
 
         @after_this_request
@@ -54,9 +62,8 @@ def send_file_and_cleanup(filename, **kwargs):
         response = send_file(filepath, **kwargs)
         safe_gc_collect()
         return response
-        
+
     except Exception:
-        # Fallback: attempt to send as path
         try:
             response = send_file(filename, **kwargs)
             safe_gc_collect()
