@@ -41,6 +41,7 @@ const PdfCompress = lazy(() => import("./pages/PdfCompress"));
 const PdfUnlock = lazy(() => import("./pages/PdfUnlock"));
 const PdfMetadata = lazy(() => import("./pages/PdfMetadata"));
 const PdfToText = lazy(() => import("./pages/PdfToText"));
+const PdfSearchableOCR = lazy(() => import("./pages/PdfSearchableOCR"));
 const PdfInfo = lazy(() => import("./pages/PdfInfo"));
 const PdfPageNumber = lazy(() => import("./pages/PdfPageNumber"));
 const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
@@ -85,6 +86,7 @@ function App() {
             <Route path="/pdf-unlock" element={<PdfUnlock />} />
             <Route path="/pdf-metadata" element={<PdfMetadata />} />
             <Route path="/pdf-to-text" element={<PdfToText />} />
+            <Route path="/pdf-searchable-ocr" element={<PdfSearchableOCR />} />
             <Route path="/pdf-info" element={<PdfInfo />} />
             <Route path="/pdf-page-number" element={<PdfPageNumber />} />
 

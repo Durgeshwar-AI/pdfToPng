@@ -1,6 +1,7 @@
 import React from "react";
 import {
   FileText,
+  FileSearch,
   Image,
   FileImage,
   Eraser,
