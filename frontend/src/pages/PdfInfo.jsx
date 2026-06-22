@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
+import { toastError, toastLoading, toastDismiss } from "../utils/toast";
 import {
   FileText,
   Copy,
@@ -67,8 +68,6 @@ function PdfInfo() {
     loading,
     setLoading,
     isDragging,
-    statusMessage,
-    setStatusMessage,
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -83,7 +82,6 @@ function PdfInfo() {
   const handleClearAll = (e) => {
     handleClear(e);
     setInfo(null);
-    setStatusMessage("");
   };
 
   const handleCopyPageCount = () => {
@@ -97,14 +95,13 @@ function PdfInfo() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      setStatusMessage("Please select a PDF file first.");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Please select a PDF file first.");
       return;
     }
 
     setLoading(true);
     setInfo(null);
-    setStatusMessage("");
+    const loadingId = toastLoading(`Analysing "${file.name}"…`);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -119,13 +116,14 @@ function PdfInfo() {
 
       if (response.ok && data.success) {
         setInfo(data);
+        toastDismiss(loadingId);
       } else {
-        setStatusMessage(`Error: ${data.error || "Failed to read PDF info."}`);
-        setTimeout(() => setStatusMessage(""), 5000);
+        toastDismiss(loadingId);
+        toastError(data.error || "Failed to read PDF info.");
       }
     } catch (err) {
-      setStatusMessage(`Error: ${err.message || "Could not reach server."}`);
-      setTimeout(() => setStatusMessage(""), 5000);
+      toastDismiss(loadingId);
+      toastError(err.message || "Could not reach server.");
     } finally {
       setLoading(false);
     }
@@ -192,17 +190,6 @@ function PdfInfo() {
           )}
         </button>
 
-        {statusMessage && (
-          <p
-            className={`mt-6 text-[0.95rem] ${
-              statusMessage.toLowerCase().includes("error")
-                ? "text-red-500"
-                : "text-[#4b5563]"
-            }`}
-          >
-            {statusMessage}
-          </p>
-        )}
       </form>
 
       {/* ── Results panel ─────────────────────────────────────────────── */}

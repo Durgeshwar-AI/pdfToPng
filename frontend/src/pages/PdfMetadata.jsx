@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { PDFDocument } from "pdf-lib";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
-import { FileText, Tags, Trash2, Download, CheckCircle, RefreshCw } from "lucide-react";
+import { FileText, Tags, Trash2, Download } from "lucide-react";
+import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
 
 function PdfMetadata() {
   const [metadata, setMetadata] = useState({
@@ -37,8 +38,6 @@ function PdfMetadata() {
     loading,
     setLoading,
     isDragging,
-    statusMessage,
-    setStatusMessage,
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -67,7 +66,7 @@ function PdfMetadata() {
 
     const loadPdfMetadata = async () => {
       setLoading(true);
-      setStatusMessage("Reading document properties...");
+      const loadingId = toastLoading("Reading document properties…");
       try {
         const arrayBuffer = await file.arrayBuffer();
         const pdfDoc = await PDFDocument.load(arrayBuffer);
@@ -81,13 +80,14 @@ function PdfMetadata() {
 
         setMetadata({ title, author, subject, keywords, creator, producer });
         setPdfDocInstance(pdfDoc);
-        setStatusMessage("PDF properties loaded successfully.");
+        toastDismiss(loadingId);
       } catch (err) {
         console.error("Error parsing PDF metadata: ", err);
+        toastDismiss(loadingId);
         if (err.message && err.message.toLowerCase().includes("encrypted")) {
-          setStatusMessage("Error: The uploaded PDF is password protected and cannot be read.");
+          toastError("The uploaded PDF is password protected and cannot be read.");
         } else {
-          setStatusMessage(`Error parsing PDF: ${err.message}`);
+          toastError(`Error parsing PDF: ${err.message}`);
         }
         setPdfDocInstance(null);
       } finally {
@@ -96,7 +96,7 @@ function PdfMetadata() {
     };
 
     loadPdfMetadata();
-  }, [file, setLoading, setStatusMessage]);
+  }, [file, setLoading]);
 
   const handleInputChange = (field, value) => {
     setMetadata((prev) => ({ ...prev, [field]: value }));
@@ -111,7 +111,6 @@ function PdfMetadata() {
       creator: "",
       producer: "",
     });
-    setStatusMessage("Metadata fields cleared.");
   };
 
   const handleClearAll = (e) => {
@@ -125,18 +124,17 @@ function PdfMetadata() {
       producer: "",
     });
     setPdfDocInstance(null);
-    setStatusMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !pdfDocInstance) {
-      setStatusMessage("Please select a valid PDF file first");
+      toastError("Please select a valid PDF file first");
       return;
     }
 
     setIsProcessing(true);
-    setStatusMessage("Applying modifications...");
+    const loadingId = toastLoading("Applying modifications…");
 
     try {
       // Set new metadata properties
@@ -173,9 +171,11 @@ function PdfMetadata() {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      setStatusMessage("Success! Your updated PDF is downloading.");
+      toastDismiss(loadingId);
+      toastSuccess("Your updated PDF has been downloaded!");
     } catch (err) {
-      setStatusMessage(`Error: ${err.message || "Failed to update PDF metadata"}`);
+      toastDismiss(loadingId);
+      toastError(err.message || "Failed to update PDF metadata.");
     } finally {
       setIsProcessing(false);
     }
@@ -324,7 +324,7 @@ function PdfMetadata() {
         >
           {loading || isProcessing ? (
             <>
-              <RefreshCw className="w-5 h-5 animate-spin mr-1" />
+              <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin"></span>
               Processing...
             </>
           ) : (
@@ -335,22 +335,6 @@ function PdfMetadata() {
           )}
         </button>
 
-        {statusMessage && (
-          <p
-            className={`mt-6 text-[0.95rem] flex items-center justify-center gap-2 ${
-              statusMessage.toLowerCase().includes("error")
-                ? "text-red-500"
-                : statusMessage.toLowerCase().includes("success")
-                ? "text-green-600 animate-pulse"
-                : "text-[#4b5563]"
-            }`}
-          >
-            {statusMessage.toLowerCase().includes("success") && (
-              <CheckCircle className="w-4 h-4 shrink-0" />
-            )}
-            {statusMessage}
-          </p>
-        )}
       </form>
     </div>
   );

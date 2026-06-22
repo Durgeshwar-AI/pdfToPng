@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { toastError, toastSuccess, toastLoading, toastDismiss } from "../utils/toast";
 
 const POSITION_OPTIONS = [
   { value: "top-left", label: "Top Left" },
@@ -6,6 +7,7 @@ const POSITION_OPTIONS = [
   { value: "center", label: "Center" },
   { value: "bottom-left", label: "Bottom Left" },
   { value: "bottom-right", label: "Bottom Right" },
+  { value: "diagonal-center", label: "Diagonal Center" }, 
 ];
 
 function ImageWatermark() {
@@ -22,22 +24,16 @@ function ImageWatermark() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [statusType, setStatusType] = useState("info"); // info | success | error
 
   const inputRef = useRef(null);
   const imageInputRef = useRef(null);
 
-  const resetStatus = () => {
-    setStatusMessage("");
-    setStatusType("info");
-  };
+  const resetStatus = () => {};
 
   const handleImageUpload = useCallback((incoming) => {
     const img = Array.from(incoming).find((f) => f.type?.startsWith("image/"));
     if (!img) {
-      setStatusMessage("Only image files are accepted.");
-      setStatusType("error");
+      toastError("Only image files are accepted.");
       return;
     }
 
@@ -81,8 +77,7 @@ function ImageWatermark() {
     if (!imageFile) return;
 
     if (!["image/png", "image/jpeg", "image/jpg"].includes(imageFile.type)) {
-      setStatusMessage("Watermark image must be a PNG or JPG file.");
-      setStatusType("error");
+      toastError("Watermark image must be a PNG or JPG file.");
       return;
     }
 
@@ -92,20 +87,18 @@ function ImageWatermark() {
 
   const applyWatermark = async () => {
     if (!file) {
-      setStatusMessage("Upload an image to add watermark.");
-      setStatusType("error");
+      toastError("Please upload an image first.");
       return;
     }
 
     if (watermarkType === "image" && !watermarkImage) {
-      setStatusMessage("Upload a watermark image to continue.");
-      setStatusType("error");
+      toastError("Please upload a watermark image to continue.");
       return;
     }
 
     resetStatus();
     setIsLoading(true);
-    setStatusType("info");
+    const loadingId = toastLoading("Applying watermark…");
 
     try {
       const formData = new FormData();
@@ -138,14 +131,13 @@ function ImageWatermark() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setStatusMessage("Image watermarked successfully! File downloaded.");
-      setStatusType("success");
+      toastDismiss(loadingId);
+      toastSuccess("Image watermarked and downloaded!");
     } catch (err) {
-      setStatusMessage(`Error: ${err.message}`);
-      setStatusType("error");
+      toastDismiss(loadingId);
+      toastError(`Watermark failed: ${err.message}`);
     } finally {
       setIsLoading(false);
-      setTimeout(() => setStatusMessage(""), 5000);
     }
   };
 
@@ -333,21 +325,6 @@ function ImageWatermark() {
         )}
       </button>
 
-      {!file && (
-        <p className="mt-3 text-xs text-[#4361ee]">Upload an image to add watermark.</p>
-      )}
-
-      {statusMessage && (
-        <p className={`mt-6 text-[0.95rem] ${
-          statusType === "success"
-            ? "text-green-600"
-            : statusType === "error"
-            ? "text-red-500"
-            : "text-[#4b5563]"
-        }`}>
-          {statusMessage}
-        </p>
-      )}
     </div>
   );
 }

@@ -43,6 +43,7 @@ const PdfMetadata = lazy(() => import("./pages/PdfMetadata"));
 const PdfToText = lazy(() => import("./pages/PdfToText"));
 const PdfInfo = lazy(() => import("./pages/PdfInfo"));
 const PdfPageNumber = lazy(() => import("./pages/PdfPageNumber"));
+const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
 
 // Informational pages (linked from the footer)
 const About = lazy(() => import("./pages/About"));
@@ -104,6 +105,8 @@ function App() {
             <Route path="/image-to-base64" element={<ImageBase64 />} />
             <Route path="/md-to-html" element={<MdToHtml />} />
             <Route path="/url-to-qr" element={<UrlToQr />} />
+            <Route path="/csv-to-json" element={<CsvToJson />} />
+
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

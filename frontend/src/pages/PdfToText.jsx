@@ -4,6 +4,7 @@ import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Type, Copy, Download, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
+import { toastError, toastSuccess, toastInfo } from "../utils/toast";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -32,8 +33,6 @@ function PdfToText() {
     loading,
     setLoading,
     isDragging,
-    statusMessage,
-    setStatusMessage,
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -57,7 +56,7 @@ function PdfToText() {
     let cancelled = false;
     const extractText = async () => {
       setLoading(true);
-      setStatusMessage("Parsing document and extracting text...");
+      toastInfo("Parsing document and extracting text…");
       try {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -83,15 +82,15 @@ function PdfToText() {
           setExtractedText(fullText.trim());
           setHasSelectableText(hasAnyText);
           if (hasAnyText) {
-            setStatusMessage("Text extracted successfully.");
+            toastSuccess("Text extracted successfully.");
           } else {
-            setStatusMessage("Extraction finished. Note: No selectable text was found.");
+            toastInfo("Extraction finished. Note: No selectable text was found — this may be a scanned PDF.");
           }
         }
       } catch (err) {
         console.error("Error extracting text: ", err);
         if (!cancelled) {
-          setStatusMessage(`Error: ${err.message || "Failed to extract text from PDF"}`);
+          toastError(err.message || "Failed to extract text from PDF.");
         }
       } finally {
         if (!cancelled) {
@@ -105,18 +104,14 @@ function PdfToText() {
     return () => {
       cancelled = true;
     };
-  }, [file, setLoading, setStatusMessage]);
+  }, [file, setLoading]);
 
   const handleCopy = () => {
     if (!extractedText) return;
     navigator.clipboard.writeText(extractedText);
     setCopied(true);
-    const prevMsg = statusMessage;
-    setStatusMessage("Text copied to clipboard!");
-    setTimeout(() => {
-      setCopied(false);
-      setStatusMessage(prevMsg);
-    }, 2500);
+    toastSuccess("Text copied to clipboard!");
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const handleDownloadText = () => {
@@ -138,7 +133,6 @@ function PdfToText() {
     setExtractedText("");
     setHasSelectableText(true);
     setCopied(false);
-    setStatusMessage("");
   };
 
   return (
@@ -219,21 +213,10 @@ function PdfToText() {
           </div>
         )}
 
-        {statusMessage && (
-          <p
-            className={`mt-4 text-[0.95rem] flex items-center justify-center gap-2 ${
-              statusMessage.toLowerCase().includes("error")
-                ? "text-red-500"
-                : statusMessage.toLowerCase().includes("success") || statusMessage.toLowerCase().includes("copied")
-                ? "text-green-600"
-                : "theme-muted"
-            }`}
-          >
-            {(statusMessage.toLowerCase().includes("success") || statusMessage.toLowerCase().includes("copied")) && (
-              <CheckCircle className="w-4 h-4 shrink-0" />
-            )}
-            {loading && <RefreshCw className="w-4 h-4 animate-spin shrink-0 text-[#4361ee]" />}
-            {statusMessage}
+        {loading && (
+          <p className="mt-4 text-[0.9rem] theme-muted flex items-center justify-center gap-2 animate-pulse">
+            <RefreshCw className="w-4 h-4 animate-spin shrink-0 text-[#4361ee]" />
+            Parsing document and extracting text…
           </p>
         )}
       </form>

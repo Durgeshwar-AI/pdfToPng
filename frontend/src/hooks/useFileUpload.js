@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { toastError, toastInfo } from "../utils/toast";
 
 /**
  * Custom hook for handling file uploads, previews, and drag-and-drop logic.
@@ -38,34 +39,35 @@ export const useFileUpload = (validateFile) => {
     [previewUrl],
   );
 
-const processFile = useCallback(
+  const processFile = useCallback(
     async (selectedFile) => {
       if (!selectedFile) return;
 
-      // 1. From 'main': 10MB file size limit check
+      // 1. File size limit check (10 MB) — toast instead of inline message
       const MAX_SIZE = 10 * 1024 * 1024;
       if (selectedFile.size > MAX_SIZE) {
-        setStatusMessage("Error: File size exceeds 10MB limit");
-        setTimeout(() => setStatusMessage(""), 5000);
+        toastError(
+          `File "${selectedFile.name}" exceeds the 10 MB size limit. Please choose a smaller file.`,
+        );
         return;
       }
 
-      // 2. From 'feat/pdf-preview': Async validation
+      // 2. Async validation (type check, PDF page load, etc.)
       const validation = await validateFile(selectedFile);
 
       if (validation.isValid) {
         setFile(selectedFile);
 
-        // 3. From 'feat/pdf-preview': Image and PDF preview logic
+        // 3. Image and PDF preview logic
         if (selectedFile.type.startsWith("image/")) {
           if (previewUrl) URL.revokeObjectURL(previewUrl);
           const url = URL.createObjectURL(selectedFile);
           setPreviewUrl(url);
+          // Inline status — shows filename inside the upload area widget
           setStatusMessage(
             validation.message || `File "${selectedFile.name}" selected`,
           );
         } else if (selectedFile.type === "application/pdf") {
-          // PDFs: use object URL preview
           if (previewUrl) URL.revokeObjectURL(previewUrl);
           const url = URL.createObjectURL(selectedFile);
           setPreviewUrl(url);
@@ -77,11 +79,15 @@ const processFile = useCallback(
           setStatusMessage(
             validation.message || `File "${selectedFile.name}" selected`,
           );
+          // Toast confirmation for non-image/pdf types (docx, etc.)
+          toastInfo(validation.message || `File "${selectedFile.name}" ready`);
         }
       } else {
-        // 4. From 'main': Error message timeout for invalid files
-        setStatusMessage(validation.message || "Error: Invalid file type");
-        setTimeout(() => setStatusMessage(""), 3000);
+        // Invalid file type — dismissable error toast
+        toastError(
+          validation.message ||
+            "Invalid file type. Please select a supported format.",
+        );
       }
     },
     [validateFile, previewUrl],

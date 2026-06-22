@@ -1,5 +1,13 @@
 import React, { useState, useCallback, lazy, Suspense } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
+import {
+  toastSuccess,
+  toastError,
+  toastLoading,
+  toastDismiss,
+  parseApiError,
+} from "../utils/toast";
+
 
 const FileUploadArea = lazy(() => import("./FileUploadArea"));
 
@@ -16,7 +24,7 @@ const ToolPageTemplate = ({
   submitButtonText = "Submit",
   loadingButtonText = "Processing...",
   onSuccessMessage,
-  onSuccess, // New prop for callback
+  onSuccess, // Callback after successful response
   getDownloadFilename,
   extraFields,
   extraContent,
@@ -28,6 +36,9 @@ const ToolPageTemplate = ({
   inputId = "file-input",
 }) => {
   const [statusType, setStatusType] = useState("info");
+  // statusMessage is kept ONLY for inline progress text (e.g. "Rendering page 3/10…")
+  // Final success/error/warning messages go through toasts.
+  const [inlineProgress, setInlineProgress] = useState("");
 
   const internalValidate = useCallback(
     async (selectedFile) => {
@@ -61,6 +72,7 @@ const ToolPageTemplate = ({
   const handleClearAll = (e) => {
     handleClear(e);
     setStatusType("info");
+    setInlineProgress("");
     if (onClear) {
       onClear();
     }
@@ -69,14 +81,13 @@ const ToolPageTemplate = ({
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (!file) {
-      setStatusMessage("Please select a file first");
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Please select a file first.");
       return;
     }
 
     setLoading(true);
     setStatusType("info");
+    setInlineProgress("");
 
     const formData = new FormData();
     formData.append(fileFieldName, file);
@@ -85,12 +96,17 @@ const ToolPageTemplate = ({
       modifyFormData(formData);
     }
 
+    let loadingToastId = null;
+
     try {
       if (onSubmit) {
+        // Custom submit handler — pass setStatusMessage for inline progress
+        // and toast helpers for final notifications
         await onSubmit({
           file,
           formData,
-          setStatusMessage,
+          // Keep setStatusMessage for inline multi-step progress text
+          setStatusMessage: setInlineProgress,
           setLoading,
           setStatusType,
           previewUrl,
@@ -101,6 +117,8 @@ const ToolPageTemplate = ({
       if (!apiEndpoint) {
         throw new Error("No API endpoint or custom onSubmit handler provided.");
       }
+
+      loadingToastId = toastLoading(`Processing "${file.name}"…`);
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}${apiEndpoint}`,
@@ -127,26 +145,28 @@ const ToolPageTemplate = ({
         window.URL.revokeObjectURL(url);
 
         // Call onSuccess callback if provided
+        let successMsg = onSuccessMessage || "Success! File downloaded.";
         if (onSuccess) {
           const customMessage = onSuccess(blob, file.name);
-          setStatusMessage(customMessage || (onSuccessMessage || "Success! File downloaded."));
-        } else {
-          setStatusMessage(onSuccessMessage || "Success! File downloaded.");
+          if (customMessage) successMsg = customMessage;
         }
+
+        toastDismiss(loadingToastId);
+        toastSuccess(successMsg);
         setStatusType("success");
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        setStatusMessage(`Error: ${errorData.error || "Operation failed"}`);
+        const errorMsg = await parseApiError(null, response);
+        toastDismiss(loadingToastId);
+        toastError(`Operation failed: ${errorMsg}`);
         setStatusType("error");
       }
     } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to process file"}`);
+      if (loadingToastId) toastDismiss(loadingToastId);
+      const errorMsg = await parseApiError(error);
+      toastError(errorMsg);
       setStatusType("error");
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setStatusMessage("");
-      }, 5000);
     }
   };
 
@@ -212,9 +232,10 @@ const ToolPageTemplate = ({
           </button>
         )}
 
-        {statusMessage && (
-          <p className={`mt-6 text-[0.95rem] ${statusType === "success" ? "text-green-600 dark:text-green-400" : statusType === "error" ? "text-red-500 dark:text-red-400" : "theme-muted"}`}>
-            {statusMessage}
+        {/* Inline progress text — only shown for multi-step operations (e.g. "Rendering page 3/10…") */}
+        {inlineProgress && (
+          <p className="mt-4 text-[0.9rem] theme-muted animate-pulse">
+            {inlineProgress}
           </p>
         )}
       </form>

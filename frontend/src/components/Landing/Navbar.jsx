@@ -63,8 +63,8 @@ const Navbar = () => {
         <Link to="/#home" className="group flex items-center gap-2">
           {/* Logo */}
           <div className="relative">
-            <div className="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-            <FileText className="relative w-8 h-8 text-purple-600" />
+            <div className="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl blur-lg opacity-40 dark:opacity-60 group-hover:opacity-60 dark:group-hover:opacity-80 transition-opacity" />
+          <FileText className="relative w-8 h-8 text-purple-600 dark:text-purple-400" />
           </div>
           <span className="text-2xl font-bold bg-linear-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
             pdfToPng

@@ -19,6 +19,11 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/setupTests.js'],
+  },
 
   build: {
     chunkSizeWarningLimit: 1000,

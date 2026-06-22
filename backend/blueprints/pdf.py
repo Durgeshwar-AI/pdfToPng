@@ -1,11 +1,10 @@
+from flask import Blueprint, request
 import base64
 import fitz
-from flask import Blueprint, request
-from utils.validators import validate_uploaded_file, validate_pdf_file
 from utils.helpers import error, send_file_and_cleanup
+from utils.validators import validate_uploaded_file, validate_pdf_file
 
 pdf_bp = Blueprint("pdf", __name__)
-
 
 
 @pdf_bp.route("/convertPng", methods=["POST"])
@@ -88,11 +87,11 @@ def convert_pdf_to_png():
             as_attachment=True,
             download_name="converted.png",
         )
-        
+
         # Force garbage collection
         import gc
         gc.collect()
-        
+
         return response
 
     except Exception:

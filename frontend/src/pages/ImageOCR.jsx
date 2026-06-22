@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createWorker } from "tesseract.js";
 import { FileText } from "lucide-react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { toastSuccess, toastError, toastInfo } from "../utils/toast";
 
 function ImageOCR() {
   const [extractedText, setExtractedText] = useState("");
@@ -40,15 +41,14 @@ function ImageOCR() {
     setOcrStatus("");
   }, []);
 
-  const handleOcrSubmit = async ({ file, setLoading, setStatusMessage, setStatusType }) => {
+  const handleOcrSubmit = async ({ file, setLoading, setStatusMessage }) => {
     if (!file) {
-      setStatusMessage("Please select an image first.");
-      setStatusType("error");
+      toastError("Please select an image first.");
       return;
     }
 
-    setStatusMessage("Preparing OCR process...");
-    setStatusType("info");
+    // setStatusMessage here is inlineProgress — used for per-step OCR status
+    setStatusMessage("Preparing OCR engine…");
     setOcrStatus("Starting OCR engine...");
     setOcrProgress(0);
     setLoading(true);
@@ -82,18 +82,16 @@ function ImageOCR() {
       const { data } = await worker.recognize(file);
       const text = data?.text?.trim() ?? "";
       setExtractedText(text);
-      setStatusType("success");
-      setStatusMessage(
-        text
-          ? "Text extracted successfully. Edit, copy, or download the result."
-          : "No readable text was found in the image."
-      );
+      setStatusMessage(""); // Clear inline progress
+      if (text) {
+        toastSuccess("Text extracted successfully! Edit, copy, or download the result.");
+      } else {
+        toastInfo("No readable text was found in the image.");
+      }
     } catch (error) {
       setExtractedText("");
-      setStatusType("error");
-      setStatusMessage(
-        `OCR failed: ${error?.message || "Please try another image."}`,
-      );
+      setStatusMessage(""); // Clear inline progress
+      toastError(`OCR failed: ${error?.message || "Please try another image."}`);
     } finally {
       if (workerRef.current && typeof workerRef.current.terminate === "function") {
         await workerRef.current.terminate();
@@ -102,29 +100,20 @@ function ImageOCR() {
       setLoading(false);
       setOcrStatus("");
       setOcrProgress(1);
-      setTimeout(() => setStatusMessage(""), 5000);
     }
   };
 
-  const handleCopyText = async (setStatusMessage, setStatusType) => {
+  const handleCopyText = async () => {
     if (!extractedText) {
-      setStatusMessage("Nothing to copy yet.");
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Nothing to copy yet.");
       return;
     }
 
     try {
       await navigator.clipboard.writeText(extractedText);
-      setStatusMessage("Text copied to clipboard.");
-      setStatusType("success");
+      toastSuccess("Text copied to clipboard!");
     } catch {
-      setStatusMessage(
-        "Unable to copy text. Use your browser's copy command instead.",
-      );
-      setStatusType("error");
-    } finally {
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Unable to copy text. Use your browser's copy command instead.");
     }
   };
 
@@ -147,7 +136,7 @@ function ImageOCR() {
     URL.revokeObjectURL(url);
   };
 
-  const extraContent = ({ file, loading, setStatusMessage, setStatusType }) => (
+  const extraContent = ({ file, loading }) => (
     <div className="w-full text-left mt-8">
       <div className="mb-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
         <div className="mb-3 flex items-center gap-3 text-sm font-semibold text-gray-700">
@@ -198,7 +187,7 @@ function ImageOCR() {
       <div className="grid gap-3 sm:auto-cols-fr sm:grid-flow-col">
         <button
           type="button"
-          onClick={() => handleCopyText(setStatusMessage, setStatusType)}
+          onClick={() => handleCopyText()}
           disabled={!extractedText || loading}
           className="inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-[#4361ee] to-[#3b82f6] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(67,97,238,0.2)] disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-300 disabled:text-slate-700"
         >

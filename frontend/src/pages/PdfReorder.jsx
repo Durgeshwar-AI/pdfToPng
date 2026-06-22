@@ -36,6 +36,8 @@ export default function PdfReorder() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
+  const [pageLimitWarning, setPageLimitWarning] = useState(false);
+  const [deletedPages, setDeletedPages] = useState([]);
 
   // Refs
   const inputRef = useRef(null);
@@ -84,6 +86,8 @@ export default function PdfReorder() {
     setResultUrl(null);
     setError(null);
     setPages([]);
+    setPageLimitWarning(false);
+    setDeletedPages([]);
 
     try {
       const bytes = await f.arrayBuffer();
@@ -92,6 +96,11 @@ export default function PdfReorder() {
         verbosity: 0,
       }).promise;
       setTotalPages(pdf.numPages);
+
+      if (pdf.numPages > 50) {
+        setPageLimitWarning(true);
+      }
+
       await generateThumbnails(pdf);
     } catch {
       setTotalPages(null);
@@ -134,7 +143,33 @@ export default function PdfReorder() {
   };
 
   const deletePage = (index) => {
+    const deletedPage = pages[index];
+
+    setDeletedPages((prev) => [
+      ...prev,
+      {
+        page: deletedPage,
+        index,
+      },
+    ]);
+
     setPages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  //Undo Function
+
+  const undoDelete = () => {
+    if (deletedPages.length === 0) return;
+
+    const lastDeleted = deletedPages[deletedPages.length - 1];
+
+    setPages((prev) => {
+      const next = [...prev];
+      next.splice(lastDeleted.index, 0, lastDeleted.page);
+      return next;
+    });
+
+    setDeletedPages((prev) => prev.slice(0, -1));
   };
 
   const resetOrder = () => {
@@ -250,6 +285,8 @@ export default function PdfReorder() {
                     e.stopPropagation();
                     setFile(null);
                     setPages([]);
+                    setPageLimitWarning(false);
+                    setDeletedPages([]);
                   }}
                   className="ml-4 p-2 text-red-500 hover:bg-red-100 rounded-full"
                   aria-label="Remove file"
@@ -262,12 +299,20 @@ export default function PdfReorder() {
                 <div className="mx-auto w-12 h-12 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-300 rounded-full flex items-center justify-center mb-3">
                   <Upload size={24} />
                 </div>
-                  <p className="text-[#1a1a2e] dark:text-white font-bold text-sm">
+                <p className="text-[#1a1a2e] dark:text-white font-bold text-sm">
                   Click or drag &amp; drop a PDF
                 </p>
               </div>
             )}
           </div>
+
+          {pageLimitWarning && (
+            <div className="mb-4 flex items-center gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded-xl text-sm font-medium">
+              <AlertCircle size={16} />
+              This PDF contains more than 50 pages. Please upload a PDF with 50 pages or fewer.
+            </div>
+          )}
+
 
           {pages.length > 0 && (
             <div className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 shadow-sm">
@@ -280,6 +325,13 @@ export default function PdfReorder() {
                   className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white uppercase transition-colors"
                 >
                   Reset Order
+                </button>
+                <button
+                  onClick={undoDelete}
+                  disabled={deletedPages.length === 0}
+                  className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white uppercase transition-colors disabled:opacity-50"
+                >
+                  Undo Delete
                 </button>
               </div>
 
@@ -349,7 +401,7 @@ export default function PdfReorder() {
 
         {/* Right Panel */}
         <div className="space-y-6">
-              <div className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-8 shadow-sm text-left">
+          <div className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-8 shadow-sm text-left">
             <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] dark:text-white uppercase tracking-wider mb-6">
               <RefreshCcw size={16} /> Actions
             </div>

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText } from "lucide-react";
+import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -17,7 +18,7 @@ function PdfDocx() {
     }
     return {
       isValid: false,
-      message: "Error: Please select a PDF file",
+      message: "Please select a valid PDF file.",
     };
   }, []);
 
@@ -26,8 +27,6 @@ function PdfDocx() {
     loading,
     setLoading,
     isDragging,
-    statusMessage,
-    setStatusMessage,
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -42,12 +41,12 @@ function PdfDocx() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      setStatusMessage("Please select a file first");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Please select a PDF file first.");
       return;
     }
 
     setLoading(true);
+    const loadingId = toastLoading(`Converting "${file.name}" to Word…`);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -67,16 +66,16 @@ function PdfDocx() {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        setStatusMessage("Success! Your Word document is downloading.");
-        setTimeout(() => setStatusMessage(""), 5000);
+        toastDismiss(loadingId);
+        toastSuccess("Your Word document has been downloaded!");
       } else {
-        const error = await response.json();
-        setStatusMessage(`Error: ${error.error || "Conversion failed"}`);
-        setTimeout(() => setStatusMessage(""), 5000);
+        const errorMsg = await parseApiError(null, response);
+        toastDismiss(loadingId);
+        toastError(`Conversion failed: ${errorMsg}`);
       }
     } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to convert file"}`);
-      setTimeout(() => setStatusMessage(""), 5000);
+      toastDismiss(loadingId);
+      toastError(await parseApiError(error));
     } finally {
       setLoading(false);
     }
@@ -120,16 +119,12 @@ function PdfDocx() {
           {loading ? (
             <>
               <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
-              Converting...
+              Converting…
             </>
           ) : (
             "Convert to Word"
           )}
         </button>
-
-        {statusMessage && (
-          <p className="mt-6 text-[0.95rem] text-[#4b5563]">{statusMessage}</p>
-        )}
       </form>
     </div>
   );

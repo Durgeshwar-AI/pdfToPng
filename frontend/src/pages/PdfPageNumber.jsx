@@ -2,7 +2,8 @@ import { useState, useCallback } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
-import { FileText, Hash, CheckCircle, RefreshCw, LayoutGrid } from "lucide-react";
+import { FileText, Hash, LayoutGrid } from "lucide-react";
+import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
 
 function PdfPageNumber() {
   const [style, setStyle] = useState("page-of"); // simple | page-of | fraction
@@ -31,8 +32,6 @@ function PdfPageNumber() {
     file,
     loading,
     isDragging,
-    statusMessage,
-    setStatusMessage,
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -51,18 +50,17 @@ function PdfPageNumber() {
     setFontSize(10);
     setMarginX(20);
     setMarginY(20);
-    setStatusMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      setStatusMessage("Please select a PDF file first");
+      toastError("Please select a PDF file first");
       return;
     }
 
     setIsProcessing(true);
-    setStatusMessage("Adding page numbers...");
+    const loadingId = toastLoading("Adding page numbers…");
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -125,13 +123,15 @@ function PdfPageNumber() {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
-      setStatusMessage("Success! Your numbered PDF is downloading.");
+      toastDismiss(loadingId);
+      toastSuccess("Your numbered PDF has been downloaded!");
     } catch (err) {
+      toastDismiss(loadingId);
       console.error("Error adding page numbers: ", err);
       if (err.message && err.message.toLowerCase().includes("encrypted")) {
-        setStatusMessage("Error: The uploaded PDF is password protected. Please unlock it first.");
+        toastError("The uploaded PDF is password protected. Please unlock it first.");
       } else {
-        setStatusMessage(`Error: ${err.message || "Failed to process PDF"}`);
+        toastError(err.message || "Failed to process PDF.");
       }
     } finally {
       setIsProcessing(false);
@@ -271,7 +271,7 @@ function PdfPageNumber() {
         >
           {loading || isProcessing ? (
             <>
-              <RefreshCw className="w-5 h-5 animate-spin mr-1" />
+              <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin"></span>
               Processing...
             </>
           ) : (
@@ -282,21 +282,6 @@ function PdfPageNumber() {
           )}
         </button>
 
-        {statusMessage && (
-          <p
-            className={`mt-6 text-[0.95rem] flex items-center justify-center gap-2 ${statusMessage.toLowerCase().includes("error")
-                ? "text-red-500"
-                : statusMessage.toLowerCase().includes("success")
-                  ? "text-green-600 animate-pulse"
-                  : "text-[#4b5563] dark:text-gray-300"
-              }`}
-          >
-            {statusMessage.toLowerCase().includes("success") && (
-              <CheckCircle className="w-4 h-4 shrink-0" />
-            )}
-            {statusMessage}
-          </p>
-        )}
       </form>
     </div>
   );

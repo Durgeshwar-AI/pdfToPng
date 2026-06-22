@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import ImageTracer from "imagetracerjs";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { toastSuccess, toastError } from "../utils/toast";
 
 function ImageToSVG() {
   const [svg, setSvg] = useState("");
@@ -23,13 +24,11 @@ function ImageToSVG() {
   }, []);
 
   const convertImageToSvg = useCallback(
-    async ({ file, setLoading, setStatusMessage, setStatusType }) => {
+    async ({ file, setLoading }) => {
       if (!file) return;
 
       setSvg("");
       setLoading(true);
-      setStatusType("info");
-      setStatusMessage("Generating SVG...");
 
       const reader = new FileReader();
 
@@ -39,8 +38,7 @@ function ImageToSVG() {
           (svgString) => {
             setSvg(svgString);
             setLoading(false);
-            setStatusType("success");
-            setStatusMessage("SVG generated successfully.");
+            toastSuccess("SVG generated successfully!");
           },
           {
             ltres: 1,
@@ -53,8 +51,7 @@ function ImageToSVG() {
 
       reader.onerror = () => {
         setLoading(false);
-        setStatusType("error");
-        setStatusMessage("Error: Unable to read the selected file.");
+        toastError("Unable to read the selected file. Please try again.");
       };
 
       reader.readAsDataURL(file);

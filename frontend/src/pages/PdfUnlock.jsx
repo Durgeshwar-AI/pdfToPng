@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Unlock, Eye, EyeOff } from "lucide-react";
+import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -20,7 +21,7 @@ function PdfUnlock() {
   }, []);
 
   const {
-    file, loading, setLoading, isDragging, statusMessage, setStatusMessage,
+    file, loading, setLoading, isDragging,
     fileInputRef, dropAreaRef, handleFileChange, handleClear,
     handleDragEnter, handleDragOver, handleDragLeave, handleDrop, handleAreaClick,
   } = useFileUpload(validateFile);
@@ -28,24 +29,21 @@ function PdfUnlock() {
   const handleClearAll = (e) => {
     handleClear(e);
     setPassword("");
-    setStatusMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      setStatusMessage("Please select a PDF file first");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Please select a PDF file first.");
       return;
     }
     if (!password) {
-      setStatusMessage("Please enter the PDF password");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Please enter the PDF password.");
       return;
     }
 
     setLoading(true);
-    setStatusMessage("");
+    const loadingId = toastLoading(`Unlocking "${file.name}"…`);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("password", password);
@@ -67,17 +65,17 @@ function PdfUnlock() {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        setStatusMessage("Success! Your unlocked PDF is downloading.");
+        toastDismiss(loadingId);
+        toastSuccess("Your unlocked PDF has been downloaded!");
         setPassword("");
-        setTimeout(() => setStatusMessage(""), 5000);
       } else {
-        const error = await response.json();
-        setStatusMessage(`Error: ${error.error || "Failed to unlock PDF"}`);
-        setTimeout(() => setStatusMessage(""), 5000);
+        const errorMsg = await parseApiError(null, response);
+        toastDismiss(loadingId);
+        toastError(`Failed to unlock PDF: ${errorMsg}`);
       }
     } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to contact server"}`);
-      setTimeout(() => setStatusMessage(""), 5000);
+      toastDismiss(loadingId);
+      toastError(await parseApiError(error));
     } finally {
       setLoading(false);
     }
@@ -154,11 +152,6 @@ function PdfUnlock() {
           )}
         </button>
 
-        {statusMessage && (
-          <p className={`mt-6 text-[0.95rem] ${statusMessage.toLowerCase().includes("error") ? "text-red-500" : ":text-[#4b5563] dark:text-gray-300"}`}>
-            {statusMessage}
-          </p>
-        )}
       </form>
     </div>
   );

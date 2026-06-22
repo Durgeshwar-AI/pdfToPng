@@ -1,11 +1,8 @@
+
 import os
 import gc
 from io import BytesIO
-from flask import send_file, jsonify, after_this_request
-
-
-def error(message, status_code=400):
-    return jsonify({"error": message}), status_code
+from flask import send_file, after_this_request, jsonify
 
 
 def safe_gc_collect():
@@ -13,6 +10,10 @@ def safe_gc_collect():
         gc.collect()
     except Exception:
         pass
+
+
+def error(message, status_code=400):
+    return jsonify({"success": False, "message": message}), status_code
 
 
 def send_file_and_cleanup(filename, **kwargs):

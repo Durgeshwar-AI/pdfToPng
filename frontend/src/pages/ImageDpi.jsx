@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { toastSuccess, toastError } from "../utils/toast";
 
 const PRESET_DPIS = [72, 96, 150, 300, 600];
 
@@ -36,10 +37,9 @@ export default function ImageDpi() {
     setDpiResults([]);
   };
 
-  const handleCheckDpi = async (file, setLoading, setStatusMessage, setStatusType) => {
+  const handleCheckDpi = async (file, setLoading) => {
     if (!file) return;
     setLoading(true);
-    setStatusMessage("");
     setDpiResults([]);
 
     const form = new FormData();
@@ -54,18 +54,15 @@ export default function ImageDpi() {
       const data = await res.json();
       setDpiResults(data);
     } catch {
-      setStatusMessage("Error: Failed to check DPI.");
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 5000);
+      toastError("Failed to check DPI. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleConvert = async (file, setLoading, setStatusMessage, setStatusType) => {
+  const handleConvert = async (file, setLoading) => {
     if (!file) return;
     setLoading(true);
-    setStatusMessage("");
     setDpiResults([]);
 
     const form = new FormData();
@@ -93,13 +90,9 @@ export default function ImageDpi() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setStatusMessage(`Success! Image converted to ${dpi} DPI and downloaded.`);
-      setStatusType("success");
-      setTimeout(() => setStatusMessage(""), 5000);
+      toastSuccess(`Image converted to ${dpi} DPI and downloaded!`);
     } catch (err) {
-      setStatusMessage(`Error: ${err.message || "Conversion failed"}`);
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 5000);
+      toastError(err.message || "DPI conversion failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -160,7 +153,7 @@ export default function ImageDpi() {
     );
   };
 
-  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
+  const extraContent = ({ file, loading, setLoading }) => {
     if (!file) return null;
     return (
       <div className="w-full text-left">
@@ -176,7 +169,7 @@ export default function ImageDpi() {
         <div className="w-full flex gap-3">
           <button
             type="button"
-            onClick={() => handleCheckDpi(file, setLoading, setStatusMessage, setStatusType)}
+            onClick={() => handleCheckDpi(file, setLoading)}
             disabled={loading}
             className="flex-1 py-3.5 px-6 border-2 border-[#4361ee] text-[#4361ee] bg-white rounded-lg text-base font-semibold transition-colors duration-300 hover:enabled:bg-[#eef2ff] hover:enabled:-translate-y-0.5 disabled:border-[#cbd5e1] disabled:text-[#94a3b8] disabled:cursor-not-allowed cursor-pointer"
           >
@@ -185,7 +178,7 @@ export default function ImageDpi() {
 
           <button
             type="button"
-            onClick={() => handleConvert(file, setLoading, setStatusMessage, setStatusType)}
+            onClick={() => handleConvert(file, setLoading)}
             disabled={loading}
             className="flex-1 bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-6 border-none rounded-lg cursor-pointer text-base font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 disabled:bg-gradient-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none"
           >

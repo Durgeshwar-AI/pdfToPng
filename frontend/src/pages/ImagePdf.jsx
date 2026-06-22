@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PDFDocument } from "pdf-lib";
+import { toastSuccess, toastError } from "../utils/toast";
 
 const MAX_SIZE = 10 * 1024 * 1024;
 
@@ -33,10 +34,8 @@ const fileToPngBytes = async (file) => {
 
 function ImagePdf() {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [statusType, setStatusType] = useState("info");
+  const [loading, setLoading] = useState(false);
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const fileInputRef = useRef(null);
@@ -75,18 +74,11 @@ function ImagePdf() {
     });
 
     if (rejected.length > 0) {
-      setStatusMessage(`Skipped: ${rejected.join(", ")}`);
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 4000);
+      toastError(`Skipped: ${rejected.join(", ")}`);
     }
 
     if (nextItems.length > 0) {
       setItems((prev) => [...prev, ...nextItems]);
-      setStatusMessage(
-        `Added ${nextItems.length} image${nextItems.length > 1 ? "s" : ""}.`,
-      );
-      setStatusType("success");
-      setTimeout(() => setStatusMessage(""), 2500);
     }
   }, []);
 
@@ -174,22 +166,16 @@ function ImagePdf() {
   const clearAll = () => {
     items.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     setItems([]);
-    setStatusMessage("");
-    setStatusType("info");
   };
 
   const createPdf = async (event) => {
     event.preventDefault();
     if (items.length === 0) {
-      setStatusMessage("Please add at least one image.");
-      setStatusType("error");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Please add at least one image.");
       return;
     }
 
     setLoading(true);
-    setStatusMessage("Creating PDF...");
-    setStatusType("info");
 
     try {
       const pdfDoc = await PDFDocument.create();
@@ -218,12 +204,10 @@ function ImagePdf() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setStatusMessage("Success! Your PDF has been created.");
-      setStatusType("success");
+      toastSuccess("Your PDF has been created and downloaded!");
     } catch (err) {
       console.error(err);
-      setStatusMessage("Error: Failed to create PDF. See console for details.");
-      setStatusType("error");
+      toastError("Failed to create PDF. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -463,19 +447,6 @@ function ImagePdf() {
           </button>
         </div>
 
-        {statusMessage && (
-          <p
-            className={`mt-6 text-[0.95rem] ${
-              statusType === "success"
-                ? "text-green-600"
-                : statusType === "error"
-                  ? "text-red-500"
-                  : "text-[#4b5563]"
-            }`}
-          >
-            {statusMessage}
-          </p>
-        )}
       </form>
     </div>
   );

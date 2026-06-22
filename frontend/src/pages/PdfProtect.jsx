@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -31,8 +32,7 @@ function PdfProtect() {
     loading,
     setLoading,
     isDragging,
-    statusMessage,
-    setStatusMessage,
+
     fileInputRef,
     dropAreaRef,
     handleFileChange,
@@ -48,7 +48,6 @@ function PdfProtect() {
     handleClear(e);
     setPassword("");
     setConfirmPassword("");
-    setStatusMessage("");
   };
 
   const validatePassword = () => {
@@ -67,20 +66,18 @@ function PdfProtect() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      setStatusMessage("Please select a PDF file first");
-      setTimeout(() => setStatusMessage(""), 3000);
+      toastError("Please select a PDF file first.");
       return;
     }
 
     const passwordError = validatePassword();
     if (passwordError) {
-      setStatusMessage(passwordError);
-      setTimeout(() => setStatusMessage(""), 4000);
+      toastError(passwordError);
       return;
     }
 
     setLoading(true);
-    setStatusMessage("");
+    const loadingId = toastLoading(`Protecting "${file.name}"…`);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("password", password);
@@ -102,19 +99,19 @@ function PdfProtect() {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        setStatusMessage("Success! Your protected PDF is downloading.");
+        toastDismiss(loadingId);
+        toastSuccess("Your protected PDF has been downloaded!");
         // Clear passwords for safety
         setPassword("");
         setConfirmPassword("");
-        setTimeout(() => setStatusMessage(""), 5000);
       } else {
-        const error = await response.json();
-        setStatusMessage(`Error: ${error.error || "Failed to encrypt PDF"}`);
-        setTimeout(() => setStatusMessage(""), 5000);
+        const errorMsg = await parseApiError(null, response);
+        toastDismiss(loadingId);
+        toastError(`Failed to protect PDF: ${errorMsg}`);
       }
     } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to contact server"}`);
-      setTimeout(() => setStatusMessage(""), 5000);
+      toastDismiss(loadingId);
+      toastError(await parseApiError(error));
     } finally {
       setLoading(false);
     }
@@ -228,11 +225,6 @@ function PdfProtect() {
           )}
         </button>
 
-        {statusMessage && (
-          <p className={`mt-6 text-[0.95rem] ${statusMessage.toLowerCase().includes("error") ? "text-red-500" : "text-[#4b5563]"}`}>
-            {statusMessage}
-          </p>
-        )}
       </form>
     </div>
   );

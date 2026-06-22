@@ -236,7 +236,7 @@ export default function PdfSplit() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-8">
+    <div className="w-full max-w-6xl mx-auto p-8 bg-white rounded-3xl border border-slate-200 shadow-xl">
       <h1 className="text-5xl font-bold text-center mb-3">Split PDF</h1>
 
       <p className="text-center text-slate-500 mb-10">

@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { Copy, Download, Check, Code } from "lucide-react";
+import { toastSuccess, toastError } from "../utils/toast";
 
 function ImageBase64() {
   const [base64String, setBase64String] = useState("");
@@ -21,23 +22,21 @@ function ImageBase64() {
     };
   }, []);
 
-  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
+  const handleCustomSubmit = async ({ file, setLoading }) => {
     setBase64String("");
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
         setBase64String(reader.result);
         setLoading(false);
-        setStatusMessage("Success! Your image has been converted to Base64.");
-        setStatusType("success");
+        toastSuccess("Image converted to Base64 successfully!");
       };
       reader.onerror = () => {
         throw new Error("Failed to read file");
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      setStatusMessage(`Error: ${error.message || "Failed to convert file"}`);
-      setStatusType("error");
+      toastError(error.message || "Failed to convert file");
       setLoading(false);
     }
   };

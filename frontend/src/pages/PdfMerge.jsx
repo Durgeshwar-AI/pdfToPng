@@ -280,7 +280,7 @@ export default function MergePdf() {
   const fileColor = (fi) => FILE_COLORS[fi % FILE_COLORS.length];
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-8 font-sans">
+    <div className="w-full max-w-4xl mx-auto p-10 bg-linear-to-br from-[#f6f8fa] to-white dark:from-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
         .merge-root { font-family: 'Sora', sans-serif; }
@@ -594,7 +594,7 @@ export default function MergePdf() {
                   </div>
 
                   <div
-                    className="relative bg-slate-100"
+                    className="relative bg-slate-100 dark:bg-slate-700"
                     style={{ paddingBottom: `${pg.aspectRatio * 100}%` }}
                   >
                     <img

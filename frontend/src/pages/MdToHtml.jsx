@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { toastSuccess, toastError } from "../utils/toast";
 
 const MdToHtml = () => {
   const [outputFilename, setOutputFilename] = useState(""); // optional
@@ -27,11 +28,8 @@ const MdToHtml = () => {
 
   const handleCustomSubmit = async ({
     file,
-    setStatusMessage,
     setLoading,
-    setStatusType,
   }) => {
-    setStatusMessage("Converting Markdown to HTML...");
     try {
       const form = new FormData();
       form.append("file", file);
@@ -65,19 +63,15 @@ const MdToHtml = () => {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(downloadUrl);
-        setStatusMessage("Success! HTML file has been downloaded.");
-        setStatusType("success");
+        toastSuccess("HTML file has been downloaded!");
       } else {
         const msg = response ? await response.text() : "Server conversion unavailable";
-        setStatusMessage(`Error: ${msg}`);
-        setStatusType("error");
+        toastError(msg || "Conversion failed. Please try again.");
       }
     } catch (error) {
       console.error("Conversion error:", error);
-      setStatusMessage(`Error: ${error.message || "Failed to convert file"}`);
-      setStatusType("error");
+      toastError(error.message || "Failed to convert file.");
     } finally {
-      setTimeout(() => setStatusMessage(""), 5000);
       setLoading(false);
     }
   };

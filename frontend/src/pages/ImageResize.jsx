@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { Expand, Image as ImageIcon } from "lucide-react";
+import { toastSuccess, toastError, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
 
 function ImageResize() {
   const [dimensions, setDimensions] = useState({ width: "1280", height: "720" });
@@ -64,19 +65,12 @@ const getValidationError = (dimensions, maintainAspectRatio, unit) => {
 };
 
 
-const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
+const handleBeforeSubmit = () => {
   const errorMessage = getValidationError(dimensions, maintainAspectRatio, unit);
-
   if (errorMessage) {
-    setStatusMessage(errorMessage);
-    setStatusType("error");
-    
-   
-    setTimeout(() => setStatusMessage(""), 3000);
-    
+    toastError(errorMessage);
     return false;
   }
-
   return true;
 };
 
@@ -194,11 +188,13 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
       fileFieldName="image"
       modifyFormData={modifyFormData}
       onSubmit={async (context) => {
-        const { file, formData, setStatusMessage, setLoading, setStatusType } = context;
-        if (!handleBeforeSubmit(setStatusMessage, setStatusType)) {
+        const { file, formData, setLoading } = context;
+        if (!handleBeforeSubmit()) {
           setLoading(false);
           return;
         }
+
+        const loadingId = toastLoading(`Resizing "${file.name}"…`);
 
         try {
           const response = await fetch(`${import.meta.env.VITE_API_URL}/resizeImage`, {
@@ -225,23 +221,22 @@ const handleBeforeSubmit = (setStatusMessage, setStatusType) => {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
 
-            setStatusMessage(
+            toastDismiss(loadingId);
+            toastSuccess(
               maintainAspectRatio
-                ? `Success! Image resized using width ${dimensions.width} ${unit} with aspect ratio preserved.`
-                : `Success! Image resized to ${dimensions.width} x ${dimensions.height} ${unit}.`,
+                ? `Image resized using width ${dimensions.width} ${unit} with aspect ratio preserved!`
+                : `Image resized to ${dimensions.width} × ${dimensions.height} ${unit}!`,
             );
-            setStatusType("success");
           } else {
-            const error = await response.json();
-            setStatusMessage(`Error: ${error.error || "Resize failed"}`);
-            setStatusType("error");
+            const errorMsg = await parseApiError(null, response);
+            toastDismiss(loadingId);
+            toastError(`Resize failed: ${errorMsg}`);
           }
         } catch (error) {
-          setStatusMessage(`Error: ${error.message || "Failed to resize image"}`);
-          setStatusType("error");
+          toastDismiss(loadingId);
+          toastError(await parseApiError(error));
         } finally {
           setLoading(false);
-          setTimeout(() => setStatusMessage(""), 5000);
         }
       }}
       submitButtonText={`Resize Image (${unit})`}

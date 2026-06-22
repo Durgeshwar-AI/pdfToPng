@@ -149,6 +149,41 @@
   .dark textarea::placeholder {
     color: var(--color-app-text-subtle) !important;
   }
+
+  /* Range sliders: the generic ".dark input" rule above flattens them into a
+     solid dark box. Restore a visible track + a clear thumb in dark mode. */
+  .dark input[type="range"] {
+    background-color: var(--color-app-border) !important;
+    border-color: transparent !important;
+    accent-color: var(--color-app-primary);
+  }
+
+  .dark input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background-color: var(--color-app-primary);
+    border: 2px solid var(--color-app-surface);
+    cursor: pointer;
+  }
+
+  .dark input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-app-surface);
+    border-radius: 9999px;
+    background-color: var(--color-app-primary);
+    cursor: pointer;
+  }
+
+  /* Filter selection: theme the dropdown options so they stay readable
+     instead of rendering with the browser's default light styling. */
+  .dark select option {
+    background-color: var(--color-app-surface);
+    color: var(--color-app-text);
+  }
 }
 
 html {

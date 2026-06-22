@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { toastSuccess, toastError, parseApiError } from "../utils/toast";
 
 const ACTIONS = [
   { id: "rotate_left",  label: "Rotate Left",     icon: "↺" },
@@ -29,11 +30,9 @@ export default function RotateFlip() {
     setResultUrl(null);
   }, []);
 
-  const transform = async (action, file, setLoading, setStatusMessage, setStatusType) => {
+  const transform = async (action, file, setLoading) => {
     if (!file) return;
     setLoading(true);
-    setStatusMessage("Processing...");
-    setStatusType("info");
     setResultUrl(null);
 
     const fd = new FormData();
@@ -44,23 +43,21 @@ export default function RotateFlip() {
     try {
       const res = await fetch(`${API}/rotateFlip`, { method: "POST", body: fd });
       if (!res.ok) {
-        const { error: msg } = await res.json();
-        throw new Error(msg ?? "Transformation failed");
+        const errorMsg = await parseApiError(null, res);
+        throw new Error(errorMsg);
       }
       const blob = await res.blob();
       setResultUrl(URL.createObjectURL(blob));
       setResultExt(format === "JPEG" ? "jpg" : format.toLowerCase());
-      setStatusMessage("Transformation successful!");
-      setStatusType("success");
+      toastSuccess("Transformation applied successfully!");
     } catch (e) {
-      setStatusMessage(`Error: ${e.message}`);
-      setStatusType("error");
+      toastError(e.message || "Transformation failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const extraContent = ({ file, loading, setLoading, setStatusMessage, setStatusType }) => {
+  const extraContent = ({ file, loading, setLoading }) => {
     if (!file) return null;
 
     return (
@@ -87,7 +84,7 @@ export default function RotateFlip() {
           {ACTIONS.map(({ id, label, icon }) => (
             <button
               key={id}
-              onClick={() => transform(id, file, setLoading, setStatusMessage, setStatusType)}
+              onClick={() => transform(id, file, setLoading)}
               disabled={!file || loading}
               className={`flex flex-col items-center justify-center gap-1 p-4 rounded-xl border text-sm font-medium transition-colors
                 ${file && !loading
