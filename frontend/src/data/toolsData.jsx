@@ -120,6 +120,16 @@ const tools = [
     iconGradient: "from-red-500 to-rose-500",
   },
   {
+    id: "pptx-to-pdf",
+    name: "PPTX to PDF",
+    category: "Conversion Tools",
+    icon: <FileText />,
+    description: "Convert PowerPoint presentations (.pptx) to PDF.",
+    path: "/pptx-to-pdf",
+    gradient: "from-sky-500/10 to-indigo-500/10",
+    iconGradient: "from-sky-500 to-indigo-500",
+  },
+  {
     id: "pdf-compress",
     name: "PDF Compressor",
     category: "PDF Tools",
