@@ -275,7 +275,7 @@ From the `backend` folder:
 ```bash
 cd backend
 python -m venv venv
-venv\Scripts\activate  # On Windows
+source venv/bin/activate  # On macOS/Linux (use venv\Scripts\activate on Windows)
 pip install -r requirements.txt
 python main.py
 ```
