@@ -23,6 +23,7 @@ import {
   Type,
   BookOpen,
   Hash,
+  Presentation,
 } from "lucide-react";
 
 const tools = [
@@ -381,7 +382,18 @@ const tools = [
     path: "/csv-to-json",
     gradient: "from-emerald-500/10 to-blue-500/10",
     iconGradient: "from-emerald-500 to-blue-500",
-  }
+  },
+  {
+    id: "pdf-to-powerpoint",
+    name: "PDF to PowerPoint",
+    category: "Conversion Tools",
+    icon: <Presentation />,
+    description:
+      "Convert PDF documents into editable PowerPoint (.pptx) presentations.",
+    path: "/pdf-to-powerpoint",
+    gradient: "from-red-500/10 to-orange-500/10",
+    iconGradient: "from-red-500 to-orange-500",
+  },
 
 ];
 
