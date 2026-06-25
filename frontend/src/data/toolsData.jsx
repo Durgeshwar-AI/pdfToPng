@@ -23,6 +23,7 @@ import {
   Type,
   BookOpen,
   Hash,
+  Scissors
 } from "lucide-react";
 
 const tools = [
@@ -391,8 +392,18 @@ const tools = [
     path: "/csv-to-json",
     gradient: "from-emerald-500/10 to-blue-500/10",
     iconGradient: "from-emerald-500 to-blue-500",
-  }
-
+  },
+  {
+  id: "pdf-blank-remover",
+  name: "Blank Page Remover",
+  category: "PDF Tools",
+  icon: <Scissors />,
+  description:
+    "Automatically detect and remove blank pages from PDF documents.",
+  path: "/pdf-blank-remover",
+  gradient: "from-purple-500/10 to-violet-500/10",
+  iconGradient: "from-purple-500 to-violet-500",
+}
 ];
 
 export default tools;
