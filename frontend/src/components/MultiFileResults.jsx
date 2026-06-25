@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import { Download, Copy, Check, AlertCircle } from "lucide-react";
 
 import { Download, Copy, Check } from "lucide-react";
+<<<<<<< Updated upstream
 import JSZip from "jszip";
 
+=======
+import { toast } from "sonner";
+>>>>>>> Stashed changes
 
 export default function MultiFileResults({ files }) {
   const [previewUrls, setPreviewUrls] = useState([]);
@@ -25,6 +29,7 @@ export default function MultiFileResults({ files }) {
   }, [files]);
 
   const handleCopy = async (blob, index) => {
+<<<<<<< Updated upstream
   try {
     setCopyErrorIndex(null);
 
@@ -44,6 +49,22 @@ export default function MultiFileResults({ files }) {
     setTimeout(() => setCopyErrorIndex(null), 3000);
   }
 };
+=======
+    try {
+      await navigator.clipboard.write([
+        new window.ClipboardItem({
+          [blob.type]: blob,
+        }),
+      ]);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+   } catch (err) {
+  console.error("Failed to copy image:", err);
+  setCopiedIndex(null);
+  toast.error("Unable to copy image. Please download it instead.");
+}
+  };
+>>>>>>> Stashed changes
 
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
