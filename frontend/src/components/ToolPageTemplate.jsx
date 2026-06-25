@@ -100,20 +100,25 @@ const { addToHistory } = useHistory();
     let loadingToastId = null;
 
     try {
-      if (onSubmit) {
-        // Custom submit handler — pass setStatusMessage for inline progress
-        // and toast helpers for final notifications
-        await onSubmit({
-          file,
-          formData,
-          // Keep setStatusMessage for inline multi-step progress text
-          setStatusMessage: setInlineProgress,
-          setLoading,
-          setStatusType,
-          previewUrl,
-        });
-        return;
-      }
+     if (onSubmit) {
+  await onSubmit({
+    file,
+    formData,
+    setStatusMessage: setInlineProgress,
+    setLoading,
+    setStatusType,
+    previewUrl,
+    addToHistory: (downloadUrl, downloadName) => {
+      addToHistory({
+        fileName: file.name,
+        conversionType: title,
+        downloadUrl,
+        downloadName,
+      });
+    },
+  });
+  return;
+}
 
       if (!apiEndpoint) {
         throw new Error("No API endpoint or custom onSubmit handler provided.");

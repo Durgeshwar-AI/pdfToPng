@@ -28,7 +28,6 @@ function ImageOCR() {
         ).toFixed(1)} KB)`,
       };
     }
-
     return {
       isValid: false,
       message: "Error: Please select an image file (PNG, JPG, JPEG, WEBP, etc.)",
@@ -41,13 +40,12 @@ function ImageOCR() {
     setOcrStatus("");
   }, []);
 
-  const handleOcrSubmit = async ({ file, setLoading, setStatusMessage }) => {
+  const handleOcrSubmit = async ({ file, setLoading, setStatusMessage, addToHistory }) => {
     if (!file) {
       toastError("Please select an image first.");
       return;
     }
 
-    // setStatusMessage here is inlineProgress — used for per-step OCR status
     setStatusMessage("Preparing OCR engine…");
     setOcrStatus("Starting OCR engine...");
     setOcrProgress(0);
@@ -82,15 +80,24 @@ function ImageOCR() {
       const { data } = await worker.recognize(file);
       const text = data?.text?.trim() ?? "";
       setExtractedText(text);
-      setStatusMessage(""); // Clear inline progress
+      setStatusMessage("");
+
       if (text) {
         toastSuccess("Text extracted successfully! Edit, copy, or download the result.");
+
+        // Add to history as a downloadable .txt file
+        if (addToHistory) {
+          const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const downloadName = `${file.name.replace(/\.[^.]+$/, "") || "ocr-result"}.txt`;
+          addToHistory(url, downloadName);
+        }
       } else {
         toastInfo("No readable text was found in the image.");
       }
     } catch (error) {
       setExtractedText("");
-      setStatusMessage(""); // Clear inline progress
+      setStatusMessage("");
       toastError(`OCR failed: ${error?.message || "Please try another image."}`);
     } finally {
       if (workerRef.current && typeof workerRef.current.terminate === "function") {
@@ -108,7 +115,6 @@ function ImageOCR() {
       toastError("Nothing to copy yet.");
       return;
     }
-
     try {
       await navigator.clipboard.writeText(extractedText);
       toastSuccess("Text copied to clipboard!");
@@ -118,12 +124,8 @@ function ImageOCR() {
   };
 
   const handleDownloadText = (file) => {
-    if (!extractedText) {
-      return;
-    }
-
-    const content = extractedText;
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    if (!extractedText) return;
+    const blob = new Blob([extractedText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -219,7 +221,7 @@ function ImageOCR() {
       maxWidthClass="max-w-[840px]"
       defaultIcon={<FileText />}
       defaultText="Drop your image here or click to select a file"
-      supportText="Supports PNG and JPG. OCR runs entirely in your browser." 
+      supportText="Supports PNG and JPG. OCR runs entirely in your browser."
       inputId="image-ocr-input"
       extraContent={extraContent}
     />

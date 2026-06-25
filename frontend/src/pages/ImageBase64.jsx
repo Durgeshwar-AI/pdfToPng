@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { Copy, Download, Check, Code } from "lucide-react";
@@ -22,14 +23,22 @@ function ImageBase64() {
     };
   }, []);
 
-  const handleCustomSubmit = async ({ file, setLoading }) => {
+  const handleCustomSubmit = async ({ file, setLoading, addToHistory }) => {
     setBase64String("");
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setBase64String(reader.result);
+        const result = reader.result;
+        setBase64String(result);
         setLoading(false);
         toastSuccess("Image converted to Base64 successfully!");
+
+        // Add to history as a downloadable .txt file
+        if (addToHistory) {
+          const blob = new Blob([result], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          addToHistory(url, `${file.name.split(".")[0]}_base64.txt`);
+        }
       };
       reader.onerror = () => {
         throw new Error("Failed to read file");

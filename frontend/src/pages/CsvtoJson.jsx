@@ -3,14 +3,13 @@ import Papa from "papaparse";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText } from "lucide-react";
-import {
-  toastError,
-  toastSuccess,
-} from "../utils/toast";
+import { toastError, toastSuccess } from "../utils/toast";
+import { useHistory } from "../context/HistoryContext";
 
 function CsvToJson() {
   const [jsonOutput, setJsonOutput] = useState("");
   const [loading, setLoading] = useState(false);
+  const { addToHistory } = useHistory();
 
   const validateFile = useCallback((selectedFile) => {
     if (
@@ -23,7 +22,6 @@ function CsvToJson() {
         message: `File "${selectedFile.name}" selected`,
       };
     }
-
     return {
       isValid: false,
       message: "Please select a valid CSV file.",
@@ -57,9 +55,20 @@ function CsvToJson() {
       skipEmptyLines: true,
       dynamicTyping: true,
       complete: (results) => {
-        setJsonOutput(JSON.stringify(results.data, null, 2));
+        const json = JSON.stringify(results.data, null, 2);
+        setJsonOutput(json);
         toastSuccess("CSV converted successfully!");
         setLoading(false);
+
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const downloadName = file.name.replace(/\.csv$/i, ".json");
+        addToHistory({
+          fileName: file.name,
+          conversionType: "CSV to JSON",
+          downloadUrl: url,
+          downloadName: downloadName,
+        });
       },
       error: () => {
         toastError("Failed to parse CSV file.");
@@ -69,19 +78,13 @@ function CsvToJson() {
   };
 
   const handleDownload = () => {
-    const blob = new Blob([jsonOutput], {
-      type: "application/json",
-    });
-
+    const blob = new Blob([jsonOutput], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
     a.download = file.name.replace(/\.csv$/i, ".json");
     a.click();
-
     URL.revokeObjectURL(url);
-
     toastSuccess("JSON downloaded successfully!");
   };
 
@@ -137,7 +140,6 @@ function CsvToJson() {
               >
                 Copy JSON
               </button>
-
               <button
                 onClick={handleDownload}
                 className="px-5 py-2 rounded-lg bg-blue-600 text-white"
@@ -145,9 +147,8 @@ function CsvToJson() {
                 Download JSON
               </button>
             </div>
-
             <pre className="text-left bg-white dark:bg-slate-900 text-black dark:text-white p-4 rounded-lg overflow-auto max-h-[500px] text-sm border border-slate-300 dark:border-slate-700">
-            {jsonOutput}
+              {jsonOutput}
             </pre>
           </div>
         )}

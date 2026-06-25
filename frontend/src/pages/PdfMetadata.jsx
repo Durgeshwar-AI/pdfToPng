@@ -4,8 +4,10 @@ import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Tags, Trash2, Download } from "lucide-react";
 import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
+import { useHistory } from "../context/HistoryContext";
 
 function PdfMetadata() {
+  const { addToHistory } = useHistory();
   const [metadata, setMetadata] = useState({
     title: "",
     author: "",
@@ -49,40 +51,30 @@ function PdfMetadata() {
     handleAreaClick,
   } = useFileUpload(validateFile);
 
-  // Load PDF metadata when a new file is uploaded
   useEffect(() => {
     if (!file) {
-      setMetadata({
-        title: "",
-        author: "",
-        subject: "",
-        keywords: "",
-        creator: "",
-        producer: "",
-      });
+      setMetadata({ title: "", author: "", subject: "", keywords: "", creator: "", producer: "" });
       setPdfDocInstance(null);
       return;
     }
 
     const loadPdfMetadata = async () => {
       setLoading(true);
-      const loadingId = toastLoading("Reading document properties…");
+      const loadingId = toastLoading("Reading document properties...");
       try {
         const arrayBuffer = await file.arrayBuffer();
         const pdfDoc = await PDFDocument.load(arrayBuffer);
-        
-        const title = pdfDoc.getTitle() || "";
-        const author = pdfDoc.getAuthor() || "";
-        const subject = pdfDoc.getSubject() || "";
-        const keywords = pdfDoc.getKeywords() || "";
-        const creator = pdfDoc.getCreator() || "";
-        const producer = pdfDoc.getProducer() || "";
-
-        setMetadata({ title, author, subject, keywords, creator, producer });
+        setMetadata({
+          title: pdfDoc.getTitle() || "",
+          author: pdfDoc.getAuthor() || "",
+          subject: pdfDoc.getSubject() || "",
+          keywords: pdfDoc.getKeywords() || "",
+          creator: pdfDoc.getCreator() || "",
+          producer: pdfDoc.getProducer() || "",
+        });
         setPdfDocInstance(pdfDoc);
         toastDismiss(loadingId);
       } catch (err) {
-        console.error("Error parsing PDF metadata: ", err);
         toastDismiss(loadingId);
         if (err.message && err.message.toLowerCase().includes("encrypted")) {
           toastError("The uploaded PDF is password protected and cannot be read.");
@@ -103,26 +95,12 @@ function PdfMetadata() {
   };
 
   const handleClearAllFields = () => {
-    setMetadata({
-      title: "",
-      author: "",
-      subject: "",
-      keywords: "",
-      creator: "",
-      producer: "",
-    });
+    setMetadata({ title: "", author: "", subject: "", keywords: "", creator: "", producer: "" });
   };
 
   const handleClearAll = (e) => {
     handleClear(e);
-    setMetadata({
-      title: "",
-      author: "",
-      subject: "",
-      keywords: "",
-      creator: "",
-      producer: "",
-    });
+    setMetadata({ title: "", author: "", subject: "", keywords: "", creator: "", producer: "" });
     setPdfDocInstance(null);
   };
 
@@ -134,27 +112,18 @@ function PdfMetadata() {
     }
 
     setIsProcessing(true);
-    const loadingId = toastLoading("Applying modifications…");
+    const loadingId = toastLoading("Applying modifications...");
 
     try {
-      // Set new metadata properties
       pdfDocInstance.setTitle(metadata.title || "");
       pdfDocInstance.setAuthor(metadata.author || "");
       pdfDocInstance.setSubject(metadata.subject || "");
-      
-      // Keywords are stored as an array of strings in pdf-lib
       const keywordArray = metadata.keywords
-        ? metadata.keywords
-            .split(",")
-            .map((k) => k.trim())
-            .filter(Boolean)
+        ? metadata.keywords.split(",").map((k) => k.trim()).filter(Boolean)
         : [];
       pdfDocInstance.setKeywords(keywordArray);
-      
       pdfDocInstance.setCreator(metadata.creator || "");
       pdfDocInstance.setProducer(metadata.producer || "");
-      
-      // Update modification date
       pdfDocInstance.setModificationDate(new Date());
 
       const pdfBytes = await pdfDocInstance.save();
@@ -162,17 +131,23 @@ function PdfMetadata() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      
       const baseName = file.name.replace(/\.pdf$/i, "");
-      a.download = `${baseName}_metadata_updated.pdf`;
-      
+      const downloadName = `${baseName}_metadata_updated.pdf`;
+      a.download = downloadName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
       toastDismiss(loadingId);
       toastSuccess("Your updated PDF has been downloaded!");
+
+      const historyUrl = window.URL.createObjectURL(blob);
+      addToHistory({
+        fileName: file.name,
+        conversionType: "PDF Metadata Editor",
+        downloadUrl: historyUrl,
+        downloadName: downloadName,
+      });
     } catch (err) {
       toastDismiss(loadingId);
       toastError(err.message || "Failed to update PDF metadata.");
@@ -222,7 +197,6 @@ function PdfMetadata() {
                 type="button"
                 onClick={handleClearAllFields}
                 className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors flex items-center gap-1 cursor-pointer"
-                title="Clear all fields to strip metadata"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Sanitize (Clear All)
@@ -230,89 +204,25 @@ function PdfMetadata() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Document Title */}
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Title
-                </span>
-                <input
-                  type="text"
-                  value={metadata.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="e.g. Annual Report"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
-                />
-              </label>
-
-              {/* Author */}
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Author
-                </span>
-                <input
-                  type="text"
-                  value={metadata.author}
-                  onChange={(e) => handleInputChange("author", e.target.value)}
-                  placeholder="e.g. John Doe"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
-                />
-              </label>
-
-              {/* Subject */}
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Subject
-                </span>
-                <input
-                  type="text"
-                  value={metadata.subject}
-                  onChange={(e) => handleInputChange("subject", e.target.value)}
-                  placeholder="e.g. Business Report"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
-                />
-              </label>
-
-              {/* Keywords */}
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Keywords
-                </span>
-                <input
-                  type="text"
-                  value={metadata.keywords}
-                  onChange={(e) => handleInputChange("keywords", e.target.value)}
-                  placeholder="e.g. report, annual, financial (comma separated)"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
-                />
-              </label>
-
-              {/* Creator */}
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Creator (App used to create)
-                </span>
-                <input
-                  type="text"
-                  value={metadata.creator}
-                  onChange={(e) => handleInputChange("creator", e.target.value)}
-                  placeholder="e.g. Microsoft Word"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
-                />
-              </label>
-
-              {/* Producer */}
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Producer (PDF Converter used)
-                </span>
-                <input
-                  type="text"
-                  value={metadata.producer}
-                  onChange={(e) => handleInputChange("producer", e.target.value)}
-                  placeholder="e.g. Mac OS X 10.15 Quartz PDFContext"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
-                />
-              </label>
+              {[
+                { field: "title", label: "Title", placeholder: "e.g. Annual Report" },
+                { field: "author", label: "Author", placeholder: "e.g. John Doe" },
+                { field: "subject", label: "Subject", placeholder: "e.g. Business Report" },
+                { field: "keywords", label: "Keywords", placeholder: "e.g. report, annual (comma separated)" },
+                { field: "creator", label: "Creator (App used to create)", placeholder: "e.g. Microsoft Word" },
+                { field: "producer", label: "Producer (PDF Converter used)", placeholder: "e.g. Mac OS X Quartz" },
+              ].map(({ field, label, placeholder }) => (
+                <label key={field} className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">{label}</span>
+                  <input
+                    type="text"
+                    value={metadata[field]}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
+                  />
+                </label>
+              ))}
             </div>
           </div>
         )}
@@ -334,7 +244,6 @@ function PdfMetadata() {
             </>
           )}
         </button>
-
       </form>
     </div>
   );

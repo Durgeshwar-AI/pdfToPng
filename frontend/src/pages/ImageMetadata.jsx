@@ -7,7 +7,7 @@ export default function ImageMetadata() {
   const [metadata, setMetadata] = useState(null);
   const [securityReport, setSecurityReport] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
-  
+
   const validateFile = useCallback((selectedFile) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
@@ -29,7 +29,7 @@ export default function ImageMetadata() {
     setCopiedKey(null);
   };
 
-  const handleViewMetadata = async ({ formData, setLoading }) => {
+  const handleViewMetadata = async ({ formData, setLoading, addToHistory, file }) => {
     setMetadata(null);
     const loadingId = toastLoading("Reading image metadata…");
     try {
@@ -52,6 +52,14 @@ export default function ImageMetadata() {
       setSecurityReport(data.security_report);
       toastDismiss(loadingId);
       toastSuccess("Metadata loaded successfully!");
+
+      // Add metadata JSON to history as a downloadable .txt
+      if (addToHistory && file) {
+        const metaText = JSON.stringify(data.metadata, null, 2);
+        const blob = new Blob([metaText], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        addToHistory(url, `${file.name.replace(/\.[^.]+$/, "")}_metadata.txt`);
+      }
     } catch (err) {
       toastDismiss(loadingId);
       toastError(err.message || "Failed to read metadata.");
@@ -60,7 +68,7 @@ export default function ImageMetadata() {
     }
   };
 
-  const handleStripMetadata = async (file, setLoading) => {
+  const handleStripMetadata = async (file, setLoading, addToHistory) => {
     if (!file) return;
     setLoading(true);
 
@@ -95,71 +103,80 @@ export default function ImageMetadata() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
       toastDismiss(loadingId);
       toastSuccess("Metadata stripped and image downloaded!");
+
+      if (addToHistory) {
+        const historyUrl = URL.createObjectURL(blob);
+        addToHistory(historyUrl, `${baseName}_stripped${extension}`);
+      }
     } catch (err) {
       toastDismiss(loadingId);
       toastError(err.message || "Failed to strip metadata.");
     } finally {
+      URL.revokeObjectURL(url);
       setLoading(false);
     }
   };
-  const handleCleanAndDownload = async (file, setLoading) => {
-  if (!file) return;
 
-  setLoading(true);
-  const loadingId = toastLoading("Privacy-cleaning image…");
+  const handleCleanAndDownload = async (file, setLoading, addToHistory) => {
+    if (!file) return;
 
-  const formData = new FormData();
-  formData.append("image", file);
+    setLoading(true);
+    const loadingId = toastLoading("Privacy-cleaning image…");
 
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/strip-metadata`, {
-      method: "POST",
-      body: formData,
-    });
+    const formData = new FormData();
+    formData.append("image", file);
 
-    if (!response.ok) throw new Error("Failed to clean image");
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/strip-metadata`, {
+        method: "POST",
+        body: formData,
+      });
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
+      if (!response.ok) throw new Error("Failed to clean image");
 
-    const a = document.createElement("a");
-    a.href = url;
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
 
-    const baseName = file.name.replace(/\.[^.]+$/, "");
-    const extension = file.name.includes(".") ? file.name.split(".").pop() : "png";
+      const a = document.createElement("a");
+      a.href = url;
 
-    a.download = `${baseName}_privacy_cleaned.${extension}`;
+      const baseName = file.name.replace(/\.[^.]+$/, "");
+      const extension = file.name.includes(".") ? file.name.split(".").pop() : "png";
+      a.download = `${baseName}_privacy_cleaned.${extension}`;
 
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-    URL.revokeObjectURL(url);
+      toastDismiss(loadingId);
+      toastSuccess("Image privacy-cleaned and downloaded!");
 
-    toastDismiss(loadingId);
-    toastSuccess("Image privacy-cleaned and downloaded!");
+      if (addToHistory) {
+        const historyUrl = URL.createObjectURL(blob);
+        addToHistory(historyUrl, `${baseName}_privacy_cleaned.${extension}`);
+      }
 
-    // optional UX reset
-    setMetadata(null);
-    setSecurityReport(null);
-  } catch (err) {
-    toastDismiss(loadingId);
-    toastError(err.message || "Failed to clean image.");
-  } finally {
-    setLoading(false);
-  }
-};
+      setMetadata(null);
+      setSecurityReport(null);
+    } catch (err) {
+      toastDismiss(loadingId);
+      toastError(err.message || "Failed to clean image.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const copyToClipboard = (key, value) => {
     navigator.clipboard.writeText(`${key}: ${value}`);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 1500);
   };
 
-  const extraContent = ({ file, loading, setLoading }) => {
+  const extraContent = ({ file, loading, setLoading, addToHistory }) => {
     if (!metadata) return null;
 
     const keys = Object.keys(metadata);
@@ -169,82 +186,76 @@ export default function ImageMetadata() {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-[#1a1a2e]">Image Metadata</h3>
           <button
-          onClick={() => handleStripMetadata(file, setLoading)}
+            onClick={() => handleStripMetadata(file, setLoading, addToHistory)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-red-600 hover:to-rose-700 transition-all cursor-pointer disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed"
           >
             <Download size={16} />
             Strip Metadata & Download
           </button>
-           <button
-    onClick={() =>
-      handleCleanAndDownload(file, setLoading)
-    }
-    disabled={loading}
-    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-green-600 hover:to-emerald-700 transition-all cursor-pointer disabled:opacity-50"
-  >
-    <Download size={16} />
-    One-Click Clean
-  </button>
+          <button
+            onClick={() => handleCleanAndDownload(file, setLoading, addToHistory)}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:from-green-600 hover:to-emerald-700 transition-all cursor-pointer disabled:opacity-50"
+          >
+            <Download size={16} />
+            One-Click Clean
+          </button>
         </div>
-{securityReport && (
-  <div className="mb-6 p-4 rounded-xl border bg-yellow-50 border-yellow-200">
-    <div className="flex items-center justify-between">
-      <h3 className="font-semibold text-yellow-800">
-      <span
-  className={`px-3 py-1 rounded-full text-xs font-bold ${
-    securityReport.risk_level === "HIGH"
-      ? "bg-red-100 text-red-700"
-      : securityReport.risk_level === "MEDIUM"
-      ? "bg-yellow-100 text-yellow-700"
-      : "bg-green-100 text-green-700"
-  }`}
->
-  Privacy Risk: {securityReport.risk_level}
-</span>
-      </h3>
-      <div className="flex flex-col gap-2">
-  <span className="text-sm font-bold text-yellow-700">
-    Score: {securityReport.risk_score}/100
-  </span>
-
-  {/* Risk Progress Bar */}
-  <div className="w-40 h-2 bg-gray-200 rounded-full overflow-hidden">
-    <div
-      className={`h-full transition-all duration-500 ${
-        securityReport.risk_level === "HIGH"
-          ? "bg-red-500"
-          : securityReport.risk_level === "MEDIUM"
-          ? "bg-yellow-500"
-          : "bg-green-500"
-      }`}
-      style={{ width: `${securityReport.risk_score}%` }}
-    />
-  </div>
-</div>
-    </div>
-
-    <div className="mt-3 text-sm text-yellow-900">
-      <p className="font-medium mb-2">Sensitive Data Detected:</p>
-      <ul className="list-disc ml-5 space-y-1">
-        {securityReport.sensitive_fields?.map((item, idx) => (
-          <li key={idx}>
-            <span className="font-semibold">{item.field}</span> — {item.description}
-          </li>
-        ))}
-      </ul>
-    </div>
-
-    <div className="mt-3 text-sm text-yellow-900">
-      <p className="font-medium mb-2">Recommended Actions:</p>
-      <ul className="list-disc ml-5 space-y-1">
-        {securityReport.recommended_actions?.map((a, i) => (
-          <li key={i}>{a}</li>
-        ))}
-      </ul>
-    </div>
-  </div>
-)}
+        {securityReport && (
+          <div className="mb-6 p-4 rounded-xl border bg-yellow-50 border-yellow-200">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-yellow-800">
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    securityReport.risk_level === "HIGH"
+                      ? "bg-red-100 text-red-700"
+                      : securityReport.risk_level === "MEDIUM"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  Privacy Risk: {securityReport.risk_level}
+                </span>
+              </h3>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-bold text-yellow-700">
+                  Score: {securityReport.risk_score}/100
+                </span>
+                <div className="w-40 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-500 ${
+                      securityReport.risk_level === "HIGH"
+                        ? "bg-red-500"
+                        : securityReport.risk_level === "MEDIUM"
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    }`}
+                    style={{ width: `${securityReport.risk_score}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 text-sm text-yellow-900">
+              <p className="font-medium mb-2">Sensitive Data Detected:</p>
+              <ul className="list-disc ml-5 space-y-1">
+                {securityReport.sensitive_fields?.map((item, idx) => (
+                  <li key={idx}>
+                    <span className="font-semibold">{item.field}</span> — {item.description}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-3 text-sm text-yellow-900">
+              <p className="font-medium mb-2">Recommended Actions:</p>
+              <ul className="list-disc ml-5 space-y-1">
+                {securityReport.recommended_actions?.map((a, i) => (
+                  <li key={i}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
         {keys.length === 0 ? (
           <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center text-sm text-gray-800">
             No metadata found in this image.
@@ -268,10 +279,10 @@ export default function ImageMetadata() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {keys.map((key) => {
-                    const value = typeof metadata[key] === "object"
-                      ? JSON.stringify(metadata[key])
-                      : String(metadata[key]);
-
+                    const value =
+                      typeof metadata[key] === "object"
+                        ? JSON.stringify(metadata[key])
+                        : String(metadata[key]);
                     return (
                       <tr key={key} className="hover:bg-gray-50/50">
                         <td className="px-4 py-3 text-xs font-mono text-gray-600 break-all font-semibold">
