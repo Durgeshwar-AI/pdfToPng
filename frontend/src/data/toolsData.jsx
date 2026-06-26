@@ -23,6 +23,7 @@ import {
   Type,
   BookOpen,
   Hash,
+  Layers,
 } from "lucide-react";
 
 const tools = [
@@ -34,6 +35,16 @@ const tools = [
     description:
       "Convert single-page PDF documents into high-quality PNG images instantly.",
     path: "/pdf-to-png",
+    gradient: "from-amber-500/10 to-orange-500/10",
+    iconGradient: "from-amber-500 to-orange-500",
+  },
+  {
+    id: "pdf-to-png-batch",
+    name: "Batch PDF to PNG",
+    category: "PDF Tools",
+    icon: <Layers />,
+    description: "Convert multiple PDF files to PNG images at once and download them as a ZIP.",
+    path: "/pdf-to-png-batch",
     gradient: "from-amber-500/10 to-orange-500/10",
     iconGradient: "from-amber-500 to-orange-500",
   },
