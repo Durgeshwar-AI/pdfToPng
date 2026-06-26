@@ -7,29 +7,92 @@ const MAX_SIZE = 10 * 1024 * 1024;
 const createId = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-const fileToPngBytes = async (file) => {
-  if (file.type === "image/png") {
-    return file.arrayBuffer();
+const PAGE_SIZES = {
+  original: { label: "Original", width: 0, height: 0 },
+  a4: { label: "A4", width: 595.28, height: 841.89 },
+  letter: { label: "Letter", width: 612, height: 792 },
+};
+
+const MARGIN_OPTIONS = [
+  { value: 0, label: "None" },
+  { value: 18, label: "Small (0.25″)" },
+  { value: 36, label: "Medium (0.5″)" },
+  { value: 72, label: "Large (1″)" },
+];
+
+/**
+ * Convert a file to optimised image bytes, applying rotation if needed.
+ * Returns { bytes: ArrayBuffer, type: "png" | "jpg", width, height }.
+ */
+const getOptimizedImageBytes = async (file, rotation = 0) => {
+  // Direct passthrough for native formats with no rotation
+  if (
+    rotation === 0 &&
+    (file.type === "image/png" ||
+      file.type === "image/jpeg" ||
+      file.type === "image/jpg")
+  ) {
+    const bytes = await file.arrayBuffer();
+    // We still need dimensions for page-size fitting
+    const bitmap = await createImageBitmap(file);
+    const { width, height } = bitmap;
+    bitmap.close();
+    return {
+      bytes,
+      type: file.type === "image/png" ? "png" : "jpg",
+      width,
+      height,
+    };
   }
 
+  // Canvas-based path: handles rotation AND format conversion
   const bitmap = await createImageBitmap(file);
+  const srcW = bitmap.width;
+  const srcH = bitmap.height;
+
+  const swapped = rotation === 90 || rotation === 270;
+  const canvasW = swapped ? srcH : srcW;
+  const canvasH = swapped ? srcW : srcH;
+
   const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
+  canvas.width = canvasW;
+  canvas.height = canvasH;
   const ctx = canvas.getContext("2d");
   if (!ctx) {
+    bitmap.close();
     throw new Error("Canvas context not available");
   }
-  ctx.drawImage(bitmap, 0, 0);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  ctx.translate(canvasW / 2, canvasH / 2);
+  ctx.rotate((rotation * Math.PI) / 180);
+  ctx.drawImage(bitmap, -srcW / 2, -srcH / 2);
+  bitmap.close();
+
+  // Choose output format: keep PNG when source is PNG, otherwise JPEG
+  const isPng = file.type === "image/png";
+  const mimeType = isPng ? "image/png" : "image/jpeg";
+  const quality = isPng ? undefined : 0.92;
 
   const blob = await new Promise((resolve, reject) => {
-    canvas.toBlob((result) => {
-      if (result) resolve(result);
-      else reject(new Error("Failed to convert image"));
-    }, "image/png");
+    canvas.toBlob(
+      (result) => {
+        if (result) resolve(result);
+        else reject(new Error("Failed to convert image"));
+      },
+      mimeType,
+      quality,
+    );
   });
 
-  return blob.arrayBuffer();
+  return {
+    bytes: await blob.arrayBuffer(),
+    type: isPng ? "png" : "jpg",
+    width: canvasW,
+    height: canvasH,
+  };
 };
 
 function ImagePdf() {
@@ -38,6 +101,8 @@ function ImagePdf() {
   const [loading, setLoading] = useState(false);
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const [pageSize, setPageSize] = useState("original");
+  const [margin, setMargin] = useState(36);
   const fileInputRef = useRef(null);
   const dropAreaRef = useRef(null);
 
@@ -70,7 +135,7 @@ function ImagePdf() {
       }
 
       const previewUrl = URL.createObjectURL(file);
-      nextItems.push({ id: createId(), file, previewUrl });
+      nextItems.push({ id: createId(), file, previewUrl, rotation: 0 });
     });
 
     if (rejected.length > 0) {
@@ -140,6 +205,16 @@ function ImagePdf() {
     });
   };
 
+  const rotateItem = (id) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, rotation: (item.rotation + 90) % 360 }
+          : item,
+      ),
+    );
+  };
+
   const removeItem = (id) => {
     setItems((prev) => {
       const item = prev.find((entry) => entry.id === id);
@@ -179,17 +254,39 @@ function ImagePdf() {
 
     try {
       const pdfDoc = await PDFDocument.create();
+      const ps = PAGE_SIZES[pageSize];
 
       for (const item of items) {
-        const bytes = await fileToPngBytes(item.file);
-        const image = await pdfDoc.embedPng(bytes);
-        const page = pdfDoc.addPage([image.width, image.height]);
-        page.drawImage(image, {
-          x: 0,
-          y: 0,
-          width: image.width,
-          height: image.height,
-        });
+        const { bytes, type, width: imgW, height: imgH } =
+          await getOptimizedImageBytes(item.file, item.rotation);
+
+        let image;
+        if (type === "png") {
+          image = await pdfDoc.embedPng(bytes);
+        } else {
+          image = await pdfDoc.embedJpg(bytes);
+        }
+
+        if (pageSize === "original") {
+          // Page matches image size exactly
+          const page = pdfDoc.addPage([imgW, imgH]);
+          page.drawImage(image, { x: 0, y: 0, width: imgW, height: imgH });
+        } else {
+          // Fit image into standard page with margins
+          const pageW = ps.width;
+          const pageH = ps.height;
+          const page = pdfDoc.addPage([pageW, pageH]);
+
+          const availW = pageW - 2 * margin;
+          const availH = pageH - 2 * margin;
+          const scale = Math.min(availW / imgW, availH / imgH, 1);
+          const drawW = imgW * scale;
+          const drawH = imgH * scale;
+          const x = (pageW - drawW) / 2;
+          const y = (pageH - drawH) / 2;
+
+          page.drawImage(image, { x, y, width: drawW, height: drawH });
+        }
       }
 
       const pdfBytes = await pdfDoc.save();
@@ -281,12 +378,62 @@ function ImagePdf() {
                 />
               </svg>
             </div>
-            Choose images or drag & drop here
+            Choose images or drag &amp; drop here
             <div className="text-[0.95rem] text-[#6b7280] mt-3">
               Supports PNG, JPG, GIF, WEBP and more. Up to 10MB each.
             </div>
           </label>
         </div>
+
+        {/* ── Settings Panel ── */}
+        {items.length > 0 && (
+          <div className="w-full mb-6 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+              {/* Page size */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-[#334155]">
+                  Page size:
+                </span>
+                <div className="flex rounded-lg border border-[#e2e8f0] overflow-hidden">
+                  {Object.entries(PAGE_SIZES).map(([key, { label }]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setPageSize(key)}
+                      className={`px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                        pageSize === key
+                          ? "bg-[#4361ee] text-white"
+                          : "bg-white text-[#475569] hover:bg-[#f1f5f9]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Margin (only visible for standard pages) */}
+              {pageSize !== "original" && (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-[#334155]">
+                    Margin:
+                  </span>
+                  <select
+                    value={margin}
+                    onChange={(e) => setMargin(Number(e.target.value))}
+                    className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-1.5 text-sm text-[#475569] focus:border-[#4361ee] focus:outline-none focus:ring-1 focus:ring-[#4361ee]"
+                  >
+                    {MARGIN_OPTIONS.map(({ value, label }) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {items.length > 0 && (
           <div className="w-full mb-6">
@@ -343,11 +490,14 @@ function ImagePdf() {
                         </svg>
                       </button>
                     </div>
-                    <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-[#f1f5f9] text-[#64748b]">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-[#f1f5f9] text-[#64748b] overflow-hidden">
                       <img
                         src={item.previewUrl}
                         alt={item.file.name}
-                        className="h-16 w-16 rounded-lg object-cover"
+                        className="h-16 w-16 rounded-lg object-cover transition-transform duration-200"
+                        style={{
+                          transform: `rotate(${item.rotation}deg)`,
+                        }}
                       />
                     </div>
                     <div className="flex-1 text-left overflow-hidden">
@@ -359,9 +509,37 @@ function ImagePdf() {
                       </p>
                       <p className="text-xs text-[#94a3b8]">
                         {(item.file.size / 1024).toFixed(1)} KB
+                        {item.rotation !== 0 && (
+                          <span className="ml-2 text-[#4361ee]">
+                            ↻ {item.rotation}°
+                          </span>
+                        )}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      {/* Rotate button */}
+                      <button
+                        type="button"
+                        onClick={() => rotateItem(item.id)}
+                        className="h-9 w-9 rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:bg-[#eef2ff] hover:text-[#4361ee] hover:border-[#c7d2fe] flex items-center justify-center"
+                        aria-label="Rotate 90° clockwise"
+                        title="Rotate 90°"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M21 2v6h-6" />
+                          <path d="M21 13a9 9 0 1 1-3-7.7L21 8" />
+                        </svg>
+                      </button>
                       <button
                         type="button"
                         onClick={() => moveItem(index, -1)}

@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
 import PdfWatermarkPreview from "../components/PdfWatermarkPreview";
 import {
@@ -27,7 +27,6 @@ function PDFWatermark() {
   const [size, setSize] = useState(30);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
 
   const inputRef = useRef(null);
   const imageInputRef = useRef(null);
@@ -79,7 +78,6 @@ function PDFWatermark() {
     }
     resetStatus();
     setWatermarkImage(imageFile);
-    setImagePreview(URL.createObjectURL(imageFile));
   };
 
   const getPosition = (pageWidth, pageHeight, itemWidth, itemHeight) => {
@@ -100,23 +98,7 @@ function PDFWatermark() {
     }
   };
 
-  const getPreviewPosition = () => {
-    switch (position) {
-      case "top-left":
-        return { top: "20px", left: "20px" };
-      case "top-right":
-        return { top: "20px", right: "20px" };
-      case "center":
-        return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-      case "diagonal-center":
-        return { top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(45deg)" };
-      case "bottom-left":
-        return { bottom: "20px", left: "20px" };
-      case "bottom-right":
-      default:
-        return { bottom: "20px", right: "20px" };
-    }
-  };
+
 
   const applyWatermark = async () => {
     if (!file) {

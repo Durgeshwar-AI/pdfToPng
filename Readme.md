@@ -33,6 +33,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 - View, copy and strip image EXIF metadata
 - Extract text from images (OCR)
 - Convert images to Base64
+- Convert multiple images into a single PDF (with custom page sizes, margins, and image rotation)
 
 **MD tools**
 
