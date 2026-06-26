@@ -130,10 +130,10 @@ const PdfPng = () => {
     let loadingToastId = null;
 
     try {
-      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
+      const pdfjsLib = await import("pdfjs-dist");
 
       const pdfWorker = await import(
-        "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"
+        "pdfjs-dist/build/pdf.worker.min.mjs?url"
       );
 
       pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;

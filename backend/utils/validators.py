@@ -9,6 +9,7 @@ ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 ALLOWED_PDF_EXTENSIONS = {".pdf"}
 ALLOWED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 ALLOWED_PDF_MIME_TYPES = {"application/pdf"}
+MAX_PDF_SIZE = 10 * 1024 * 1024  # 10 MB
 
 def validate_uploaded_file(request, field_name):
     if field_name not in request.files:
