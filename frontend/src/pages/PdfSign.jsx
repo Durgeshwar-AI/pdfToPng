@@ -1,11 +1,11 @@
-import { useCallback, useState } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
+import { useCallback, useState } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
 
 function PdfSign() {
-  const [signature, setSignature] = useState("");
+  const [signature, setSignature] = useState('');
 
-  const validateFile = useCallback((selectedFile) => {
-    if (selectedFile && selectedFile.type === "application/pdf") {
+  const validateFile = useCallback(selectedFile => {
+    if (selectedFile && selectedFile.type === 'application/pdf') {
       return {
         isValid: true,
         message: `File "${selectedFile.name}" selected.`,
@@ -13,25 +13,25 @@ function PdfSign() {
     }
     return {
       isValid: false,
-      message: "Error: Please select a PDF file.",
+      message: 'Error: Please select a PDF file.',
     };
   }, []);
 
-  const modifyFormData = (formData) => {
-    formData.append("signature", signature);
+  const modifyFormData = formData => {
+    formData.append('signature', signature);
   };
 
   const extraFields = () => {
     return (
-      <div className="w-full mt-6 text-left mb-6">
-        <label className="block text-sm font-medium text-[#111827] mb-2">Signature Text</label>
+      <div className="mt-6 mb-6 w-full text-left">
+        <label className="mb-2 block text-sm font-medium text-[#111827]">Signature Text</label>
         <input
           type="text"
           placeholder="Enter signature text"
           value={signature}
-          onChange={(e) => setSignature(e.target.value)}
+          onChange={e => setSignature(e.target.value)}
           maxLength={500}
-          className="w-full border border-[#d1d5db] p-3 rounded-xl focus:ring-2 focus:ring-[#4361ee] focus:border-[#4361ee] transition-all bg-[#f9fafb] text-[#111827]"
+          className="w-full rounded-xl border border-[#d1d5db] bg-[#f9fafb] p-3 text-[#111827] transition-all focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]"
         />
       </div>
     );
@@ -46,7 +46,7 @@ function PdfSign() {
       apiEndpoint="/sign/signPdf"
       fileFieldName="file"
       modifyFormData={modifyFormData}
-      getDownloadFilename={() => "signed.pdf"}
+      getDownloadFilename={() => 'signed.pdf'}
       submitButtonText="Sign PDF"
       loadingButtonText="Signing..."
       onSuccessMessage="Success! Your signed PDF is downloaded."

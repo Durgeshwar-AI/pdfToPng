@@ -1,35 +1,35 @@
-import { useCallback, useState } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
+import { useCallback, useState } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
 
 function ImageUpscale() {
   const [scaleFactor, setScaleFactor] = useState(2);
 
-  const validateFile = useCallback((selectedFile) => {
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
+  const validateFile = useCallback(selectedFile => {
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };
     }
-    return { isValid: false, message: "Please select an image file" };
+    return { isValid: false, message: 'Please select an image file' };
   }, []);
 
-  const modifyFormData = (formData) => {
-    formData.append("scale", scaleFactor);
+  const modifyFormData = formData => {
+    formData.append('scale', scaleFactor);
   };
 
   const extraFields = ({ file }) => {
     if (!file) return null;
     return (
-      <div className="w-full mt-6 text-left mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Upscale Factor</label>
+      <div className="mt-6 mb-6 w-full text-left">
+        <label className="mb-2 block text-sm font-medium text-gray-700">Upscale Factor</label>
         <div className="flex gap-4">
-          {[2, 3, 4].map((s) => (
+          {[2, 3, 4].map(s => (
             <button
               key={s}
               type="button"
               onClick={() => setScaleFactor(s)}
-              className={`px-4 py-2 rounded-lg border transition-all cursor-pointer ${
+              className={`cursor-pointer rounded-lg border px-4 py-2 transition-all ${
                 scaleFactor === s
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-gray-700 border-gray-300 hover:border-blue-400"
+                  ? 'border-blue-600 bg-blue-600 text-white'
+                  : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400'
               }`}
             >
               {s}x
@@ -49,8 +49,8 @@ function ImageUpscale() {
       apiEndpoint="/upscale"
       fileFieldName="image"
       modifyFormData={modifyFormData}
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.split(".")[0];
+      getDownloadFilename={fileName => {
+        const originalName = fileName.split('.')[0];
         return `${originalName}_${scaleFactor}x.png`;
       }}
       submitButtonText="Upscale Image"

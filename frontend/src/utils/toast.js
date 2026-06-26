@@ -1,10 +1,10 @@
-import { toast } from "sonner";
+import { toast } from 'sonner';
 
 // ─── Duration Constants ────────────────────────────────────────────────────────
 const DURATION_SUCCESS = 5000;
-const DURATION_ERROR   = 6000;
+const DURATION_ERROR = 6000;
 const DURATION_WARNING = 5000;
-const DURATION_INFO    = 4000;
+const DURATION_INFO = 4000;
 
 // ─── Typed Toast Helpers ───────────────────────────────────────────────────────
 
@@ -54,7 +54,7 @@ export const toastLoading = (message, options = {}) =>
  * Dismiss a specific toast by ID, or all toasts if no ID is provided.
  * @param {string|number} [id]
  */
-export const toastDismiss = (id) => toast.dismiss(id);
+export const toastDismiss = id => toast.dismiss(id);
 
 /**
  * Update an existing toast (e.g. resolve a loading toast into success/error).
@@ -66,9 +66,9 @@ export const toastDismiss = (id) => toast.dismiss(id);
 export const toastResolve = (id, type, message, options = {}) => {
   const durationMap = {
     success: DURATION_SUCCESS,
-    error:   DURATION_ERROR,
+    error: DURATION_ERROR,
     warning: DURATION_WARNING,
-    info:    DURATION_INFO,
+    info: DURATION_INFO,
   };
   toast[type](message, {
     id,
@@ -97,12 +97,7 @@ export const parseApiError = async (error, response = null) => {
   if (response) {
     try {
       const data = await response.clone().json();
-      return (
-        data?.error ||
-        data?.message ||
-        data?.detail ||
-        `Server error (${response.status})`
-      );
+      return data?.error || data?.message || data?.detail || `Server error (${response.status})`;
     } catch {
       return `Server error (${response.status})`;
     }
@@ -112,24 +107,21 @@ export const parseApiError = async (error, response = null) => {
   if (error?.response) {
     const data = error.response.data;
     return (
-      data?.error ||
-      data?.message ||
-      data?.detail ||
-      `Server error (${error.response.status})`
+      data?.error || data?.message || data?.detail || `Server error (${error.response.status})`
     );
   }
 
   // 3. Network / offline errors
-  const msg = error?.message ?? "";
+  const msg = error?.message ?? '';
   if (
-    msg.toLowerCase().includes("failed to fetch") ||
-    msg.toLowerCase().includes("networkerror") ||
-    msg.toLowerCase().includes("network error") ||
-    msg.toLowerCase().includes("load failed")
+    msg.toLowerCase().includes('failed to fetch') ||
+    msg.toLowerCase().includes('networkerror') ||
+    msg.toLowerCase().includes('network error') ||
+    msg.toLowerCase().includes('load failed')
   ) {
-    return "Network error — please check your connection and try again.";
+    return 'Network error — please check your connection and try again.';
   }
 
   // 4. Generic JS error message
-  return msg || "An unexpected error occurred. Please try again.";
+  return msg || 'An unexpected error occurred. Please try again.';
 };

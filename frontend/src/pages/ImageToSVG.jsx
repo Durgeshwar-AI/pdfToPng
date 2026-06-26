@@ -1,77 +1,73 @@
-import { useCallback, useState } from "react";
-import ImageTracer from "imagetracerjs";
-import ToolPageTemplate from "../components/ToolPageTemplate";
-import { toastSuccess, toastError } from "../utils/toast";
+import { useCallback, useState } from 'react';
+import ImageTracer from 'imagetracerjs';
+import ToolPageTemplate from '../components/ToolPageTemplate';
+import { toastSuccess, toastError } from '../utils/toast';
 
 function ImageToSVG() {
-  const [svg, setSvg] = useState("");
+  const [svg, setSvg] = useState('');
 
-  const validateFile = useCallback((selectedFile) => {
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
+  const validateFile = useCallback(selectedFile => {
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`,
+        message: `File "${selectedFile.name}" selected (${(selectedFile.size / 1024).toFixed(
+          1
+        )} KB)`,
       };
     }
 
     return {
       isValid: false,
-      message:
-        "Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)",
+      message: 'Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)',
     };
   }, []);
 
-  const convertImageToSvg = useCallback(
-    async ({ file, setLoading }) => {
-      if (!file) return;
+  const convertImageToSvg = useCallback(async ({ file, setLoading }) => {
+    if (!file) return;
 
-      setSvg("");
-      setLoading(true);
+    setSvg('');
+    setLoading(true);
 
-      const reader = new FileReader();
+    const reader = new FileReader();
 
-      reader.onload = () => {
-        ImageTracer.imageToSVG(
-          reader.result,
-          (svgString) => {
-            setSvg(svgString);
-            setLoading(false);
-            toastSuccess("SVG generated successfully!");
-          },
-          {
-            ltres: 1,
-            qtres: 1,
-            pathomit: 8,
-            colorsampling: 2,
-          },
-        );
-      };
+    reader.onload = () => {
+      ImageTracer.imageToSVG(
+        reader.result,
+        svgString => {
+          setSvg(svgString);
+          setLoading(false);
+          toastSuccess('SVG generated successfully!');
+        },
+        {
+          ltres: 1,
+          qtres: 1,
+          pathomit: 8,
+          colorsampling: 2,
+        }
+      );
+    };
 
-      reader.onerror = () => {
-        setLoading(false);
-        toastError("Unable to read the selected file. Please try again.");
-      };
+    reader.onerror = () => {
+      setLoading(false);
+      toastError('Unable to read the selected file. Please try again.');
+    };
 
-      reader.readAsDataURL(file);
-    },
-    [],
-  );
+    reader.readAsDataURL(file);
+  }, []);
 
   const handleClear = useCallback(() => {
-    setSvg("");
+    setSvg('');
   }, []);
 
   const downloadSVG = useCallback(() => {
     if (!svg) return;
 
-    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
 
     link.href = url;
-    link.download = "converted-image.svg";
+    link.download = 'converted-image.svg';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -114,12 +110,7 @@ function ImageToSVG() {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <path
-            d="M8 12H16"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
+          <path d="M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       }
       defaultText="Choose image file or drag & drop here"
@@ -127,15 +118,13 @@ function ImageToSVG() {
       inputId="image-input"
       extraContent={({ file }) =>
         svg ? (
-          <div className="w-full mt-10 text-left">
+          <div className="mt-10 w-full text-left">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex-1 rounded-3xl border border-[#e5e7eb] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.04)]">
                 <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-2xl font-semibold text-[#111827]">
-                      SVG Preview
-                    </h2>
-                    <p className="text-sm text-[#6b7280] mt-1">
+                    <h2 className="text-2xl font-semibold text-[#111827]">SVG Preview</h2>
+                    <p className="mt-1 text-sm text-[#6b7280]">
                       Review the vector output before downloading.
                     </p>
                   </div>
@@ -148,9 +137,9 @@ function ImageToSVG() {
                   </button>
                 </div>
 
-                <div className="rounded-3xl border border-[#d1d5db] bg-[#f9fafb] p-6 overflow-hidden">
+                <div className="overflow-hidden rounded-3xl border border-[#d1d5db] bg-[#f9fafb] p-6">
                   <div
-                    className="min-h-[320px] flex items-center justify-center overflow-hidden rounded-3xl bg-white p-4 shadow-inner"
+                    className="flex min-h-[320px] items-center justify-center overflow-hidden rounded-3xl bg-white p-4 shadow-inner"
                     dangerouslySetInnerHTML={{ __html: svg }}
                   />
                 </div>
@@ -158,17 +147,15 @@ function ImageToSVG() {
             </div>
 
             <div className="mt-6 rounded-3xl border border-[#e5e7eb] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.04)]">
-              <h3 className="text-lg font-semibold text-[#111827] mb-3">
-                SVG Markup
-              </h3>
+              <h3 className="mb-3 text-lg font-semibold text-[#111827]">SVG Markup</h3>
               <pre className="max-h-[340px] overflow-auto rounded-2xl bg-[#f3f4f6] p-4 text-sm leading-6 text-[#374151]">
                 <code>{svg}</code>
               </pre>
             </div>
           </div>
         ) : file ? (
-          <div className="mt-10 rounded-3xl border border-[#e5e7eb] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.04)] text-center">
-            <p className="text-[#4b5563] text-base">
+          <div className="mt-10 rounded-3xl border border-[#e5e7eb] bg-white p-6 text-center shadow-[0_20px_60px_rgba(15,23,42,0.04)]">
+            <p className="text-base text-[#4b5563]">
               Select a file and click "Convert to SVG" to see the preview here.
             </p>
           </div>

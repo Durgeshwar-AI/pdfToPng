@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
-import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
-import JSZip from "jszip";
-import { Toaster, toast } from "sonner";
+import { useState, useRef } from 'react';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
+import JSZip from 'jszip';
+import { Toaster, toast } from 'sonner';
 // eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 import {
   FileText,
   Download,
@@ -14,9 +14,9 @@ import {
   Upload,
   Trash2,
   Files,
-} from "lucide-react";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+} from 'lucide-react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -28,23 +28,20 @@ function cn(...inputs) {
 // Returns { name, pages: [{ name, blob }] }.
 async function convertPdfToPngs(file, scale, onProgress) {
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, verbosity: 0 })
-    .promise;
-  const baseName = file.name.replace(/\.pdf$/i, "");
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, verbosity: 0 }).promise;
+  const baseName = file.name.replace(/\.pdf$/i, '');
   const pages = [];
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const viewport = page.getViewport({ scale });
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
     canvas.height = viewport.height;
     canvas.width = viewport.width;
     await page.render({ canvasContext: context, viewport }).promise;
 
-    const blob = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/png")
-    );
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     pages.push({ name: `${baseName}-page-${i}.png`, blob });
     if (onProgress) onProgress(i, pdf.numPages);
   }
@@ -64,27 +61,27 @@ export default function PdfPngBatch() {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef(null);
 
-  const addFiles = (fileList) => {
+  const addFiles = fileList => {
     const pdfs = Array.from(fileList).filter(
-      (f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
+      f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
     );
     if (pdfs.length === 0) {
-      setError("Please select PDF files only.");
+      setError('Please select PDF files only.');
       return;
     }
     setError(null);
     setZipUrl(null);
-    setFiles((prev) => [...prev, ...pdfs]);
+    setFiles(prev => [...prev, ...pdfs]);
   };
 
-  const removeFile = (idx) => {
-    setFiles((prev) => prev.filter((_, i) => i !== idx));
+  const removeFile = idx => {
+    setFiles(prev => prev.filter((_, i) => i !== idx));
   };
 
   const clearAll = () => {
     setFiles([]);
     setError(null);
-    setZipUrl((url) => {
+    setZipUrl(url => {
       if (url) URL.revokeObjectURL(url);
       return null;
     });
@@ -95,7 +92,7 @@ export default function PdfPngBatch() {
 
     setLoading(true);
     setError(null);
-    setZipUrl((url) => {
+    setZipUrl(url => {
       if (url) URL.revokeObjectURL(url);
       return null;
     });
@@ -107,13 +104,12 @@ export default function PdfPngBatch() {
     try {
       for (const f of files) {
         const buf = await f.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buf, verbosity: 0 })
-          .promise;
+        const pdf = await pdfjsLib.getDocument({ data: buf, verbosity: 0 }).promise;
         perFileCounts.push(pdf.numPages);
         totalPages += pdf.numPages;
       }
     } catch (e) {
-      setError("Could not read one of the PDFs: " + (e.message || String(e)));
+      setError('Could not read one of the PDFs: ' + (e.message || String(e)));
       setLoading(false);
       return;
     }
@@ -138,15 +134,15 @@ export default function PdfPngBatch() {
       }
 
       setCurrentFile(null);
-      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
       setZipUrl(URL.createObjectURL(zipBlob));
       toast.success(
-        `Batch complete! ${files.length} PDF${files.length > 1 ? "s" : ""} converted to PNGs.`
+        `Batch complete! ${files.length} PDF${files.length > 1 ? 's' : ''} converted to PNGs.`
       );
     } catch (e) {
       console.error(e);
-      setError("Batch conversion failed: " + (e.message || String(e)));
-      toast.error(e.message || "Batch failed");
+      setError('Batch conversion failed: ' + (e.message || String(e)));
+      toast.error(e.message || 'Batch failed');
     } finally {
       setLoading(false);
       setFileProgress(0);
@@ -156,42 +152,42 @@ export default function PdfPngBatch() {
   const totalPdfs = files.length;
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-gradient-to-br from-gray-50 to-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 text-center shadow-xl md:p-10">
       <Toaster position="top-right" richColors />
 
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4 text-[#1a1a2e] text-5xl font-extrabold tracking-tight"
+        className="mb-4 text-5xl font-extrabold tracking-tight text-[#1a1a2e]"
       >
         Batch PDF to PNG
       </motion.h1>
 
-      <p className="text-slate-500 mb-10 max-w-xl text-base leading-relaxed">
-        Convert multiple PDF files to PNG images at once, then download all the
-        results as a single ZIP archive.
+      <p className="mb-10 max-w-xl text-base leading-relaxed text-slate-500">
+        Convert multiple PDF files to PNG images at once, then download all the results as a single
+        ZIP archive.
       </p>
 
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-2">
         {/* Left Panel */}
         <div className="space-y-6 text-left">
           <div
-            onDrop={(e) => {
+            onDrop={e => {
               e.preventDefault();
               setIsDragging(false);
               addFiles(e.dataTransfer.files);
             }}
-            onDragOver={(e) => {
+            onDragOver={e => {
               e.preventDefault();
               setIsDragging(true);
             }}
             onDragLeave={() => setIsDragging(false)}
             onClick={() => inputRef.current?.click()}
             className={cn(
-              "w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300",
+              'flex w-full cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed p-10 transition-all duration-300',
               isDragging
-                ? "border-[#4361ee] bg-blue-50 scale-[1.03] shadow-lg"
-                : "border-slate-200 bg-slate-50/50 hover:border-[#4361ee] hover:bg-white hover:shadow-xl"
+                ? 'scale-[1.03] border-[#4361ee] bg-blue-50 shadow-lg'
+                : 'border-slate-200 bg-slate-50/50 hover:border-[#4361ee] hover:bg-white hover:shadow-xl'
             )}
           >
             <input
@@ -200,59 +196,52 @@ export default function PdfPngBatch() {
               accept="application/pdf"
               multiple
               className="hidden"
-              onChange={(e) => {
+              onChange={e => {
                 addFiles(e.target.files);
-                e.target.value = "";
+                e.target.value = '';
               }}
             />
             <div className="text-center">
-              <div className="mx-auto w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
                 <Files size={24} />
               </div>
-              <p className="text-[#1a1a2e] font-bold text-sm">
+              <p className="text-sm font-bold text-[#1a1a2e]">
                 Click or drag &amp; drop multiple PDFs
               </p>
-              <p className="text-slate-400 text-xs mt-1">
+              <p className="mt-1 text-xs text-slate-400">
                 Select several files for bulk conversion
               </p>
             </div>
           </div>
 
           {files.length > 0 && (
-            <div className="w-full bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
+            <div className="w-full rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-bold tracking-wider text-[#1a1a2e] uppercase">
                   <FileText size={16} /> {files.length} file
-                  {files.length > 1 ? "s" : ""} queued
+                  {files.length > 1 ? 's' : ''} queued
                 </div>
                 <button
                   onClick={clearAll}
-                  className="text-[10px] font-bold text-gray-500 hover:text-gray-700 uppercase transition-colors"
+                  className="text-[10px] font-bold text-gray-500 uppercase transition-colors hover:text-gray-700"
                 >
                   Clear All
                 </button>
               </div>
 
-              <ul className="space-y-2 max-h-[300px] overflow-y-auto">
+              <ul className="max-h-[300px] space-y-2 overflow-y-auto">
                 {files.map((f, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"
-                  >
-                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                  <li key={idx} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+                    <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
                       <FileText size={16} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[#1a1a2e] font-bold text-sm truncate">
-                        {f.name}
-                      </p>
-                      <p className="text-slate-500 text-xs">
-                        {(f.size / 1024).toFixed(1)} KB
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-[#1a1a2e]">{f.name}</p>
+                      <p className="text-xs text-slate-500">{(f.size / 1024).toFixed(1)} KB</p>
                     </div>
                     <button
                       onClick={() => removeFile(idx)}
-                      className="p-2 text-red-500 hover:bg-red-100 rounded-full"
+                      className="rounded-full p-2 text-red-500 hover:bg-red-100"
                       aria-label={`Remove ${f.name}`}
                     >
                       <Trash2 size={16} />
@@ -266,19 +255,19 @@ export default function PdfPngBatch() {
 
         {/* Right Panel */}
         <div className="space-y-6">
-          <div className="w-full bg-white border border-gray-200 rounded-3xl p-8 shadow-sm text-left">
-            <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider mb-6">
+          <div className="w-full rounded-3xl border border-gray-200 bg-white p-8 text-left shadow-sm">
+            <div className="mb-6 flex items-center gap-2 text-sm font-bold tracking-wider text-[#1a1a2e] uppercase">
               <RefreshCcw size={16} /> Settings &amp; Convert
             </div>
 
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <label className="mb-2 block text-xs font-bold tracking-wider text-slate-500 uppercase">
               Image Scale (quality)
             </label>
             <select
               value={scale}
-              onChange={(e) => setScale(Number(e.target.value))}
+              onChange={e => setScale(Number(e.target.value))}
               disabled={loading}
-              className="w-full mb-6 p-3 rounded-xl border border-slate-200 text-sm font-bold text-[#1a1a2e] focus:outline-none focus:border-[#4361ee]"
+              className="mb-6 w-full rounded-xl border border-slate-200 p-3 text-sm font-bold text-[#1a1a2e] focus:border-[#4361ee] focus:outline-none"
             >
               <option value={1}>1x (faster, smaller)</option>
               <option value={2}>2x (balanced)</option>
@@ -288,28 +277,28 @@ export default function PdfPngBatch() {
             <button
               onClick={runBatch}
               disabled={files.length === 0 || loading}
-              className="w-full bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-xl bg-gradient-to-r from-[#4361ee] to-[#3b82f6] py-3 font-bold text-white shadow-lg hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading
-                ? "Converting..."
-                : `Convert ${totalPdfs > 0 ? totalPdfs + " PDF" + (totalPdfs > 1 ? "s" : "") : ""}`}
+                ? 'Converting...'
+                : `Convert ${totalPdfs > 0 ? totalPdfs + ' PDF' + (totalPdfs > 1 ? 's' : '') : ''}`}
             </button>
 
             {loading && (
-              <div className="space-y-3 p-2 mt-4">
+              <div className="mt-4 space-y-3 p-2">
                 {currentFile && (
-                  <p className="text-xs font-bold text-[#1a1a2e] truncate">
-                    <span className="text-[#4361ee]">Now:</span> {currentFile}{" "}
+                  <p className="truncate text-xs font-bold text-[#1a1a2e]">
+                    <span className="text-[#4361ee]">Now:</span> {currentFile}{' '}
                     <span className="text-slate-400">({fileProgress}%)</span>
                   </p>
                 )}
-                <div className="flex items-center justify-between text-[10px] font-black text-[#4361ee] uppercase tracking-widest">
+                <div className="flex items-center justify-between text-[10px] font-black tracking-widest text-[#4361ee] uppercase">
                   <span className="flex items-center gap-2">
                     <RefreshCcw size={12} className="animate-spin" /> Overall
                   </span>
                   <span>{overallProgress}%</span>
                 </div>
-                <div className="w-full h-2 bg-blue-50 rounded-full overflow-hidden">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-blue-50">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${overallProgress}%` }}
@@ -320,15 +309,15 @@ export default function PdfPngBatch() {
             )}
 
             {error && (
-              <div className="flex items-center gap-2 p-4 mt-4 bg-red-50 text-red-500 rounded-xl text-xs font-bold">
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 p-4 text-xs font-bold text-red-500">
                 <AlertCircle size={14} />
                 {error}
               </div>
             )}
 
             {zipUrl && !loading && (
-              <div className="mt-4 p-5 bg-[#f0f9ff] border border-blue-100 rounded-2xl space-y-4">
-                <div className="flex items-center gap-2 text-blue-700 text-xs font-bold uppercase">
+              <div className="mt-4 space-y-4 rounded-2xl border border-blue-100 bg-[#f0f9ff] p-5">
+                <div className="flex items-center gap-2 text-xs font-bold text-blue-700 uppercase">
                   <CheckCircle2 size={16} />
                   ZIP ready for download
                 </div>
@@ -337,7 +326,7 @@ export default function PdfPngBatch() {
                   animate={{ opacity: 1, y: 0 }}
                   href={zipUrl}
                   download="pdf-to-png-batch.zip"
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-6 rounded-xl font-bold shadow-[0_8px_20px_rgba(59,130,246,0.25)] hover:shadow-[0_12px_25px_rgba(59,130,246,0.35)] transition-all"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4361ee] to-[#3b82f6] px-6 py-3.5 font-bold text-white shadow-[0_8px_20px_rgba(59,130,246,0.25)] transition-all hover:shadow-[0_12px_25px_rgba(59,130,246,0.35)]"
                 >
                   <Download size={20} />
                   DOWNLOAD ZIP

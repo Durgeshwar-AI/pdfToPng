@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
-import { Image,Download,Undo2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
+import { Image, Download, Undo2 } from 'lucide-react';
 
 function BlurImage() {
   const canvasRef = useRef(null);
@@ -15,17 +15,17 @@ function BlurImage() {
     y: 0,
   });
 
-  const validateFile = (file) => {
-    if (!file || !file.type.startsWith("image/")) {
+  const validateFile = file => {
+    if (!file || !file.type.startsWith('image/')) {
       return {
         isValid: false,
-        message: "Please upload an image file",
+        message: 'Please upload an image file',
       };
     }
 
     return {
       isValid: true,
-      message: "Image selected",
+      message: 'Image selected',
     };
   };
 
@@ -33,7 +33,7 @@ function BlurImage() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       setImageFile(e.target.result);
     };
     reader.readAsDataURL(file);
@@ -45,7 +45,7 @@ function BlurImage() {
 
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     const img = new window.Image();
 
     img.onload = () => {
@@ -73,7 +73,7 @@ function BlurImage() {
 
     if (!canvas) return;
 
-    setHistory((prev) => {
+    setHistory(prev => {
       const updated = [...prev, canvas.toDataURL()];
       if (updated.length > 15) {
         updated.shift();
@@ -82,7 +82,7 @@ function BlurImage() {
     });
   };
 
-  const handleBlur = (e) => {
+  const handleBlur = e => {
     const canvas = canvasRef.current;
 
     if (!canvas) return;
@@ -95,7 +95,7 @@ function BlurImage() {
 
     if (!drawing) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     const x = (e.clientX - rect.left) * scaleX;
@@ -116,9 +116,9 @@ function BlurImage() {
 
     if (!canvas) return;
 
-    const link = document.createElement("a");
-    link.download = "blurred-image.png";
-    link.href = canvas.toDataURL("image/png");
+    const link = document.createElement('a');
+    link.download = 'blurred-image.png';
+    link.href = canvas.toDataURL('image/png');
     link.click();
   };
 
@@ -128,7 +128,7 @@ function BlurImage() {
 
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     const updatedHistory = [...history];
     updatedHistory.pop();
     const previousState = updatedHistory[updatedHistory.length - 1];
@@ -145,50 +145,44 @@ function BlurImage() {
     setImageFile(null);
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHistory([]);
   };
 
   const extraContent = () => (
     <div className="mt-8 flex flex-col items-center">
-
       {imageFile && (
-        <div className="flex flex-wrap gap-4 items-center justify-center bg-transparent text-white border border-slate-700 rounded-2xl px-6 py-4 shadow-2xl mb-6">
-
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-4 rounded-2xl border border-slate-700 bg-transparent px-6 py-4 text-white shadow-2xl">
           <div className="flex flex-col">
-            <span className="text-xs mb-1 text-black">
-              Blur- {blurAmount}px
-            </span>
+            <span className="mb-1 text-xs text-black">Blur- {blurAmount}px</span>
 
             <input
               type="range"
               min="2"
               max="40"
               value={blurAmount}
-              onChange={(e) => setBlurAmount(e.target.value)}
+              onChange={e => setBlurAmount(e.target.value)}
               className="w-[140px] accent-[#4361ee]"
             />
           </div>
 
           <div className="flex flex-col">
-            <span className="text-xs mb-1 text-black">
-              Brush- {brushSize}px
-            </span>
+            <span className="mb-1 text-xs text-black">Brush- {brushSize}px</span>
 
             <input
               type="range"
               min="10"
               max="200"
               value={brushSize}
-              onChange={(e) => setBrushSize(e.target.value)}
+              onChange={e => setBrushSize(e.target.value)}
               className="w-[140px] accent-[#4361ee]"
             />
           </div>
 
           <button
             onClick={handleUndo}
-            className="flex flex-row gap-2 bg-transparent hover:bg-cyan-500 hover:text-white hover:-translate-y-1 hover:shadow-lg active:scale-95 px-5 py-2 rounded-2xl font-medium transition-all duration-300 text-black border border-slate-700"
+            className="flex flex-row gap-2 rounded-2xl border border-slate-700 bg-transparent px-5 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-1 hover:bg-cyan-500 hover:text-white hover:shadow-lg active:scale-95"
           >
             Undo
             <Undo2 size={18} />
@@ -196,7 +190,7 @@ function BlurImage() {
 
           <button
             onClick={downloadImage}
-            className="flex flex-row gap-2 bg-transparent hover:bg-cyan-500 hover:text-white hover:-translate-y-1 hover:shadow-lg active:scale-95 px-5 py-2 rounded-2xl font-medium transition-all duration-300 text-black border border-slate-700"
+            className="flex flex-row gap-2 rounded-2xl border border-slate-700 bg-transparent px-5 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-1 hover:bg-cyan-500 hover:text-white hover:shadow-lg active:scale-95"
           >
             Download
             <Download size={18} />
@@ -206,7 +200,6 @@ function BlurImage() {
 
       {imageFile && (
         <div className="relative">
-
           <canvas
             ref={canvasRef}
             onMouseDown={() => {
@@ -220,26 +213,18 @@ function BlurImage() {
             }}
             onMouseEnter={() => setIsInsideCanvas(true)}
             onMouseMove={handleBlur}
-            className="
-              border border-slate-300
-              rounded-2xl
-              shadow-2xl
-              bg-white
-              max-w-[95vw]
-              max-h-[75vh]
-              cursor-none
-            "
+            className="max-h-[75vh] max-w-[95vw] cursor-none rounded-2xl border border-slate-300 bg-white shadow-2xl"
           />
 
           {isInsideCanvas && (
             <div
-              className="pointer-events-none fixed border border-white rounded-full mix-blend-difference z-50"
+              className="pointer-events-none fixed z-50 rounded-full border border-white mix-blend-difference"
               style={{
                 width: `${brushSize}px`,
                 height: `${brushSize}px`,
                 left: `${mousePos.x}px`,
                 top: `${mousePos.y}px`,
-                transform: "translate(-50%, -50%)",
+                transform: 'translate(-50%, -50%)',
               }}
             />
           )}

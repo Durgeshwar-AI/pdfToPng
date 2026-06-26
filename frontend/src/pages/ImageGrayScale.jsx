@@ -1,12 +1,12 @@
-import React, { useCallback } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
+import React, { useCallback } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
 
 const ImageGrayScale = () => {
-  const validateFile = useCallback((selectedFile) => {
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
+  const validateFile = useCallback(selectedFile => {
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };
     }
-    return { isValid: false, message: "Please select an image file" };
+    return { isValid: false, message: 'Please select an image file' };
   }, []);
 
   return (
@@ -17,8 +17,8 @@ const ImageGrayScale = () => {
       validateFile={validateFile}
       apiEndpoint="/convertGrayscale"
       fileFieldName="image"
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.replace(/\.[^/.]+$/, "");
+      getDownloadFilename={fileName => {
+        const originalName = fileName.replace(/\.[^/.]+$/, '');
         return `${originalName}_grayscale.png`;
       }}
       submitButtonText="Convert to Grayscale"

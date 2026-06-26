@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 const FileUploadArea = ({
   file,
@@ -13,10 +13,10 @@ const FileUploadArea = ({
   handleDragLeave,
   handleDrop,
   handleAreaClick,
-  accept = "image/*",
+  accept = 'image/*',
   multiple = false,
   files = [],
-  inputId = "file-input",
+  inputId = 'file-input',
   defaultIcon,
   defaultText,
   supportText,
@@ -25,10 +25,10 @@ const FileUploadArea = ({
   return (
     <div
       ref={dropAreaRef}
-      className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none focus-within:ring-2 focus-within:ring-[var(--color-app-primary)] ${
+      className={`mb-8 flex w-full cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed p-8 transition-transform duration-300 select-none focus-within:ring-2 focus-within:ring-[var(--color-app-primary)] ${
         isDragging
-          ? "border-[var(--color-app-primary)] bg-[var(--color-app-surface-soft)] scale-[1.02]"
-          : "border-[var(--color-app-border-strong)] bg-[var(--color-app-surface)] hover:border-[var(--color-app-primary)] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[var(--color-app-surface-soft)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)]"
+          ? 'scale-[1.02] border-[var(--color-app-primary)] bg-[var(--color-app-surface-soft)]'
+          : 'border-[var(--color-app-border-strong)] bg-[var(--color-app-surface)] hover:-translate-y-1 hover:border-[var(--color-app-primary)] hover:bg-[var(--color-app-surface-soft)] hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)]'
       }`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -47,25 +47,25 @@ const FileUploadArea = ({
       />
       <label
         htmlFor={inputId}
-        className="flex flex-col items-center text-xl theme-muted cursor-pointer font-medium transition-colors duration-200 hover:text-[var(--color-app-text)] w-full"
+        className="theme-muted flex w-full cursor-pointer flex-col items-center text-xl font-medium transition-colors duration-200 hover:text-[var(--color-app-text)]"
       >
         {file ? (
-          <div className="relative group w-full flex flex-col items-center">
+          <div className="group relative flex w-full flex-col items-center">
             <div className="relative">
               {previewUrl ? (
-                file && file.type === "application/pdf" ? (
+                file && file.type === 'application/pdf' ? (
                   <embed
                     src={previewUrl}
                     type="application/pdf"
-                    className="w-full h-96 rounded-lg shadow-md object-contain"
-                    style={{ maxHeight: "560px" }}
+                    className="h-96 w-full rounded-lg object-contain shadow-md"
+                    style={{ maxHeight: '560px' }}
                   />
                 ) : (
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    className="w-full h-96 rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-                    style={{ maxHeight: "560px" }}
+                    className="h-96 w-full rounded-lg object-contain shadow-md transition-transform duration-300 group-hover:scale-[1.02]"
+                    style={{ maxHeight: '560px' }}
                   />
                 )
               ) : (
@@ -100,7 +100,7 @@ const FileUploadArea = ({
                         fill="currentColor"
                         fontSize="6"
                         fontWeight="bold"
-                        style={{ fontSize: "5px" }}
+                        style={{ fontSize: '5px' }}
                       >
                         PDF
                       </text>
@@ -110,7 +110,7 @@ const FileUploadArea = ({
               )}
               <button
                 onClick={handleClear}
-                className="absolute -top-3 -right-3 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-colors duration-200 hover:scale-[1.02] z-10"
+                className="absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition-colors duration-200 hover:scale-[1.02] hover:bg-red-700"
                 aria-label="Remove file"
               >
                 <svg
@@ -129,23 +129,21 @@ const FileUploadArea = ({
               </button>
             </div>
             <div
-              className="bg-[var(--color-app-surface-soft)] px-4 py-2 rounded-lg mt-4 text-[#0369a1] dark:text-sky-300 font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] dark:border-sky-500 max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+              className="mt-4 max-w-full overflow-hidden rounded-lg border-l-[3px] border-[#0ea5e9] bg-[var(--color-app-surface-soft)] px-4 py-2 font-semibold text-ellipsis whitespace-nowrap text-[#0369a1] shadow-[0_2px_5px_rgba(0,0,0,0.05)] dark:border-sky-500 dark:text-sky-300"
               title={files && files.length > 1 ? `${files.length} files selected` : file.name}
             >
               {files && files.length > 1
                 ? `${files.length} files selected`
                 : file.name.length > 30
-                ? `${file.name.substring(0, 27)}...`
-                : file.name}
+                  ? `${file.name.substring(0, 27)}...`
+                  : file.name}
             </div>
           </div>
         ) : (
           <>
-            <div className="text-[2.5rem] text-[#4361ee] mb-4">
-              {defaultIcon}
-            </div>
+            <div className="mb-4 text-[2.5rem] text-[#4361ee]">{defaultIcon}</div>
             {defaultText}
-            <div className="text-[0.95rem] text-slate-500 dark:text-slate-400 mt-3">
+            <div className="mt-3 text-[0.95rem] text-slate-500 dark:text-slate-400">
               {supportText}
             </div>
           </>

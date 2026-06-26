@@ -1,23 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PDFDocument } from "pdf-lib";
-import { toastSuccess, toastError } from "../utils/toast";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PDFDocument } from 'pdf-lib';
+import { toastSuccess, toastError } from '../utils/toast';
 
 const MAX_SIZE = 10 * 1024 * 1024;
 
-const createId = () =>
-  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 const PAGE_SIZES = {
-  original: { label: "Original", width: 0, height: 0 },
-  a4: { label: "A4", width: 595.28, height: 841.89 },
-  letter: { label: "Letter", width: 612, height: 792 },
+  original: { label: 'Original', width: 0, height: 0 },
+  a4: { label: 'A4', width: 595.28, height: 841.89 },
+  letter: { label: 'Letter', width: 612, height: 792 },
 };
 
 const MARGIN_OPTIONS = [
-  { value: 0, label: "None" },
-  { value: 18, label: "Small (0.25″)" },
-  { value: 36, label: "Medium (0.5″)" },
-  { value: 72, label: "Large (1″)" },
+  { value: 0, label: 'None' },
+  { value: 18, label: 'Small (0.25″)' },
+  { value: 36, label: 'Medium (0.5″)' },
+  { value: 72, label: 'Large (1″)' },
 ];
 
 /**
@@ -28,9 +27,7 @@ const getOptimizedImageBytes = async (file, rotation = 0) => {
   // Direct passthrough for native formats with no rotation
   if (
     rotation === 0 &&
-    (file.type === "image/png" ||
-      file.type === "image/jpeg" ||
-      file.type === "image/jpg")
+    (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg')
   ) {
     const bytes = await file.arrayBuffer();
     // We still need dimensions for page-size fitting
@@ -39,7 +36,7 @@ const getOptimizedImageBytes = async (file, rotation = 0) => {
     bitmap.close();
     return {
       bytes,
-      type: file.type === "image/png" ? "png" : "jpg",
+      type: file.type === 'image/png' ? 'png' : 'jpg',
       width,
       height,
     };
@@ -54,16 +51,16 @@ const getOptimizedImageBytes = async (file, rotation = 0) => {
   const canvasW = swapped ? srcH : srcW;
   const canvasH = swapped ? srcW : srcH;
 
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = canvasW;
   canvas.height = canvasH;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) {
     bitmap.close();
-    throw new Error("Canvas context not available");
+    throw new Error('Canvas context not available');
   }
 
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvasW, canvasH);
 
   ctx.translate(canvasW / 2, canvasH / 2);
@@ -72,24 +69,24 @@ const getOptimizedImageBytes = async (file, rotation = 0) => {
   bitmap.close();
 
   // Choose output format: keep PNG when source is PNG, otherwise JPEG
-  const isPng = file.type === "image/png";
-  const mimeType = isPng ? "image/png" : "image/jpeg";
+  const isPng = file.type === 'image/png';
+  const mimeType = isPng ? 'image/png' : 'image/jpeg';
   const quality = isPng ? undefined : 0.92;
 
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob(
-      (result) => {
+      result => {
         if (result) resolve(result);
-        else reject(new Error("Failed to convert image"));
+        else reject(new Error('Failed to convert image'));
       },
       mimeType,
-      quality,
+      quality
     );
   });
 
   return {
     bytes: await blob.arrayBuffer(),
-    type: isPng ? "png" : "jpg",
+    type: isPng ? 'png' : 'jpg',
     width: canvasW,
     height: canvasH,
   };
@@ -101,30 +98,27 @@ function ImagePdf() {
   const [loading, setLoading] = useState(false);
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
-  const [pageSize, setPageSize] = useState("original");
+  const [pageSize, setPageSize] = useState('original');
   const [margin, setMargin] = useState(36);
   const fileInputRef = useRef(null);
   const dropAreaRef = useRef(null);
 
   useEffect(() => {
     return () => {
-      items.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      items.forEach(item => URL.revokeObjectURL(item.previewUrl));
     };
   }, [items]);
 
-  const totalSize = useMemo(
-    () => items.reduce((sum, item) => sum + item.file.size, 0),
-    [items],
-  );
+  const totalSize = useMemo(() => items.reduce((sum, item) => sum + item.file.size, 0), [items]);
 
-  const addFiles = useCallback((selectedFiles) => {
+  const addFiles = useCallback(selectedFiles => {
     if (!selectedFiles || selectedFiles.length === 0) return;
 
     const nextItems = [];
     const rejected = [];
 
-    selectedFiles.forEach((file) => {
-      if (!file.type.startsWith("image/")) {
+    selectedFiles.forEach(file => {
+      if (!file.type.startsWith('image/')) {
         rejected.push(`${file.name} (not an image)`);
         return;
       }
@@ -139,43 +133,40 @@ function ImagePdf() {
     });
 
     if (rejected.length > 0) {
-      toastError(`Skipped: ${rejected.join(", ")}`);
+      toastError(`Skipped: ${rejected.join(', ')}`);
     }
 
     if (nextItems.length > 0) {
-      setItems((prev) => [...prev, ...nextItems]);
+      setItems(prev => [...prev, ...nextItems]);
     }
   }, []);
 
-  const handleFileChange = (event) => {
+  const handleFileChange = event => {
     addFiles(Array.from(event.target.files || []));
-    event.target.value = "";
+    event.target.value = '';
   };
 
-  const handleDragEnter = (event) => {
+  const handleDragEnter = event => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(true);
   };
 
-  const handleDragOver = (event) => {
+  const handleDragOver = event => {
     event.preventDefault();
     event.stopPropagation();
     if (!isDragging) setIsDragging(true);
   };
 
-  const handleDragLeave = (event) => {
+  const handleDragLeave = event => {
     event.preventDefault();
     event.stopPropagation();
-    if (
-      dropAreaRef.current &&
-      !dropAreaRef.current.contains(event.relatedTarget)
-    ) {
+    if (dropAreaRef.current && !dropAreaRef.current.contains(event.relatedTarget)) {
       setIsDragging(false);
     }
   };
 
-  const handleDrop = (event) => {
+  const handleDrop = event => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
@@ -183,19 +174,19 @@ function ImagePdf() {
     event.dataTransfer.clearData();
   };
 
-  const handleAreaClick = (event) => {
+  const handleAreaClick = event => {
     if (
-      event.target.tagName.toLowerCase() !== "label" &&
-      !event.target.closest("label") &&
-      event.target.tagName.toLowerCase() !== "button" &&
-      !event.target.closest("button")
+      event.target.tagName.toLowerCase() !== 'label' &&
+      !event.target.closest('label') &&
+      event.target.tagName.toLowerCase() !== 'button' &&
+      !event.target.closest('button')
     ) {
       fileInputRef.current?.click();
     }
   };
 
   const moveItem = (index, direction) => {
-    setItems((prev) => {
+    setItems(prev => {
       const nextIndex = index + direction;
       if (nextIndex < 0 || nextIndex >= prev.length) return prev;
       const next = [...prev];
@@ -205,29 +196,25 @@ function ImagePdf() {
     });
   };
 
-  const rotateItem = (id) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, rotation: (item.rotation + 90) % 360 }
-          : item,
-      ),
+  const rotateItem = id => {
+    setItems(prev =>
+      prev.map(item => (item.id === id ? { ...item, rotation: (item.rotation + 90) % 360 } : item))
     );
   };
 
-  const removeItem = (id) => {
-    setItems((prev) => {
-      const item = prev.find((entry) => entry.id === id);
+  const removeItem = id => {
+    setItems(prev => {
+      const item = prev.find(entry => entry.id === id);
       if (item) URL.revokeObjectURL(item.previewUrl);
-      return prev.filter((entry) => entry.id !== id);
+      return prev.filter(entry => entry.id !== id);
     });
   };
 
-  const handleReorderDrop = (targetId) => {
+  const handleReorderDrop = targetId => {
     if (!draggedId || draggedId === targetId) return;
-    setItems((prev) => {
-      const currentIndex = prev.findIndex((item) => item.id === draggedId);
-      const targetIndex = prev.findIndex((item) => item.id === targetId);
+    setItems(prev => {
+      const currentIndex = prev.findIndex(item => item.id === draggedId);
+      const targetIndex = prev.findIndex(item => item.id === targetId);
       if (currentIndex === -1 || targetIndex === -1) return prev;
       const next = [...prev];
       const [moved] = next.splice(currentIndex, 1);
@@ -239,14 +226,14 @@ function ImagePdf() {
   };
 
   const clearAll = () => {
-    items.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    items.forEach(item => URL.revokeObjectURL(item.previewUrl));
     setItems([]);
   };
 
-  const createPdf = async (event) => {
+  const createPdf = async event => {
     event.preventDefault();
     if (items.length === 0) {
-      toastError("Please add at least one image.");
+      toastError('Please add at least one image.');
       return;
     }
 
@@ -257,17 +244,21 @@ function ImagePdf() {
       const ps = PAGE_SIZES[pageSize];
 
       for (const item of items) {
-        const { bytes, type, width: imgW, height: imgH } =
-          await getOptimizedImageBytes(item.file, item.rotation);
+        const {
+          bytes,
+          type,
+          width: imgW,
+          height: imgH,
+        } = await getOptimizedImageBytes(item.file, item.rotation);
 
         let image;
-        if (type === "png") {
+        if (type === 'png') {
           image = await pdfDoc.embedPng(bytes);
         } else {
           image = await pdfDoc.embedJpg(bytes);
         }
 
-        if (pageSize === "original") {
+        if (pageSize === 'original') {
           // Page matches image size exactly
           const page = pdfDoc.addPage([imgW, imgH]);
           page.drawImage(image, { x: 0, y: 0, width: imgW, height: imgH });
@@ -290,43 +281,42 @@ function ImagePdf() {
       }
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
 
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = "images-to-pdf.pdf";
+      a.download = 'images-to-pdf.pdf';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toastSuccess("Your PDF has been created and downloaded!");
+      toastSuccess('Your PDF has been created and downloaded!');
     } catch (err) {
       console.error(err);
-      toastError("Failed to create PDF. Please try again.");
+      toastError('Failed to create PDF. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-[760px] mx-auto p-10 text-center flex flex-col justify-center items-center theme-panel rounded-2xl overflow-hidden">
-      <h1 className="mb-10 text-[var(--color-app-text)] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
+    <div className="theme-panel mx-auto flex w-full max-w-[760px] flex-col items-center justify-center overflow-hidden rounded-2xl p-10 text-center">
+      <h1 className="relative mb-10 inline-block text-5xl font-bold tracking-tight text-[var(--color-app-text)] after:absolute after:-bottom-2.5 after:left-1/2 after:h-1 after:w-15 after:-translate-x-1/2 after:rounded-sm after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:content-['']">
         Image to PDF
       </h1>
-      <p className="text-gray-500 mb-8">
-        Convert multiple images into a single PDF and arrange them in the exact
-        order you want.
+      <p className="mb-8 text-gray-500">
+        Convert multiple images into a single PDF and arrange them in the exact order you want.
       </p>
 
-      <form onSubmit={createPdf} className="w-full flex flex-col items-center">
+      <form onSubmit={createPdf} className="flex w-full flex-col items-center">
         <div
           ref={dropAreaRef}
-          className={`w-full border-2 border-dashed rounded-2xl p-8 mb-6 cursor-pointer transition-all duration-300 flex flex-col items-center select-none ${
+          className={`mb-6 flex w-full cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed p-8 transition-all duration-300 select-none ${
             isDragging
-              ? "border-[#3b82f6] bg-[#ebf5ff] scale-[1.02]"
-              : "border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
+              ? 'scale-[1.02] border-[#3b82f6] bg-[#ebf5ff]'
+              : 'border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] hover:-translate-y-1 hover:border-[#4361ee] hover:bg-[rgba(229,240,255,0.8)] hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] active:translate-y-0 active:bg-[rgba(219,234,254,0.9)] active:shadow-[0_4px_8px_rgba(67,97,238,0.08)]'
           }`}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
@@ -345,9 +335,9 @@ function ImagePdf() {
           />
           <label
             htmlFor="image-pdf-input"
-            className="flex flex-col items-center text-xl text-[#4b5563] cursor-pointer font-medium transition-colors duration-200 hover:text-[#1a1a2e] w-full"
+            className="flex w-full cursor-pointer flex-col items-center text-xl font-medium text-[#4b5563] transition-colors duration-200 hover:text-[#1a1a2e]"
           >
-            <div className="text-[2.5rem] text-[#4361ee] mb-4">
+            <div className="mb-4 text-[2.5rem] text-[#4361ee]">
               <svg
                 width="64"
                 height="64"
@@ -379,7 +369,7 @@ function ImagePdf() {
               </svg>
             </div>
             Choose images or drag &amp; drop here
-            <div className="text-[0.95rem] text-[#6b7280] mt-3">
+            <div className="mt-3 text-[0.95rem] text-[#6b7280]">
               Supports PNG, JPG, GIF, WEBP and more. Up to 10MB each.
             </div>
           </label>
@@ -387,14 +377,12 @@ function ImagePdf() {
 
         {/* ── Settings Panel ── */}
         {items.length > 0 && (
-          <div className="w-full mb-6 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+          <div className="mb-6 w-full rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
               {/* Page size */}
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-[#334155]">
-                  Page size:
-                </span>
-                <div className="flex rounded-lg border border-[#e2e8f0] overflow-hidden">
+                <span className="text-sm font-medium text-[#334155]">Page size:</span>
+                <div className="flex overflow-hidden rounded-lg border border-[#e2e8f0]">
                   {Object.entries(PAGE_SIZES).map(([key, { label }]) => (
                     <button
                       key={key}
@@ -402,8 +390,8 @@ function ImagePdf() {
                       onClick={() => setPageSize(key)}
                       className={`px-3.5 py-1.5 text-sm font-medium transition-colors ${
                         pageSize === key
-                          ? "bg-[#4361ee] text-white"
-                          : "bg-white text-[#475569] hover:bg-[#f1f5f9]"
+                          ? 'bg-[#4361ee] text-white'
+                          : 'bg-white text-[#475569] hover:bg-[#f1f5f9]'
                       }`}
                     >
                       {label}
@@ -413,15 +401,13 @@ function ImagePdf() {
               </div>
 
               {/* Margin (only visible for standard pages) */}
-              {pageSize !== "original" && (
+              {pageSize !== 'original' && (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-[#334155]">
-                    Margin:
-                  </span>
+                  <span className="text-sm font-medium text-[#334155]">Margin:</span>
                   <select
                     value={margin}
-                    onChange={(e) => setMargin(Number(e.target.value))}
-                    className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-1.5 text-sm text-[#475569] focus:border-[#4361ee] focus:outline-none focus:ring-1 focus:ring-[#4361ee]"
+                    onChange={e => setMargin(Number(e.target.value))}
+                    className="rounded-lg border border-[#e2e8f0] bg-white px-3 py-1.5 text-sm text-[#475569] focus:border-[#4361ee] focus:ring-1 focus:ring-[#4361ee] focus:outline-none"
                   >
                     {MARGIN_OPTIONS.map(({ value, label }) => (
                       <option key={value} value={value}>
@@ -436,14 +422,12 @@ function ImagePdf() {
         )}
 
         {items.length > 0 && (
-          <div className="w-full mb-6">
-            <div className="flex items-center justify-between text-sm text-[#475569] mb-3">
+          <div className="mb-6 w-full">
+            <div className="mb-3 flex items-center justify-between text-sm text-[#475569]">
               <span>
-                {items.length} image{items.length > 1 ? "s" : ""} selected
+                {items.length} image{items.length > 1 ? 's' : ''} selected
               </span>
-              <span>
-                Total size: {(totalSize / (1024 * 1024)).toFixed(2)} MB
-              </span>
+              <span>Total size: {(totalSize / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -453,12 +437,12 @@ function ImagePdf() {
                     key={item.id}
                     className={`flex items-center gap-4 rounded-xl border bg-white p-3 shadow-sm transition-all ${
                       dragOverId === item.id
-                        ? "border-[#4361ee] ring-2 ring-[#c7d2fe]"
-                        : "border-[#e2e8f0]"
+                        ? 'border-[#4361ee] ring-2 ring-[#c7d2fe]'
+                        : 'border-[#e2e8f0]'
                     }`}
                     draggable
                     onDragStart={() => setDraggedId(item.id)}
-                    onDragOver={(event) => {
+                    onDragOver={event => {
                       event.preventDefault();
                       setDragOverId(item.id);
                     }}
@@ -471,7 +455,7 @@ function ImagePdf() {
                       </div>
                       <button
                         type="button"
-                        className="h-9 w-9 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] cursor-grab active:cursor-grabbing flex items-center justify-center"
+                        className="flex h-9 w-9 cursor-grab items-center justify-center rounded-lg border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] active:cursor-grabbing"
                         aria-label="Drag to reorder"
                       >
                         <svg
@@ -490,7 +474,7 @@ function ImagePdf() {
                         </svg>
                       </button>
                     </div>
-                    <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-[#f1f5f9] text-[#64748b] overflow-hidden">
+                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-[#f1f5f9] text-[#64748b]">
                       <img
                         src={item.previewUrl}
                         alt={item.file.name}
@@ -500,19 +484,14 @@ function ImagePdf() {
                         }}
                       />
                     </div>
-                    <div className="flex-1 text-left overflow-hidden">
-                      <p
-                        className="truncate font-semibold text-[#1e293b]"
-                        title={item.file.name}
-                      >
+                    <div className="flex-1 overflow-hidden text-left">
+                      <p className="truncate font-semibold text-[#1e293b]" title={item.file.name}>
                         {item.file.name}
                       </p>
                       <p className="text-xs text-[#94a3b8]">
                         {(item.file.size / 1024).toFixed(1)} KB
                         {item.rotation !== 0 && (
-                          <span className="ml-2 text-[#4361ee]">
-                            ↻ {item.rotation}°
-                          </span>
+                          <span className="ml-2 text-[#4361ee]">↻ {item.rotation}°</span>
                         )}
                       </p>
                     </div>
@@ -521,7 +500,7 @@ function ImagePdf() {
                       <button
                         type="button"
                         onClick={() => rotateItem(item.id)}
-                        className="h-9 w-9 rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:bg-[#eef2ff] hover:text-[#4361ee] hover:border-[#c7d2fe] flex items-center justify-center"
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[#c7d2fe] hover:bg-[#eef2ff] hover:text-[#4361ee]"
                         aria-label="Rotate 90° clockwise"
                         title="Rotate 90°"
                       >
@@ -544,7 +523,7 @@ function ImagePdf() {
                         type="button"
                         onClick={() => moveItem(index, -1)}
                         disabled={index === 0}
-                        className="h-9 w-9 rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:text-[#cbd5f5] flex items-center justify-center"
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:text-[#cbd5f5]"
                         aria-label="Move up"
                       >
                         <svg
@@ -566,7 +545,7 @@ function ImagePdf() {
                         type="button"
                         onClick={() => moveItem(index, 1)}
                         disabled={index === items.length - 1}
-                        className="h-9 w-9 rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:text-[#cbd5f5] flex items-center justify-center"
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:text-[#cbd5f5]"
                         aria-label="Move down"
                       >
                         <svg
@@ -604,27 +583,26 @@ function ImagePdf() {
           <button
             type="submit"
             disabled={items.length === 0 || loading}
-            className="flex-1 bg-linear-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 border-none rounded-lg cursor-pointer text-lg font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] tracking-wide relative overflow-hidden hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 active:enabled:shadow-[0_2px_8px_rgba(59,130,246,0.2)] disabled:bg-linear-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none"
+            className="relative flex-1 cursor-pointer overflow-hidden rounded-lg border-none bg-linear-to-r from-[#4361ee] to-[#3b82f6] px-8 py-3.5 text-lg font-semibold tracking-wide text-white shadow-[0_4px_12px_rgba(59,130,246,0.25)] transition-all duration-300 hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 active:enabled:shadow-[0_2px_8px_rgba(59,130,246,0.2)] disabled:cursor-not-allowed disabled:bg-linear-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:shadow-none"
           >
             {loading ? (
               <>
-                <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
+                <span className="mr-2.5 inline-block h-5 w-5 animate-spin rounded-full border-[3px] border-[rgba(255,255,255,0.3)] border-t-white"></span>
                 Creating...
               </>
             ) : (
-              "Convert to PDF"
+              'Convert to PDF'
             )}
           </button>
           <button
             type="button"
             onClick={clearAll}
             disabled={items.length === 0 || loading}
-            className="flex-1 border border-[#e2e8f0] text-[#475569] py-3.5 px-8 rounded-lg text-lg font-semibold transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:text-[#cbd5f5]"
+            className="flex-1 rounded-lg border border-[#e2e8f0] px-8 py-3.5 text-lg font-semibold text-[#475569] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:text-[#cbd5f5]"
           >
             Clear all
           </button>
         </div>
-
       </form>
     </div>
   );

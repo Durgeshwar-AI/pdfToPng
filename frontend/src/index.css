@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -152,13 +152,13 @@
 
   /* Range sliders: the generic ".dark input" rule above flattens them into a
      solid dark box. Restore a visible track + a clear thumb in dark mode. */
-  .dark input[type="range"] {
+  .dark input[type='range'] {
     background-color: var(--color-app-border) !important;
     border-color: transparent !important;
     accent-color: var(--color-app-primary);
   }
 
-  .dark input[type="range"]::-webkit-slider-thumb {
+  .dark input[type='range']::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 16px;
@@ -169,7 +169,7 @@
     cursor: pointer;
   }
 
-  .dark input[type="range"]::-moz-range-thumb {
+  .dark input[type='range']::-moz-range-thumb {
     width: 16px;
     height: 16px;
     border: 2px solid var(--color-app-surface);
