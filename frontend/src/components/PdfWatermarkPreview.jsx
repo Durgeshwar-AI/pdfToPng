@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
-import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+import { useEffect, useRef } from 'react';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 
 GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
+  'pdfjs-dist/build/pdf.worker.min.mjs',
   import.meta.url
 ).toString();
 
@@ -35,7 +35,7 @@ export default function PdfWatermarkPreview({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const context = canvas.getContext("2d");
+        const context = canvas.getContext('2d');
 
         canvas.width = viewport.width;
         canvas.height = viewport.height;
@@ -53,74 +53,61 @@ export default function PdfWatermarkPreview({
   }, [file]);
 
   const style = {
-    position: "absolute",
+    position: 'absolute',
     zIndex: 10,
     opacity: opacity / 100,
     fontSize: `${size}px`,
-    fontWeight: "700",
-    color: "#2563eb",
-    pointerEvents: "none",
-    whiteSpace: "nowrap",
+    fontWeight: '700',
+    color: '#2563eb',
+    pointerEvents: 'none',
+    whiteSpace: 'nowrap',
   };
 
   switch (position) {
-    case "top-left":
-      style.top = "20px";
-      style.left = "20px";
+    case 'top-left':
+      style.top = '20px';
+      style.left = '20px';
       break;
 
-    case "top-right":
-      style.top = "20px";
-      style.right = "20px";
+    case 'top-right':
+      style.top = '20px';
+      style.right = '20px';
       break;
 
-    case "center":
-      style.top = "50%";
-      style.left = "50%";
-      style.transform = "translate(-50%, -50%)";
+    case 'center':
+      style.top = '50%';
+      style.left = '50%';
+      style.transform = 'translate(-50%, -50%)';
       break;
 
-    case "diagonal-center":
-      style.top = "50%";
-      style.left = "50%";
-      style.transform = "translate(-50%, -50%) rotate(-45deg)";
+    case 'diagonal-center':
+      style.top = '50%';
+      style.left = '50%';
+      style.transform = 'translate(-50%, -50%) rotate(-45deg)';
       break;
 
-    case "bottom-left":
-      style.bottom = "20px";
-      style.left = "20px";
+    case 'bottom-left':
+      style.bottom = '20px';
+      style.left = '20px';
       break;
 
-    case "bottom-right":
+    case 'bottom-right':
     default:
-      style.bottom = "20px";
-      style.right = "20px";
+      style.bottom = '20px';
+      style.right = '20px';
       break;
   }
 
   return (
-    <div className="w-full rounded-xl border border-gray-200 bg-white p-5 mt-6">
-
-      <h2 className="text-lg font-semibold text-center mb-4">
-        Live Preview
-      </h2>
+    <div className="mt-6 w-full rounded-xl border border-gray-200 bg-white p-5">
+      <h2 className="mb-4 text-center text-lg font-semibold">Live Preview</h2>
 
       <div className="flex justify-center">
+        <div className="relative max-w-full" style={{ display: 'inline-block' }}>
+          <canvas ref={canvasRef} className="block h-auto max-w-full rounded border shadow-sm" />
 
-        <div
-          className="relative max-w-full"
-          style={{ display: "inline-block" }}
-        >
-
-          <canvas
-            ref={canvasRef}
-            className="border rounded shadow-sm block max-w-full h-auto"
-          />
-
-          {watermarkType === "text" ? (
-            <div style={style}>
-              {watermarkText}
-            </div>
+          {watermarkType === 'text' ? (
+            <div style={style}>{watermarkText}</div>
           ) : (
             watermarkImage && (
               <img
@@ -129,16 +116,13 @@ export default function PdfWatermarkPreview({
                 style={{
                   ...style,
                   width: `${(size / 100) * canvasRef.current?.width}px`,
-                  height: "auto",
+                  height: 'auto',
                 }}
               />
             )
           )}
-
         </div>
-
       </div>
-
     </div>
   );
 }

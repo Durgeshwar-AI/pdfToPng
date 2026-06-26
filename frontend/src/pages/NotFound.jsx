@@ -3,19 +3,16 @@ import { Link } from 'react-router-dom';
 
 const NotFound = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] p-8 text-center font-sans">
-      <h1 className="text-[8rem] font-extrabold text-slate-900 m-0 leading-none">
-        404
-      </h1>
-      <h2 className="text-3xl font-semibold text-slate-700 mt-5 mb-2.5">
-        Page Not Found
-      </h2>
-      <p className="text-lg text-slate-500 mb-10 max-w-lg">
-        Oops! The page you are looking for doesn't exist, has been moved, or is temporarily unavailable.
+    <div className="flex min-h-[70vh] flex-col items-center justify-center p-8 text-center font-sans">
+      <h1 className="m-0 text-[8rem] leading-none font-extrabold text-slate-900">404</h1>
+      <h2 className="mt-5 mb-2.5 text-3xl font-semibold text-slate-700">Page Not Found</h2>
+      <p className="mb-10 max-w-lg text-lg text-slate-500">
+        Oops! The page you are looking for doesn't exist, has been moved, or is temporarily
+        unavailable.
       </p>
       <Link
         to="/"
-        className="inline-block px-7 py-3.5 bg-blue-500 text-white no-underline rounded-lg font-semibold text-base shadow-md transition-transform duration-200 hover:scale-[1.02]"
+        className="inline-block rounded-lg bg-blue-500 px-7 py-3.5 text-base font-semibold text-white no-underline shadow-md transition-transform duration-200 hover:scale-[1.02]"
       >
         Go Back Home
       </Link>

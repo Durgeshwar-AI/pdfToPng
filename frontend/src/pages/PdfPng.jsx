@@ -1,95 +1,84 @@
-import React, { useCallback, useState, useEffect } from "react";
-import ReactCrop from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
+import React, { useCallback, useState, useEffect } from 'react';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
-import JSZip from "jszip";
+import JSZip from 'jszip';
 
-import ToolPageTemplate from "../components/ToolPageTemplate";
-import MultiFileResults from "../components/MultiFileResults";
-import {
-  toastSuccess,
-  toastError,
-  toastLoading,
-  toastDismiss,
-  parseApiError,
-} from "../utils/toast";
+import ToolPageTemplate from '../components/ToolPageTemplate';
+import MultiFileResults from '../components/MultiFileResults';
+import { toastError, toastLoading, toastDismiss, parseApiError } from '../utils/toast';
 
 const PdfPng = () => {
   const [scale, setScale] = useState(2.0); // Default scale (2x)
-  const [pageMode, setPageMode] = useState("all"); // all, single, range
-  const [pageRange, setPageRange] = useState("");
-  const [singlePage, setSinglePage] = useState("1");
+  const [pageMode, setPageMode] = useState('all'); // all, single, range
+  const [pageRange, setPageRange] = useState('');
+  const [singlePage, setSinglePage] = useState('1');
   const [numPages, setNumPages] = useState(0);
-  const [language, setLanguage] = useState("eng");
-  const [previewImage , setPreviewImage] = useState(null);
-  const [cropEnabled , setCropEnabled] = useState(false);
-  const [crop , setCrop] = useState({
-    unit : "%",
-    x : 10,
-    y : 10,
-    width : 80,
-    height : 80,
-
+  const [language, setLanguage] = useState('eng');
+  const [previewImage, setPreviewImage] = useState(null);
+  const [cropEnabled, setCropEnabled] = useState(false);
+  const [crop, setCrop] = useState({
+    unit: '%',
+    x: 10,
+    y: 10,
+    width: 80,
+    height: 80,
   });
   useEffect(() => {
-  const generatePreview = async () => {
-    try {
-      if (!cropEnabled) return;
+    const generatePreview = async () => {
+      try {
+        if (!cropEnabled) return;
 
-      const input = document.querySelector('input[type="file"]');
-      const selectedFile = input?.files?.[0];
+        const input = document.querySelector('input[type="file"]');
+        const selectedFile = input?.files?.[0];
 
-      if (!selectedFile) return;
+        if (!selectedFile) return;
 
-      const pdfjsLib = await import("pdfjs-dist");
+        const pdfjsLib = await import('pdfjs-dist');
 
-      const pdfWorker = await import(
-        "pdfjs-dist/build/pdf.worker.min.mjs?url"
-      );
+        const pdfWorker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
 
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
-      const arrayBuffer = await selectedFile.arrayBuffer();
+        const arrayBuffer = await selectedFile.arrayBuffer();
 
-      const pdf = await pdfjsLib.getDocument({
-        data: arrayBuffer,
-      }).promise;
+        const pdf = await pdfjsLib.getDocument({
+          data: arrayBuffer,
+        }).promise;
 
-      const page = await pdf.getPage(1);
+        const page = await pdf.getPage(1);
 
-      const viewport = page.getViewport({ scale: 1.5 });
+        const viewport = page.getViewport({ scale: 1.5 });
 
-      const canvas = document.createElement("canvas");
+        const canvas = document.createElement('canvas');
 
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
 
-      const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext('2d');
 
-      await page.render({
-        canvasContext: ctx,
-        viewport,
-      }).promise;
+        await page.render({
+          canvasContext: ctx,
+          viewport,
+        }).promise;
 
-      setPreviewImage(canvas.toDataURL("image/png"));
-    } catch (err) {
-      console.error("Preview error:", err);
-    }
-  };
+        setPreviewImage(canvas.toDataURL('image/png'));
+      } catch (err) {
+        console.error('Preview error:', err);
+      }
+    };
 
-  generatePreview();
-}, [cropEnabled]);
+    generatePreview();
+  }, [cropEnabled]);
   const [outputFiles, setOutputFiles] = useState([]);
 
-  const validateFile = useCallback(async (selectedFile) => {
-    if (selectedFile && selectedFile.type === "application/pdf") {
+  const validateFile = useCallback(async selectedFile => {
+    if (selectedFile && selectedFile.type === 'application/pdf') {
       try {
         const arrayBuffer = await selectedFile.arrayBuffer();
-        const pdfjsLib = await import("pdfjs-dist");
+        const pdfjsLib = await import('pdfjs-dist');
 
-        const pdfWorker = await import(
-          "pdfjs-dist/build/pdf.worker.min.mjs?url"
-        );
+        const pdfWorker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
@@ -98,26 +87,26 @@ const PdfPng = () => {
         }).promise;
         setNumPages(pdf.numPages);
       } catch (err) {
-        console.error("Error loading PDF info:", err);
+        console.error('Error loading PDF info:', err);
       }
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`,
+        message: `File "${selectedFile.name}" selected (${(selectedFile.size / 1024).toFixed(
+          1
+        )} KB)`,
       };
     }
     return {
       isValid: false,
-      message: "Please select a valid PDF file.",
+      message: 'Please select a valid PDF file.',
     };
   }, []);
 
   const handleClear = () => {
     setNumPages(0);
-    setPageRange("");
-    setSinglePage("1");
-    setPageMode("all");
+    setPageRange('');
+    setSinglePage('1');
+    setPageMode('all');
     setCropEnabled(false);
     setPreviewImage(null);
     setOutputFiles([]);
@@ -125,16 +114,14 @@ const PdfPng = () => {
 
   const handleCustomSubmit = async ({ file, setStatusMessage, setLoading }) => {
     // setStatusMessage here maps to inlineProgress — used for per-page progress text
-    setStatusMessage("Loading PDF…");
+    setStatusMessage('Loading PDF…');
 
     let loadingToastId = null;
 
     try {
-      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
 
-      const pdfWorker = await import(
-        "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"
-      );
+      const pdfWorker = await import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url');
 
       pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       const arrayBuffer = await file.arrayBuffer();
@@ -142,24 +129,24 @@ const PdfPng = () => {
       const totalPages = pdf.numPages;
 
       let pagesToRender = [];
-      if (pageMode === "all") {
+      if (pageMode === 'all') {
         pagesToRender = Array.from({ length: totalPages }, (_, i) => i + 1);
-      } else if (pageMode === "single") {
+      } else if (pageMode === 'single') {
         const pageNum = parseInt(singlePage);
         if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
           toastError(
-            `Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`,
+            `Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`
           );
-          setStatusMessage("");
+          setStatusMessage('');
           setLoading(false);
           return;
         }
         pagesToRender = [pageNum];
-      } else if (pageMode === "range") {
-        const ranges = pageRange.split(",").map((r) => r.trim());
-        ranges.forEach((r) => {
-          if (r.includes("-")) {
-            const [start, end] = r.split("-").map(Number);
+      } else if (pageMode === 'range') {
+        const ranges = pageRange.split(',').map(r => r.trim());
+        ranges.forEach(r => {
+          if (r.includes('-')) {
+            const [start, end] = r.split('-').map(Number);
             for (let i = start; i <= end; i++) {
               if (i >= 1 && i <= totalPages) pagesToRender.push(i);
             }
@@ -174,15 +161,15 @@ const PdfPng = () => {
       pagesToRender = [...new Set(pagesToRender)].sort((a, b) => a - b);
 
       if (pagesToRender.length === 0) {
-        toastWarningMsg("No valid pages selected. Please check your range.");
-        setStatusMessage("");
+        toastWarningMsg('No valid pages selected. Please check your range.');
+        setStatusMessage('');
         setLoading(false);
         return;
       }
 
       setOutputFiles([]); // Clear previous results
       loadingToastId = toastLoading(
-        `Converting ${pagesToRender.length} page${pagesToRender.length > 1 ? "s" : ""} to PNG…`,
+        `Converting ${pagesToRender.length} page${pagesToRender.length > 1 ? 's' : ''} to PNG…`
       );
 
       const zip = new JSZip();
@@ -191,74 +178,58 @@ const PdfPng = () => {
       for (let i = 0; i < pagesToRender.length; i++) {
         const pageNum = pagesToRender[i];
         // Inline progress text (shows below the button)
-        setStatusMessage(
-          `Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})…`,
-        );
+        setStatusMessage(`Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})…`);
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale });
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
         await page.render({ canvasContext: context, viewport }).promise;
 
-if (cropEnabled) {
-  const croppedCanvas = document.createElement("canvas");
+        if (cropEnabled) {
+          const croppedCanvas = document.createElement('canvas');
 
-  const sx = (crop.x / 100) * canvas.width;
-  const sy = (crop.y / 100) * canvas.height;
-  const sw = (crop.width / 100) * canvas.width;
-  const sh = (crop.height / 100) * canvas.height;
+          const sx = (crop.x / 100) * canvas.width;
+          const sy = (crop.y / 100) * canvas.height;
+          const sw = (crop.width / 100) * canvas.width;
+          const sh = (crop.height / 100) * canvas.height;
 
-  croppedCanvas.width = sw;
-  croppedCanvas.height = sh;
+          croppedCanvas.width = sw;
+          croppedCanvas.height = sh;
 
-  const croppedCtx = croppedCanvas.getContext("2d");
-  if(!croppedCtx){
-    throw new Error ("Failed to get canvas context");
-  }
+          const croppedCtx = croppedCanvas.getContext('2d');
+          if (!croppedCtx) {
+            throw new Error('Failed to get canvas context');
+          }
 
-  croppedCtx.drawImage(
-    canvas,
-    sx,
-    sy,
-    sw,
-    sh,
-    0,
-    0,
-    sw,
-    sh
-  );
+          croppedCtx.drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
 
-  const blob = await new Promise((resolve) =>
-    croppedCanvas.toBlob(resolve, "image/png")
-  );
+          const blob = await new Promise(resolve => croppedCanvas.toBlob(resolve, 'image/png'));
 
-  results.push({
-    name: `page-${pageNum}.png`,
-    blob,
-  });
-} else {
-  const blob = await new Promise((resolve) =>
-    canvas.toBlob(resolve, "image/png")
-  );
+          results.push({
+            name: `page-${pageNum}.png`,
+            blob,
+          });
+        } else {
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
-  results.push({
-    name: `page-${pageNum}.png`,
-    blob,
-  });
-}
+          results.push({
+            name: `page-${pageNum}.png`,
+            blob,
+          });
+        }
       }
 
       setOutputFiles(results);
-      setStatusMessage(""); // Clear inline progress
+      setStatusMessage(''); // Clear inline progress
 
       if (results.length === 1) {
         const url = window.URL.createObjectURL(results[0].blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = file.name.replace(/\.pdf$/i, ".png");
+        a.download = file.name.replace(/\.pdf$/i, '.png');
         document.body.appendChild(a);
         // a.click();
         document.body.removeChild(a);
@@ -266,82 +237,77 @@ if (cropEnabled) {
         toastDismiss(loadingToastId);
         // toastSuccess("Your PNG file has been downloaded successfully!");
       } else {
-        setStatusMessage("Packaging files into ZIP…");
-        results.forEach((res) => zip.file(res.name, res.blob));
-        const zipBlob = await zip.generateAsync({ type: "blob" });
+        setStatusMessage('Packaging files into ZIP…');
+        results.forEach(res => zip.file(res.name, res.blob));
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
         const url = window.URL.createObjectURL(zipBlob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `${file.name.replace(/\.pdf$/i, "")}_pages.zip`;
+        a.download = `${file.name.replace(/\.pdf$/i, '')}_pages.zip`;
         document.body.appendChild(a);
         // a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        setStatusMessage("");
+        setStatusMessage('');
         toastDismiss(loadingToastId);
         // toastSuccess(
         //   `ZIP file with ${results.length} pages downloaded successfully!`,
         // );
       }
     } catch (error) {
-      console.error("Client-side conversion error:", error);
+      console.error('Client-side conversion error:', error);
       if (loadingToastId) toastDismiss(loadingToastId);
 
       // Attempt server-side conversion fallback
-      const serverLoadingId = toastLoading(
-        "Client conversion failed — trying server fallback…",
-      );
-      setStatusMessage("Trying server fallback…");
+      const serverLoadingId = toastLoading('Client conversion failed — trying server fallback…');
+      setStatusMessage('Trying server fallback…');
 
       try {
         const form = new FormData();
-        form.append("file", file);
-        form.append("language", language);
+        form.append('file', file);
+        form.append('language', language);
 
-        const tryUrls = ["/convertPng", "http://localhost:5000/convertPng"];
+        const tryUrls = ['/convertPng', 'http://localhost:5000/convertPng'];
 
         let response = null;
         for (const url of tryUrls) {
           try {
-            response = await fetch(url, { method: "POST", body: form });
+            response = await fetch(url, { method: 'POST', body: form });
             if (response && response.ok) break;
           } catch (e) {
-            console.warn("Server convert attempt failed:", url, e);
+            console.warn('Server convert attempt failed:', url, e);
             response = null;
           }
         }
 
         if (response && response.ok) {
           const blob = await response.blob();
-          const name = file.name.replace(/\.pdf$/i, ".png");
+          const name = file.name.replace(/\.pdf$/i, '.png');
           setOutputFiles([{ name, blob }]);
           const downloadUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
+          const a = document.createElement('a');
           a.href = downloadUrl;
-          a.download = file.name.replace(/\.pdf$/i, ".png");
+          a.download = file.name.replace(/\.pdf$/i, '.png');
           document.body.appendChild(a);
           // a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(downloadUrl);
-          setStatusMessage("");
+          setStatusMessage('');
           toastDismiss(serverLoadingId);
           // toastSuccess("PNG downloaded via server fallback!");
         } else {
           const msg = response
             ? await parseApiError(null, response)
-            : "Server conversion unavailable. Please try again later.";
-          setStatusMessage("");
+            : 'Server conversion unavailable. Please try again later.';
+          setStatusMessage('');
           toastDismiss(serverLoadingId);
           toastError(msg);
         }
       } catch (serverErr) {
-        console.error("Server fallback error:", serverErr);
-        setStatusMessage("");
+        console.error('Server fallback error:', serverErr);
+        setStatusMessage('');
         toastDismiss(serverLoadingId);
-        toastError(
-          await parseApiError(serverErr) ||
-            "Failed to convert file. Please try again.",
-        );
+        toastError((await parseApiError(serverErr)) || 'Failed to convert file. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -349,23 +315,21 @@ if (cropEnabled) {
   };
 
   // Local warning helper (toastWarning isn't imported by default — inline here)
-  const toastWarningMsg = (msg) => {
-    import("sonner").then(({ toast }) =>
-      toast.warning(msg, { duration: 5000 }),
-    );
+  const toastWarningMsg = msg => {
+    import('sonner').then(({ toast }) => toast.warning(msg, { duration: 5000 }));
   };
 
   const extraFields = ({ file }) => {
     if (!file) return null;
     return (
-      <div className="w-full space-y-6 mb-8 text-left theme-card p-6 rounded-xl shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="theme-card animate-in fade-in slide-in-from-top-4 mb-8 w-full space-y-6 rounded-xl p-6 text-left shadow-sm duration-500">
         {/* Quality Slider */}
         <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-bold tracking-wider text-[var(--color-app-text)] uppercase">
               Quality / DPI
             </label>
-            <span className="bg-[#4361ee] text-white text-xs px-2 py-1 rounded font-bold">
+            <span className="rounded bg-[#4361ee] px-2 py-1 text-xs font-bold text-white">
               {scale.toFixed(1)}x
             </span>
           </div>
@@ -375,35 +339,35 @@ if (cropEnabled) {
             max="5"
             step="0.5"
             value={scale}
-            onChange={(e) => setScale(parseFloat(e.target.value))}
-            className="w-full h-2 bg-[#e2e8f0] rounded-lg appearance-none cursor-pointer accent-[#4361ee] transition-all hover:bg-[#cbd5e1]"
+            onChange={e => setScale(parseFloat(e.target.value))}
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-[#e2e8f0] accent-[#4361ee] transition-all hover:bg-[#cbd5e1]"
           />
-          <div className="flex justify-between text-[10px] theme-muted font-medium">
+          <div className="theme-muted flex justify-between text-[10px] font-medium">
             <span>Standard (1x)</span>
             <span>High (3x)</span>
             <span>Ultra (5x)</span>
           </div>
         </div>
 
-      <div className="space-y-3">
-  <label className="flex items-center gap-2 font-medium">
-    <input
-      type="checkbox"
-      checked={cropEnabled}
-      onChange={(e) => setCropEnabled(e.target.checked)}
-    />
-    Enable Crop Tool
-  </label>
-</div>
-        
         <div className="space-y-3">
-          <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider block">
+          <label className="flex items-center gap-2 font-medium">
+            <input
+              type="checkbox"
+              checked={cropEnabled}
+              onChange={e => setCropEnabled(e.target.checked)}
+            />
+            Enable Crop Tool
+          </label>
+        </div>
+
+        <div className="space-y-3">
+          <label className="block text-sm font-bold tracking-wider text-[var(--color-app-text)] uppercase">
             Document Language
           </label>
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="w-full p-2.5 theme-field rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-app-focus)] transition-all font-medium cursor-pointer"
+            onChange={e => setLanguage(e.target.value)}
+            className="theme-field w-full cursor-pointer rounded-lg p-2.5 text-sm font-medium transition-all focus:ring-2 focus:ring-[var(--color-app-focus)] focus:outline-none"
           >
             <option value="eng">🇬🇧 English (Default)</option>
             <option value="hin">🇮🇳 Hindi (हिन्दी)</option>
@@ -415,19 +379,19 @@ if (cropEnabled) {
 
         {/* Page Selection */}
         <div className="space-y-4">
-          <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider">
+          <label className="text-sm font-bold tracking-wider text-[var(--color-app-text)] uppercase">
             Page Selection {numPages > 0 && `(Total: ${numPages})`}
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {["all", "single", "range"].map((mode) => (
+            {['all', 'single', 'range'].map(mode => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => setPageMode(mode)}
-                className={`py-2.5 rounded-lg text-sm font-semibold transition-transform duration-200 cursor-pointer ${
+                className={`cursor-pointer rounded-lg py-2.5 text-sm font-semibold transition-transform duration-200 ${
                   pageMode === mode
-                    ? "bg-[#4361ee] text-white shadow-[0_4px_10px_rgba(67,97,238,0.3)] scale-[1.02]"
-                    : "theme-card theme-muted hover:border-[var(--color-app-primary)] hover:text-[var(--color-app-primary)]"
+                    ? 'scale-[1.02] bg-[#4361ee] text-white shadow-[0_4px_10px_rgba(67,97,238,0.3)]'
+                    : 'theme-card theme-muted hover:border-[var(--color-app-primary)] hover:text-[var(--color-app-primary)]'
                 }`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -435,58 +399,46 @@ if (cropEnabled) {
             ))}
           </div>
 
-          {pageMode === "single" && (
+          {pageMode === 'single' && (
             <div className="animate-in zoom-in-95 duration-200">
               <div className="flex items-center space-x-3">
-                <span className="text-sm theme-muted font-medium">
-                  Page:
-                </span>
+                <span className="theme-muted text-sm font-medium">Page:</span>
                 <input
                   type="number"
                   min="1"
                   max={numPages}
                   value={singlePage}
-                  onChange={(e) => setSinglePage(e.target.value)}
-                  className="w-24 p-3 theme-field rounded-xl focus:outline-none focus:ring-4 focus:ring-[var(--color-app-focus)] focus:border-[var(--color-app-primary)] transition-colors font-bold text-center"
+                  onChange={e => setSinglePage(e.target.value)}
+                  className="theme-field w-24 rounded-xl p-3 text-center font-bold transition-colors focus:border-[var(--color-app-primary)] focus:ring-4 focus:ring-[var(--color-app-focus)] focus:outline-none"
                 />
-                <span className="text-xs theme-subtle">
-                  of {numPages}
-                </span>
+                <span className="theme-subtle text-xs">of {numPages}</span>
               </div>
             </div>
           )}
 
-          {pageMode === "range" && (
+          {pageMode === 'range' && (
             <div className="animate-in zoom-in-95 duration-200">
               <input
                 type="text"
                 placeholder="e.g. 1-3, 5"
                 value={pageRange}
-                onChange={(e) => setPageRange(e.target.value)}
-                className="w-full p-3 theme-field rounded-xl focus:outline-none focus:ring-4 focus:ring-[var(--color-app-focus)] focus:border-[var(--color-app-primary)] transition-colors font-medium"
+                onChange={e => setPageRange(e.target.value)}
+                className="theme-field w-full rounded-xl p-3 font-medium transition-colors focus:border-[var(--color-app-primary)] focus:ring-4 focus:ring-[var(--color-app-focus)] focus:outline-none"
               />
-              <p className="mt-2 text-[11px] theme-muted">
+              <p className="theme-muted mt-2 text-[11px]">
                 Enter page numbers or ranges (e.g., 1-5, 8, 10-12)
               </p>
             </div>
           )}
           {previewImage && cropEnabled && (
-  <div className="mt-6">
-    <h3 className="font-semibold mb-3">
-      Select Area To Convert
-    </h3>
+            <div className="mt-6">
+              <h3 className="mb-3 font-semibold">Select Area To Convert</h3>
 
-    <ReactCrop
-      crop={crop}
-      onChange={(c) => setCrop(c)}
-    >
-      <img
-        src={previewImage}
-        alt="PDF Preview"
-      />
-    </ReactCrop>
-  </div>
-)}
+              <ReactCrop crop={crop} onChange={c => setCrop(c)}>
+                <img src={previewImage} alt="PDF Preview" />
+              </ReactCrop>
+            </div>
+          )}
         </div>
       </div>
     );

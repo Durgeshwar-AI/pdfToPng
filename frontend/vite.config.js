@@ -1,22 +1,22 @@
-import { visualizer } from "rollup-plugin-visualizer";
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
+import { visualizer } from 'rollup-plugin-visualizer';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-  react(),
-  tailwindcss(),
-  visualizer({
-    open: true,
-    gzipSize: true,
-    brotliSize: true,
-  }),
-],
+    react(),
+    tailwindcss(),
+    visualizer({
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
 
   server: {
-    host: "0.0.0.0",
+    host: '0.0.0.0',
     port: 5173,
   },
   test: {
@@ -31,13 +31,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          reactvendor: [
-            "react",
-            "react-dom",
-            "react-router-dom",
-          ],
+          reactvendor: ['react', 'react-dom', 'react-router-dom'],
 
-          pdf: ["pdfjs-dist"],
+          pdf: ['pdfjs-dist'],
         },
       },
     },

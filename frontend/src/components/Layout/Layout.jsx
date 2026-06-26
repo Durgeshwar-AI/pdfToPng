@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, Outlet, useNavigate } from "react-router-dom";
-import Sidebar from "../Sidebar/Sidebar";
-import { Menu, Sun, Moon, Home } from "lucide-react";
-import { useTheme } from "../../context/theme-context";
+import React, { useState, useEffect } from 'react';
+import { useLocation, Outlet, useNavigate } from 'react-router-dom';
+import Sidebar from '../Sidebar/Sidebar';
+import { Menu, Sun, Moon, Home } from 'lucide-react';
+import { useTheme } from '../../context/theme-context';
 
 const Layout = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -18,34 +18,34 @@ const Layout = () => {
         setIsMobileMenuOpen(false);
       }
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
-  const isLandingPage = location.pathname === "/";
+  const isLandingPage = location.pathname === '/';
 
   return (
-    <div className="flex h-screen theme-page overflow-hidden">
+    <div className="theme-page flex h-screen overflow-hidden">
       <Sidebar
         activeTab={location.pathname.substring(1)}
         isMobileMenuOpen={isMobileMenuOpen}
         isMobile={isMobile}
         onClose={closeMobileMenu}
       />
-      <main className="flex-1 overflow-y-auto relative">
+      <main className="relative flex-1 overflow-y-auto">
         {/* Floating Theme Toggle - Desktop only. Moved mobile toggle into header */}
         {!isMobile && (
           <button
             onClick={toggleTheme}
-            className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-all duration-300"
+            className="fixed top-4 right-4 z-50 rounded-full border border-gray-200 bg-white p-2 shadow-md transition-all duration-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800"
             aria-label="Toggle dark mode"
           >
             {isDark ? (
-              <Sun className="w-5 h-5 text-yellow-400" />
+              <Sun className="h-5 w-5 text-yellow-400" />
             ) : (
-              <Moon className="w-5 h-5 text-slate-600" />
+              <Moon className="h-5 w-5 text-slate-600" />
             )}
           </button>
         )}
@@ -53,7 +53,7 @@ const Layout = () => {
         {/* Floating Home Button - Desktop only. Removed fixed positioning for mobile */}
         {!isLandingPage && !isMobile && (
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate('/')}
             className="fixed top-4 right-16 z-40 flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#4361ee] to-[#3b82f6] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(59,130,246,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(59,130,246,0.35)]"
           >
             <Home className="h-4 w-4" />
@@ -63,38 +63,40 @@ const Layout = () => {
 
         {/* Mobile Header - Updated to hold controls properly */}
         {isMobile && (
-          <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
+          <header className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <button
                   onClick={toggleMobileMenu}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
-                  <Menu className="w-6 h-6 text-slate-700 dark:text-slate-300" />
+                  <Menu className="h-6 w-6 text-slate-700 dark:text-slate-300" />
                 </button>
-                <h1 className="text-lg font-bold text-blue-600 truncate max-w-[120px] sm:max-w-none">pdfToPng</h1>
+                <h1 className="max-w-[120px] truncate text-lg font-bold text-blue-600 sm:max-w-none">
+                  pdfToPng
+                </h1>
               </div>
 
               {/* Action Buttons grouped together to prevent overlap */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex shrink-0 items-center gap-2">
                 {!isLandingPage && (
                   <button
-                    onClick={() => navigate("/")}
-                    className="p-2 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 transition-colors"
+                    onClick={() => navigate('/')}
+                    className="rounded-lg bg-blue-100 p-2 text-blue-600 transition-colors hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
                     aria-label="Go home"
                   >
-                    <Home className="w-5 h-5" />
+                    <Home className="h-5 w-5" />
                   </button>
                 )}
                 <button
                   onClick={toggleTheme}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-slate-700 dark:text-slate-300 hover:bg-gray-200 transition-colors"
+                  className="rounded-lg bg-gray-100 p-2 text-slate-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-slate-300"
                   aria-label="Toggle dark mode"
                 >
                   {isDark ? (
-                    <Sun className="w-5 h-5 text-yellow-400" />
+                    <Sun className="h-5 w-5 text-yellow-400" />
                   ) : (
-                    <Moon className="w-5 h-5 text-slate-600" />
+                    <Moon className="h-5 w-5 text-slate-600" />
                   )}
                 </button>
               </div>
@@ -103,7 +105,9 @@ const Layout = () => {
         )}
 
         {/* Adjusted padding top for mobile so content isn't hidden under sticky header */}
-        <div className={`min-h-full flex justify-center items-center pb-8 ${isMobile ? 'pt-4' : 'py-8'}`}>
+        <div
+          className={`flex min-h-full items-center justify-center pb-8 ${isMobile ? 'pt-4' : 'py-8'}`}
+        >
           <Outlet />
         </div>
       </main>

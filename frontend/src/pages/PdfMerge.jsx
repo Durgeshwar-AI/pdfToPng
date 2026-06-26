@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from 'react';
 
 let pdfjsLib = null;
 
@@ -10,12 +10,11 @@ async function getPdfJs() {
       resolve(pdfjsLib);
       return;
     }
-    const script = document.createElement("script");
-    script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
     script.onload = () => {
       window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
       pdfjsLib = window.pdfjsLib;
       resolve(pdfjsLib);
     };
@@ -29,29 +28,29 @@ async function renderPageThumb(pdfDoc, pageNum, width = 120) {
   const viewport = page.getViewport({ scale: 1 });
   const scale = width / viewport.width;
   const scaled = page.getViewport({ scale });
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = Math.floor(scaled.width);
   canvas.height = Math.floor(scaled.height);
   await page.render({
-    canvasContext: canvas.getContext("2d"),
+    canvasContext: canvas.getContext('2d'),
     viewport: scaled,
   }).promise;
   return {
-    dataUrl: canvas.toDataURL("image/jpeg", 0.7),
+    dataUrl: canvas.toDataURL('image/jpeg', 0.7),
     aspectRatio: scaled.height / scaled.width,
   };
 }
 
-const STAGE = { SELECT: "select", ARRANGE: "arrange", DONE: "done" };
+const STAGE = { SELECT: 'select', ARRANGE: 'arrange', DONE: 'done' };
 
 export default function MergePdf() {
   const [stage, setStage] = useState(STAGE.SELECT);
   const [rawFiles, setRawFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState("");
-  const [statusMsg, setStatusMsg] = useState("");
-  const [statusType, setStatusType] = useState("info");
+  const [loadingMsg, setLoadingMsg] = useState('');
+  const [statusMsg, setStatusMsg] = useState('');
+  const [statusType, setStatusType] = useState('info');
 
   const [pages, setPages] = useState([]);
 
@@ -67,13 +66,13 @@ export default function MergePdf() {
   const [previewImageData, setPreviewImageData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
-  const showStatus = useCallback((msg, type = "info", ttl = 5000) => {
+  const showStatus = useCallback((msg, type = 'info', ttl = 5000) => {
     setStatusMsg(msg);
     setStatusType(type);
-    if (ttl) setTimeout(() => setStatusMsg(""), ttl);
+    if (ttl) setTimeout(() => setStatusMsg(''), ttl);
   }, []);
 
-  const openPreview = async (fileIndex) => {
+  const openPreview = async fileIndex => {
     setPreviewFileIndex(fileIndex);
     setPreviewOpen(true);
     setPreviewLoading(true);
@@ -85,8 +84,8 @@ export default function MergePdf() {
       const { dataUrl } = await renderPageThumb(pdfDoc, 1, 400);
       setPreviewImageData(dataUrl);
     } catch (err) {
-      console.error("Preview error:", err);
-      showStatus(`Failed to load preview: ${err.message}`, "error");
+      console.error('Preview error:', err);
+      showStatus(`Failed to load preview: ${err.message}`, 'error');
       setPreviewOpen(false);
     } finally {
       setPreviewLoading(false);
@@ -99,53 +98,52 @@ export default function MergePdf() {
     setPreviewImageData(null);
   };
 
+  const addFiles = useCallback(
+    incoming => {
+      const pdfs = Array.from(incoming).filter(f => f.type === 'application/pdf');
+      if (!pdfs.length) {
+        showStatus('Only PDF files are accepted.', 'error');
+        return;
+      }
+      setStatusMsg('');
+      setRawFiles(prev => {
+        const names = new Set(prev.map(f => f.name));
+        return [...prev, ...pdfs.filter(f => !names.has(f.name))];
+      });
+    },
+    [showStatus]
+  );
 
-  const addFiles = useCallback((incoming) => {
-    const pdfs = Array.from(incoming).filter(
-      (f) => f.type === "application/pdf",
-    );
-    if (!pdfs.length) {
-      showStatus("Only PDF files are accepted.", "error");
-      return;
-    }
-    setStatusMsg("");
-    setRawFiles((prev) => {
-      const names = new Set(prev.map((f) => f.name));
-      return [...prev, ...pdfs.filter((f) => !names.has(f.name))];
-    });
-  }, [showStatus]);
-
-  const onDrop = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    addFiles(e.dataTransfer.files);
-  }, [addFiles]);
-  const onDragOver = (e) => {
+  const onDrop = useCallback(
+    e => {
+      e.preventDefault();
+      setIsDragging(false);
+      addFiles(e.dataTransfer.files);
+    },
+    [addFiles]
+  );
+  const onDragOver = e => {
     e.preventDefault();
     setIsDragging(true);
   };
 
   const loadPages = async () => {
     if (rawFiles.length < 2) {
-      showStatus("Add at least 2 PDFs.", "error");
+      showStatus('Add at least 2 PDFs.', 'error');
       return;
     }
     setIsLoading(true);
-    setLoadingMsg("Loading pdf.js...");
+    setLoadingMsg('Loading pdf.js...');
     try {
       const lib = await getPdfJs();
       const allPages = [];
       for (let fi = 0; fi < rawFiles.length; fi++) {
         const file = rawFiles[fi];
-        setLoadingMsg(
-          `Reading "${file.name}"... (${fi + 1}/${rawFiles.length})`,
-        );
+        setLoadingMsg(`Reading "${file.name}"... (${fi + 1}/${rawFiles.length})`);
         const ab = await file.arrayBuffer();
         const pdfDoc = await lib.getDocument({ data: ab }).promise;
         for (let pn = 1; pn <= pdfDoc.numPages; pn++) {
-          setLoadingMsg(
-            `Rendering "${file.name}" page ${pn}/${pdfDoc.numPages}...`,
-          );
+          setLoadingMsg(`Rendering "${file.name}" page ${pn}/${pdfDoc.numPages}...`);
           const { dataUrl, aspectRatio } = await renderPageThumb(pdfDoc, pn);
           allPages.push({
             id: `${fi}-${pn}-${Math.random()}`,
@@ -161,17 +159,17 @@ export default function MergePdf() {
       setStage(STAGE.ARRANGE);
     } catch (err) {
       console.error(err);
-      showStatus(`Failed to load PDFs. ${err.message}`, "error");
+      showStatus(`Failed to load PDFs. ${err.message}`, 'error');
     } finally {
       setIsLoading(false);
-      setLoadingMsg("");
+      setLoadingMsg('');
     }
   };
 
   const movePage = (index, dir) => {
     const target = index + dir;
     if (target < 0 || target >= pages.length) return;
-    setPages((prev) => {
+    setPages(prev => {
       const next = [...prev];
       [next[index], next[target]] = [next[target], next[index]];
       return next;
@@ -181,14 +179,14 @@ export default function MergePdf() {
   const handlePageDragStart = (e, index, id) => {
     dragIdx.current = index;
     setDraggingPageId(id);
-    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.effectAllowed = 'move';
   };
   const handlePageDragEnter = (index, id) => {
     dragOverIdx.current = index;
     setDragOverId(id);
   };
-  const handlePageDragOver = (e) => e.preventDefault();
-  const handlePageDrop = (e) => {
+  const handlePageDragOver = e => e.preventDefault();
+  const handlePageDrop = e => {
     e.preventDefault();
     const from = dragIdx.current;
     const to = dragOverIdx.current;
@@ -196,7 +194,7 @@ export default function MergePdf() {
       resetDrag();
       return;
     }
-    setPages((prev) => {
+    setPages(prev => {
       const next = [...prev];
       const [moved] = next.splice(from, 1);
       next.splice(to, 0, moved);
@@ -211,15 +209,14 @@ export default function MergePdf() {
     setDragOverId(null);
   };
 
-  const removePage = (index) =>
-    setPages((prev) => prev.filter((_, i) => i !== index));
+  const removePage = index => setPages(prev => prev.filter((_, i) => i !== index));
 
   const handleMerge = async () => {
     if (!pages.length) return;
     setIsLoading(true);
-    setLoadingMsg("Building merged PDF...");
+    setLoadingMsg('Building merged PDF...');
     try {
-      const { PDFDocument } = await import("pdf-lib");
+      const { PDFDocument } = await import('pdf-lib');
 
       const srcDocs = {};
       for (let fi = 0; fi < rawFiles.length; fi++) {
@@ -235,28 +232,24 @@ export default function MergePdf() {
       }
 
       const bytes = await merged.save();
-      const blob = new Blob([bytes], { type: "application/pdf" });
+      const blob = new Blob([bytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = "merged.pdf";
+      a.download = 'merged.pdf';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
       setStage(STAGE.DONE);
-      showStatus(
-        `merged.pdf downloaded - ${pages.length} pages.`,
-        "success",
-        0,
-      );
+      showStatus(`merged.pdf downloaded - ${pages.length} pages.`, 'success', 0);
     } catch (err) {
       console.error(err);
-      showStatus(`Merge failed: ${err.message}`, "error");
+      showStatus(`Merge failed: ${err.message}`, 'error');
     } finally {
       setIsLoading(false);
-      setLoadingMsg("");
+      setLoadingMsg('');
     }
   };
 
@@ -264,23 +257,23 @@ export default function MergePdf() {
     setRawFiles([]);
     setPages([]);
     setStage(STAGE.SELECT);
-    setStatusMsg("");
+    setStatusMsg('');
   };
 
   const FILE_COLORS = [
-    "bg-violet-100 text-violet-700 border-violet-200",
-    "bg-sky-100 text-sky-700 border-sky-200",
-    "bg-emerald-100 text-emerald-700 border-emerald-200",
-    "bg-amber-100 text-amber-700 border-amber-200",
-    "bg-rose-100 text-rose-700 border-rose-200",
-    "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200",
-    "bg-teal-100 text-teal-700 border-teal-200",
-    "bg-orange-100 text-orange-700 border-orange-200",
+    'bg-violet-100 text-violet-700 border-violet-200',
+    'bg-sky-100 text-sky-700 border-sky-200',
+    'bg-emerald-100 text-emerald-700 border-emerald-200',
+    'bg-amber-100 text-amber-700 border-amber-200',
+    'bg-rose-100 text-rose-700 border-rose-200',
+    'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200',
+    'bg-teal-100 text-teal-700 border-teal-200',
+    'bg-orange-100 text-orange-700 border-orange-200',
   ];
-  const fileColor = (fi) => FILE_COLORS[fi % FILE_COLORS.length];
+  const fileColor = fi => FILE_COLORS[fi % FILE_COLORS.length];
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-10 bg-linear-to-br from-[#f6f8fa] to-white dark:from-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+    <div className="mx-auto w-full max-w-4xl rounded-2xl border border-slate-200 bg-linear-to-br from-[#f6f8fa] to-white p-10 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:from-slate-800 dark:to-slate-900">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
         .merge-root { font-family: 'Sora', sans-serif; }
@@ -298,27 +291,23 @@ export default function MergePdf() {
 
       <div className="merge-root">
         <div className="mb-8">
-          <h1 className="text-4xl font-extrabold text-[#1a1a2e] tracking-tight">
-            Merge PDFs
-          </h1>
-          <p className="text-[#64748b] mt-1 text-sm">
-            {stage === STAGE.SELECT &&
-              "Upload PDFs, then arrange pages exactly how you want them."}
+          <h1 className="text-4xl font-extrabold tracking-tight text-[#1a1a2e]">Merge PDFs</h1>
+          <p className="mt-1 text-sm text-[#64748b]">
+            {stage === STAGE.SELECT && 'Upload PDFs, then arrange pages exactly how you want them.'}
             {stage === STAGE.ARRANGE &&
               `${pages.length} pages loaded - drag or use arrows to reorder, then merge.`}
-            {stage === STAGE.DONE && "Your merged PDF is ready!"}
+            {stage === STAGE.DONE && 'Your merged PDF is ready!'}
           </p>
         </div>
 
         {stage === STAGE.SELECT && (
           <div className="fade-in">
             <div
-              className={`w-full border-2 border-dashed rounded-2xl p-10 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-5
-                ${
-                  isDragging
-                    ? "border-[#4361ee] bg-blue-50"
-                    : "border-slate-300 bg-slate-50 hover:border-[#4361ee] hover:bg-blue-50"
-                }`}
+              className={`mb-5 flex w-full cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed p-10 transition-all duration-200 ${
+                isDragging
+                  ? 'border-[#4361ee] bg-blue-50'
+                  : 'border-slate-300 bg-slate-50 hover:border-[#4361ee] hover:bg-blue-50'
+              }`}
               onDrop={onDrop}
               onDragOver={onDragOver}
               onDragLeave={() => setIsDragging(false)}
@@ -330,13 +319,13 @@ export default function MergePdf() {
                 accept="application/pdf"
                 multiple
                 className="hidden"
-                onChange={(e) => {
+                onChange={e => {
                   addFiles(e.target.files);
-                  e.target.value = "";
+                  e.target.value = '';
                 }}
               />
               <svg
-                className="w-14 h-14 text-[#4361ee] mb-1"
+                className="mb-1 h-14 w-14 text-[#4361ee]"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -347,35 +336,29 @@ export default function MergePdf() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                <polyline
-                  points="14,2 14,8 20,8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                <polyline points="14,2 14,8 20,8" strokeLinecap="round" strokeLinejoin="round" />
                 <line x1="12" y1="18" x2="12" y2="12" strokeLinecap="round" />
                 <line x1="9" y1="15" x2="15" y2="15" strokeLinecap="round" />
               </svg>
-              <p className="text-[#1a1a2e] font-semibold text-base">
+              <p className="text-base font-semibold text-[#1a1a2e]">
                 {isDragging
-                  ? "Drop your PDFs here"
+                  ? 'Drop your PDFs here'
                   : rawFiles.length
-                    ? "+ Add more PDFs"
-                    : "Choose PDF files or drag & drop"}
+                    ? '+ Add more PDFs'
+                    : 'Choose PDF files or drag & drop'}
               </p>
-              <p className="text-slate-400 text-xs">
-                PDF only - multiple files supported
-              </p>
+              <p className="text-xs text-slate-400">PDF only - multiple files supported</p>
             </div>
 
             {rawFiles.length > 0 && (
               <div className="mb-5 space-y-2">
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-slate-600">
-                    {rawFiles.length} file{rawFiles.length !== 1 ? "s" : ""}
+                    {rawFiles.length} file{rawFiles.length !== 1 ? 's' : ''}
                   </span>
                   <button
                     onClick={() => setRawFiles([])}
-                    className="text-xs text-red-400 hover:text-red-600 font-medium"
+                    className="text-xs font-medium text-red-400 hover:text-red-600"
                   >
                     Clear all
                   </button>
@@ -383,15 +366,13 @@ export default function MergePdf() {
                 {rawFiles.map((f, i) => (
                   <div
                     key={f.name}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-xl border text-sm ${fileColor(
-                      i,
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-sm ${fileColor(
+                      i
                     )}`}
                   >
-                    <span className="font-bold font-mono text-xs w-5 text-center">
-                      {i + 1}
-                    </span>
+                    <span className="w-5 text-center font-mono text-xs font-bold">{i + 1}</span>
                     <svg
-                      className="w-4 h-4 shrink-0"
+                      className="h-4 w-4 shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -408,27 +389,22 @@ export default function MergePdf() {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <span
-                      className="flex-1 truncate font-medium"
-                      title={f.name}
-                    >
+                    <span className="flex-1 truncate font-medium" title={f.name}>
                       {f.name}
                     </span>
-                    <span className="text-xs opacity-60 shrink-0">
+                    <span className="shrink-0 text-xs opacity-60">
                       {(f.size / 1024).toFixed(0)} KB
                     </span>
                     <button
                       onClick={() => openPreview(i)}
-                      className="opacity-50 hover:opacity-100 transition-opacity text-xs px-2 py-1 rounded hover:bg-white/50 font-medium"
+                      className="rounded px-2 py-1 text-xs font-medium opacity-50 transition-opacity hover:bg-white/50 hover:opacity-100"
                       title="Preview first page"
                     >
                       👁️
                     </button>
                     <button
-                      onClick={() =>
-                        setRawFiles((prev) => prev.filter((_, j) => j !== i))
-                      }
-                      className="opacity-50 hover:opacity-100 transition-opacity text-xs px-1"
+                      onClick={() => setRawFiles(prev => prev.filter((_, j) => j !== i))}
+                      className="px-1 text-xs opacity-50 transition-opacity hover:opacity-100"
                     >
                       ✕
                     </button>
@@ -439,8 +415,8 @@ export default function MergePdf() {
 
             {statusMsg && (
               <p
-                className={`text-sm mb-4 font-medium ${
-                  statusType === "error" ? "text-red-500" : "text-slate-500"
+                className={`mb-4 text-sm font-medium ${
+                  statusType === 'error' ? 'text-red-500' : 'text-slate-500'
                 }`}
               >
                 {statusMsg}
@@ -450,46 +426,43 @@ export default function MergePdf() {
             <button
               onClick={loadPages}
               disabled={rawFiles.length < 2 || isLoading}
-              className="w-full py-3.5 rounded-xl font-bold text-white text-base tracking-wide transition-all
-                bg-[#4361ee] hover:bg-[#3451d1] active:bg-[#2a41b8]
-                disabled:bg-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed
-                flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4361ee] py-3.5 text-base font-bold tracking-wide text-white shadow-md transition-all hover:bg-[#3451d1] hover:shadow-lg active:bg-[#2a41b8] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-400"
             >
               {isLoading ? (
                 <>
                   <div className="spinner" />
-                  {loadingMsg || "Loading..."}
+                  {loadingMsg || 'Loading...'}
                 </>
               ) : (
                 <>Load Pages & Arrange -&gt;</>
               )}
             </button>
             {rawFiles.length === 1 && (
-              <p className="text-center text-xs text-[#4361ee] mt-2">
+              <p className="mt-2 text-center text-xs text-[#4361ee]">
                 Add at least one more PDF to continue.
               </p>
             )}
 
             {previewOpen && previewFileIndex !== null && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col animate-in fade-in">
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="animate-in fade-in flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                     <div className="min-w-0">
-                      <h2 className="text-lg font-semibold text-[#1a1a2e] truncate">
-                        {rawFiles[previewFileIndex]?.name || "PDF Preview"}
+                      <h2 className="truncate text-lg font-semibold text-[#1a1a2e]">
+                        {rawFiles[previewFileIndex]?.name || 'PDF Preview'}
                       </h2>
-                      <p className="text-xs text-slate-500 mt-0.5">First page preview</p>
+                      <p className="mt-0.5 text-xs text-slate-500">First page preview</p>
                     </div>
                     <button
                       onClick={closePreview}
-                      className="text-slate-400 hover:text-slate-600 text-2xl leading-none font-light transition-colors"
+                      className="text-2xl leading-none font-light text-slate-400 transition-colors hover:text-slate-600"
                       aria-label="Close preview"
                     >
                       ✕
                     </button>
                   </div>
 
-                  <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 p-6">
+                  <div className="flex flex-1 items-center justify-center overflow-auto bg-slate-50 p-6">
                     {previewLoading ? (
                       <div className="flex flex-col items-center gap-2">
                         <div className="spinner border-blue-300 border-t-[#4361ee]" />
@@ -499,22 +472,22 @@ export default function MergePdf() {
                       <img
                         src={previewImageData}
                         alt="PDF First Page Preview"
-                        className="max-w-full max-h-full object-contain"
+                        className="max-h-full max-w-full object-contain"
                       />
                     ) : (
                       <p className="text-slate-400">Failed to load preview</p>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
+                  <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4">
                     <p className="text-xs text-slate-500">
                       {rawFiles[previewFileIndex]?.size
                         ? `${(rawFiles[previewFileIndex].size / 1024).toFixed(0)} KB`
-                        : ""}
+                        : ''}
                     </p>
                     <button
                       onClick={closePreview}
-                      className="px-4 py-2 bg-[#4361ee] hover:bg-[#3451d1] text-white rounded-lg text-sm font-medium transition-colors"
+                      className="rounded-lg bg-[#4361ee] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#3451d1]"
                     >
                       Close
                     </button>
@@ -527,22 +500,20 @@ export default function MergePdf() {
 
         {stage === STAGE.ARRANGE && (
           <div className="fade-in">
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="mb-4 flex flex-wrap gap-2">
               {rawFiles.map((f, i) => (
                 <span
                   key={f.name}
-                  className={`text-xs px-2.5 py-1 rounded-full border font-medium ${fileColor(
-                    i,
-                  )}`}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-medium ${fileColor(i)}`}
                 >
                   {f.name.length > 22 ? `${f.name.slice(0, 20)}...` : f.name}
                 </span>
               ))}
             </div>
 
-            <p className="text-xs text-slate-400 mb-4 flex items-center gap-1.5">
+            <p className="mb-4 flex items-center gap-1.5 text-xs text-slate-400">
               <svg
-                className="w-3.5 h-3.5"
+                className="h-3.5 w-3.5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -560,30 +531,17 @@ export default function MergePdf() {
                 <div
                   key={pg.id}
                   draggable
-                  onDragStart={(e) => handlePageDragStart(e, idx, pg.id)}
+                  onDragStart={e => handlePageDragStart(e, idx, pg.id)}
                   onDragEnter={() => handlePageDragEnter(idx, pg.id)}
                   onDragOver={handlePageDragOver}
                   onDrop={handlePageDrop}
                   onDragEnd={resetDrag}
-                  className={`thumb-card bg-white rounded-xl border overflow-hidden select-none relative
-                    ${
-                      draggingPageId === pg.id
-                        ? "dragging border-[#4361ee]"
-                        : "border-slate-200"
-                    }
-                    ${
-                      dragOverId === pg.id && draggingPageId !== pg.id
-                        ? "drag-over"
-                        : ""
-                    }
-                  `}
+                  className={`thumb-card relative overflow-hidden rounded-xl border bg-white select-none ${
+                    draggingPageId === pg.id ? 'dragging border-[#4361ee]' : 'border-slate-200'
+                  } ${dragOverId === pg.id && draggingPageId !== pg.id ? 'drag-over' : ''} `}
                 >
-                  <div className="grip flex items-center justify-center h-6 bg-slate-50 border-b border-slate-100">
-                    <svg
-                      className="w-4 h-4 text-slate-300"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
+                  <div className="grip flex h-6 items-center justify-center border-b border-slate-100 bg-slate-50">
+                    <svg className="h-4 w-4 text-slate-300" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="9" cy="7" r="1.5" />
                       <circle cx="15" cy="7" r="1.5" />
                       <circle cx="9" cy="12" r="1.5" />
@@ -600,50 +558,48 @@ export default function MergePdf() {
                     <img
                       src={pg.thumb}
                       alt={`${pg.fileName} p${pg.pageNum}`}
-                      className="absolute inset-0 w-full h-full object-contain"
+                      className="absolute inset-0 h-full w-full object-contain"
                       draggable={false}
                     />
-                    <span className="absolute top-1.5 left-1.5 bg-[#4361ee] text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                    <span className="absolute top-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#4361ee] text-[10px] font-bold text-white shadow">
                       {idx + 1}
                     </span>
                     <button
                       onClick={() => removePage(idx)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/80 hover:bg-red-500 hover:text-white text-slate-400 text-[10px] flex items-center justify-center shadow transition-colors"
+                      className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/80 text-[10px] text-slate-400 shadow transition-colors hover:bg-red-500 hover:text-white"
                     >
                       ✕
                     </button>
                   </div>
 
-                  <div className="px-2 py-1.5 flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-between gap-1 px-2 py-1.5">
                     <div className="min-w-0">
                       <p
-                        className="text-[10px] text-slate-400 truncate leading-none"
+                        className="truncate text-[10px] leading-none text-slate-400"
                         title={pg.fileName}
                       >
-                        {pg.fileName.length > 14
-                          ? `${pg.fileName.slice(0, 12)}...`
-                          : pg.fileName}
+                        {pg.fileName.length > 14 ? `${pg.fileName.slice(0, 12)}...` : pg.fileName}
                       </p>
                       <p
-                        className={`text-[10px] font-semibold mt-0.5 ${
-                          fileColor(pg.fileIndex).split(" ")[1]
+                        className={`mt-0.5 text-[10px] font-semibold ${
+                          fileColor(pg.fileIndex).split(' ')[1]
                         }`}
                       >
                         p.{pg.pageNum}
                       </p>
                     </div>
-                    <div className="flex flex-col gap-0.5 shrink-0">
+                    <div className="flex shrink-0 flex-col gap-0.5">
                       <button
                         onClick={() => movePage(idx, -1)}
                         disabled={idx === 0}
-                        className="w-5 h-4 text-[9px] border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                        className="flex h-4 w-5 items-center justify-center rounded border border-slate-200 text-[9px] transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-25"
                       >
                         ▲
                       </button>
                       <button
                         onClick={() => movePage(idx, 1)}
                         disabled={idx === pages.length - 1}
-                        className="w-5 h-4 text-[9px] border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-25 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                        className="flex h-4 w-5 items-center justify-center rounded border border-slate-200 text-[9px] transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-25"
                       >
                         ▼
                       </button>
@@ -655,8 +611,8 @@ export default function MergePdf() {
 
             {statusMsg && (
               <p
-                className={`text-sm mb-3 font-medium ${
-                  statusType === "error" ? "text-red-500" : "text-green-600"
+                className={`mb-3 text-sm font-medium ${
+                  statusType === 'error' ? 'text-red-500' : 'text-green-600'
                 }`}
               >
                 {statusMsg}
@@ -666,17 +622,14 @@ export default function MergePdf() {
             <div className="flex gap-3">
               <button
                 onClick={reset}
-                className="px-5 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+                className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
               >
                 &larr; Start over
               </button>
               <button
                 onClick={handleMerge}
                 disabled={!pages.length || isLoading}
-                className="flex-1 py-3 rounded-xl font-bold text-white text-base tracking-wide transition-all
-                  bg-[#4361ee] hover:bg-[#3451d1] active:bg-[#2a41b8]
-                  disabled:bg-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed
-                  flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#4361ee] py-3 text-base font-bold tracking-wide text-white shadow-md transition-all hover:bg-[#3451d1] hover:shadow-lg active:bg-[#2a41b8] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-400"
               >
                 {isLoading ? (
                   <>
@@ -692,10 +645,10 @@ export default function MergePdf() {
         )}
 
         {stage === STAGE.DONE && (
-          <div className="fade-in flex flex-col items-center py-12 gap-4 text-center">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-2">
+          <div className="fade-in flex flex-col items-center gap-4 py-12 text-center">
+            <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
               <svg
-                className="w-10 h-10 text-green-500"
+                className="h-10 w-10 text-green-500"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -704,13 +657,11 @@ export default function MergePdf() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e]">
-              merged.pdf downloaded!
-            </h2>
-            <p className="text-slate-500 text-sm">{statusMsg}</p>
+            <h2 className="text-2xl font-bold text-[#1a1a2e]">merged.pdf downloaded!</h2>
+            <p className="text-sm text-slate-500">{statusMsg}</p>
             <button
               onClick={reset}
-              className="mt-4 px-8 py-3 rounded-xl bg-[#4361ee] text-white font-bold hover:bg-[#3451d1] transition-colors shadow-md"
+              className="mt-4 rounded-xl bg-[#4361ee] px-8 py-3 font-bold text-white shadow-md transition-colors hover:bg-[#3451d1]"
             >
               Merge more PDFs
             </button>

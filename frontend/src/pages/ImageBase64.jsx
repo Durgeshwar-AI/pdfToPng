@@ -1,42 +1,42 @@
-import React, { useCallback, useState } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
-import { Copy, Download, Check, Code } from "lucide-react";
-import { toastSuccess, toastError } from "../utils/toast";
+import React, { useCallback, useState } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
+import { Copy, Download, Check, Code } from 'lucide-react';
+import { toastSuccess, toastError } from '../utils/toast';
 
 function ImageBase64() {
-  const [base64String, setBase64String] = useState("");
+  const [base64String, setBase64String] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
+  const validateFile = useCallback(selectedFile => {
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`,
+        message: `File "${selectedFile.name}" selected (${(selectedFile.size / 1024).toFixed(
+          1
+        )} KB)`,
       };
     }
     return {
       isValid: false,
-      message: "Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)",
+      message: 'Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)',
     };
   }, []);
 
   const handleCustomSubmit = async ({ file, setLoading }) => {
-    setBase64String("");
+    setBase64String('');
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
         setBase64String(reader.result);
         setLoading(false);
-        toastSuccess("Image converted to Base64 successfully!");
+        toastSuccess('Image converted to Base64 successfully!');
       };
       reader.onerror = () => {
-        throw new Error("Failed to read file");
+        throw new Error('Failed to read file');
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      toastError(error.message || "Failed to convert file");
+      toastError(error.message || 'Failed to convert file');
       setLoading(false);
     }
   };
@@ -48,54 +48,55 @@ function ImageBase64() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadAsTxt = (file) => {
+  const downloadAsTxt = file => {
     if (!base64String || !file) return;
-    const element = document.createElement("a");
-    const fileBlob = new Blob([base64String], { type: "text/plain" });
+    const element = document.createElement('a');
+    const fileBlob = new Blob([base64String], { type: 'text/plain' });
     element.href = URL.createObjectURL(fileBlob);
-    element.download = `${file.name.split(".")[0]}_base64.txt`;
+    element.download = `${file.name.split('.')[0]}_base64.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
   };
 
   const handleClearAll = () => {
-    setBase64String("");
+    setBase64String('');
   };
 
   const extraContent = ({ file }) => {
     if (!base64String) return null;
     return (
-      <div className="w-full mt-8 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
-        <div className="flex justify-between items-center mb-3">
+      <div className="animate-in fade-in slide-in-from-top-4 mt-8 w-full text-left duration-500">
+        <div className="mb-3 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-[#1a1a2e]">Base64 Data URI</h3>
           <div className="flex gap-2">
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-50"
             >
               {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-              {copied ? "Copied!" : "Copy"}
+              {copied ? 'Copied!' : 'Copy'}
             </button>
             <button
               onClick={() => downloadAsTxt(file)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-gray-50"
             >
               <Download size={16} />
               Download .txt
             </button>
           </div>
         </div>
-        <div className="relative group">
+        <div className="group relative">
           <textarea
             readOnly
             value={base64String}
-            className="w-full h-48 p-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl font-mono text-xs text-[#334155] resize-none focus:outline-none focus:ring-2 focus:ring-[#4361ee]/20 break-all"
+            className="h-48 w-full resize-none rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-4 font-mono text-xs break-all text-[#334155] focus:ring-2 focus:ring-[#4361ee]/20 focus:outline-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#f8fafc]/50 pointer-events-none rounded-xl"></div>
+          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-transparent to-[#f8fafc]/50"></div>
         </div>
-        <p className="mt-2 text-xs text-[#64748b] text-left italic">
-          * This string can be used directly in <code>&lt;img src="..." /&gt;</code> or CSS <code>url(...)</code>.
+        <p className="mt-2 text-left text-xs text-[#64748b] italic">
+          * This string can be used directly in <code>&lt;img src="..." /&gt;</code> or CSS{' '}
+          <code>url(...)</code>.
         </p>
       </div>
     );

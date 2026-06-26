@@ -1,29 +1,29 @@
-import { useCallback, useState } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
-import { toastSuccess, toastError, parseApiError } from "../utils/toast";
+import { useCallback, useState } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
+import { toastSuccess, toastError, parseApiError } from '../utils/toast';
 
 const ACTIONS = [
-  { id: "rotate_left",  label: "Rotate Left",     icon: "↺" },
-  { id: "rotate_right", label: "Rotate Right",    icon: "↻" },
-  { id: "flip_h",       label: "Flip Horizontal", icon: "⇋" },
-  { id: "flip_v",       label: "Flip Vertical",   icon: "⇅" },
+  { id: 'rotate_left', label: 'Rotate Left', icon: '↺' },
+  { id: 'rotate_right', label: 'Rotate Right', icon: '↻' },
+  { id: 'flip_h', label: 'Flip Horizontal', icon: '⇋' },
+  { id: 'flip_v', label: 'Flip Vertical', icon: '⇅' },
 ];
 
-const FORMATS = ["PNG", "JPEG", "WEBP"];
+const FORMATS = ['PNG', 'JPEG', 'WEBP'];
 
-const API = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+const API = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
 export default function RotateFlip() {
-  const [format, setFormat] = useState("PNG");
+  const [format, setFormat] = useState('PNG');
   const [resultUrl, setResultUrl] = useState(null);
-  const [resultExt, setResultExt] = useState("png");
+  const [resultExt, setResultExt] = useState('png');
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(selectedFile => {
     setResultUrl(null); // Clear result when new file is selected
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };
     }
-    return { isValid: false, message: "Please select an image file" };
+    return { isValid: false, message: 'Please select an image file' };
   }, []);
 
   const handleClear = useCallback(() => {
@@ -36,22 +36,22 @@ export default function RotateFlip() {
     setResultUrl(null);
 
     const fd = new FormData();
-    fd.append("image", file);
-    fd.append("action", action);
-    fd.append("format", format);
+    fd.append('image', file);
+    fd.append('action', action);
+    fd.append('format', format);
 
     try {
-      const res = await fetch(`${API}/rotateFlip`, { method: "POST", body: fd });
+      const res = await fetch(`${API}/rotateFlip`, { method: 'POST', body: fd });
       if (!res.ok) {
         const errorMsg = await parseApiError(null, res);
         throw new Error(errorMsg);
       }
       const blob = await res.blob();
       setResultUrl(URL.createObjectURL(blob));
-      setResultExt(format === "JPEG" ? "jpg" : format.toLowerCase());
-      toastSuccess("Transformation applied successfully!");
+      setResultExt(format === 'JPEG' ? 'jpg' : format.toLowerCase());
+      toastSuccess('Transformation applied successfully!');
     } catch (e) {
-      toastError(e.message || "Transformation failed. Please try again.");
+      toastError(e.message || 'Transformation failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -61,12 +61,12 @@ export default function RotateFlip() {
     if (!file) return null;
 
     return (
-      <div className="w-full mt-6 text-left">
+      <div className="mt-6 w-full text-left">
         {/* Output format */}
-        <div className="flex items-center justify-center gap-6 mb-6">
-          <span className="text-[#111827] font-medium">Output format:</span>
-          {FORMATS.map((f) => (
-            <label key={f} className="flex items-center gap-2 cursor-pointer">
+        <div className="mb-6 flex items-center justify-center gap-6">
+          <span className="font-medium text-[#111827]">Output format:</span>
+          {FORMATS.map(f => (
+            <label key={f} className="flex cursor-pointer items-center gap-2">
               <input
                 type="radio"
                 name="format"
@@ -80,17 +80,17 @@ export default function RotateFlip() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {ACTIONS.map(({ id, label, icon }) => (
             <button
               key={id}
               onClick={() => transform(id, file, setLoading)}
               disabled={!file || loading}
-              className={`flex flex-col items-center justify-center gap-1 p-4 rounded-xl border text-sm font-medium transition-colors
-                ${file && !loading
-                  ? "border-[#c7d2fe] text-[#4361ee] hover:bg-[#4361ee] hover:text-white hover:shadow-md cursor-pointer"
-                  : "border-gray-200 text-gray-300 cursor-not-allowed"
-                }`}
+              className={`flex flex-col items-center justify-center gap-1 rounded-xl border p-4 text-sm font-medium transition-colors ${
+                file && !loading
+                  ? 'cursor-pointer border-[#c7d2fe] text-[#4361ee] hover:bg-[#4361ee] hover:text-white hover:shadow-md'
+                  : 'cursor-not-allowed border-gray-200 text-gray-300'
+              }`}
             >
               <span className="text-2xl">{icon}</span>
               {label}
@@ -100,12 +100,12 @@ export default function RotateFlip() {
 
         {/* Before / After */}
         {resultUrl && (
-          <div className="flex flex-col items-center mt-6 rounded-3xl border border-[#e5e7eb] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.04)]">
-            <h3 className="text-xl font-semibold text-[#111827] mb-4">Result</h3>
+          <div className="mt-6 flex flex-col items-center rounded-3xl border border-[#e5e7eb] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.04)]">
+            <h3 className="mb-4 text-xl font-semibold text-[#111827]">Result</h3>
             <img
               src={resultUrl}
               alt="result"
-              className="w-full rounded-xl border border-gray-200 object-contain max-h-96"
+              className="max-h-96 w-full rounded-xl border border-gray-200 object-contain"
             />
             <a
               href={resultUrl}

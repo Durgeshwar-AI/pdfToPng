@@ -1,59 +1,59 @@
-import { Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
-import "./App.css";
-import ScrollToTop from "./components/ScrollToTop";
+import { Routes, Route } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import './App.css';
+import ScrollToTop from './components/ScrollToTop';
 
-import Layout from "./components/Layout/Layout";
-import ErrorBoundary from "./ErrorBoundary";
+import Layout from './components/Layout/Layout';
+import ErrorBoundary from './ErrorBoundary';
 
-const UrlToQr = lazy(() => import("./pages/UrlToQr"));
+const UrlToQr = lazy(() => import('./pages/UrlToQr'));
 
-const PdfMerge = lazy(() => import("./pages/PdfMerge"));
-const PdfSign = lazy(() => import("./pages/PdfSign"));
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const ImagePdf = lazy(() => import("./pages/ImagePdf"));
-const PdfPng = lazy(() => import("./pages/PdfPng"));
-const PdfDocx = lazy(() => import("./pages/PdfDocx"));
-const ImageWbp = lazy(() => import("./pages/ImageWbp"));
-const ImageJpg = lazy(() => import("./pages/ImageJpg"));
-const RemoveBg = lazy(() => import("./pages/RemoveBg"));
-const RotateFlip = lazy(() => import("./pages/RotateFlip"));
-const ImageCompress = lazy(() => import("./pages/ImageCompress"));
-const ImageResize = lazy(() => import("./pages/ImageResize"));
-const ImageUpscale = lazy(() => import("./pages/ImageUpscale"));
-const ImageDpi = lazy(() => import("./pages/ImageDpi"));
-const ImageGrayScale = lazy(() => import("./pages/ImageGrayScale"));
-const ImageMetadata = lazy(() => import("./pages/ImageMetadata"));
-const ImageBase64 = lazy(() => import("./pages/ImageBase64"));
-const ImageToSVG = lazy(() => import("./pages/ImageToSVG"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const DocxPdf = lazy(() => import("./pages/DocxPdf"));
-const PdfSplit = lazy(() => import("./pages/PdfSplit"));
-const PdfRotateFlip = lazy(() => import("./pages/PdfRotateFlip"));
-const PdfReorder = lazy(() => import("./pages/PdfReorder"));
-const PdfPngBatch = lazy(() => import("./pages/PdfPngBatch"));
-const PDFWatermark = lazy(() => import("./pages/PDFWatermark"));
-const ImageOCR = lazy(() => import("./pages/ImageOCR"));
-const ImageWatermark = lazy(() => import("./pages/ImageWatermark"));
-const BlurImage = lazy(()=> import("./pages/BlurImage"))
-const MdToHtml = lazy(()=> import("./pages/MdToHtml"))
-const MdToDocx = lazy(() => import("./pages/MdToDocx"))
-const PdfProtect = lazy(() => import("./pages/PdfProtect"));
-const PdfCompress = lazy(() => import("./pages/PdfCompress"));
-const PdfUnlock = lazy(() => import("./pages/PdfUnlock"));
-const PdfMetadata = lazy(() => import("./pages/PdfMetadata"));
-const PdfToText = lazy(() => import("./pages/PdfToText"));
-const PdfInfo = lazy(() => import("./pages/PdfInfo"));
-const PdfPageNumber = lazy(() => import("./pages/PdfPageNumber"));
-const PptxToPdf = lazy(() => import("./pages/PptxToPdf"));
-const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
+const PdfMerge = lazy(() => import('./pages/PdfMerge'));
+const PdfSign = lazy(() => import('./pages/PdfSign'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const ImagePdf = lazy(() => import('./pages/ImagePdf'));
+const PdfPng = lazy(() => import('./pages/PdfPng'));
+const PdfDocx = lazy(() => import('./pages/PdfDocx'));
+const ImageWbp = lazy(() => import('./pages/ImageWbp'));
+const ImageJpg = lazy(() => import('./pages/ImageJpg'));
+const RemoveBg = lazy(() => import('./pages/RemoveBg'));
+const RotateFlip = lazy(() => import('./pages/RotateFlip'));
+const ImageCompress = lazy(() => import('./pages/ImageCompress'));
+const ImageResize = lazy(() => import('./pages/ImageResize'));
+const ImageUpscale = lazy(() => import('./pages/ImageUpscale'));
+const ImageDpi = lazy(() => import('./pages/ImageDpi'));
+const ImageGrayScale = lazy(() => import('./pages/ImageGrayScale'));
+const ImageMetadata = lazy(() => import('./pages/ImageMetadata'));
+const ImageBase64 = lazy(() => import('./pages/ImageBase64'));
+const ImageToSVG = lazy(() => import('./pages/ImageToSVG'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const DocxPdf = lazy(() => import('./pages/DocxPdf'));
+const PdfSplit = lazy(() => import('./pages/PdfSplit'));
+const PdfRotateFlip = lazy(() => import('./pages/PdfRotateFlip'));
+const PdfReorder = lazy(() => import('./pages/PdfReorder'));
+const PdfPngBatch = lazy(() => import('./pages/PdfPngBatch'));
+const PDFWatermark = lazy(() => import('./pages/PDFWatermark'));
+const ImageOCR = lazy(() => import('./pages/ImageOCR'));
+const ImageWatermark = lazy(() => import('./pages/ImageWatermark'));
+const BlurImage = lazy(() => import('./pages/BlurImage'));
+const MdToHtml = lazy(() => import('./pages/MdToHtml'));
+const MdToDocx = lazy(() => import('./pages/MdToDocx'));
+const PdfProtect = lazy(() => import('./pages/PdfProtect'));
+const PdfCompress = lazy(() => import('./pages/PdfCompress'));
+const PdfUnlock = lazy(() => import('./pages/PdfUnlock'));
+const PdfMetadata = lazy(() => import('./pages/PdfMetadata'));
+const PdfToText = lazy(() => import('./pages/PdfToText'));
+const PdfInfo = lazy(() => import('./pages/PdfInfo'));
+const PdfPageNumber = lazy(() => import('./pages/PdfPageNumber'));
+const PptxToPdf = lazy(() => import('./pages/PptxToPdf'));
+const CsvToJson = lazy(() => import('./pages/CsvtoJson'));
 
 // Informational pages (linked from the footer)
-const About = lazy(() => import("./pages/About"));
-const Privacy = lazy(() => import("./pages/Privacy"));
-const Terms = lazy(() => import("./pages/Terms"));
-const Cookies = lazy(() => import("./pages/Cookies"));
-const Gdpr = lazy(() => import("./pages/Gdpr"));
+const About = lazy(() => import('./pages/About'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Cookies = lazy(() => import('./pages/Cookies'));
+const Gdpr = lazy(() => import('./pages/Gdpr'));
 
 function App() {
   return (

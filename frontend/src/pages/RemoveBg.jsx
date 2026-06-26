@@ -1,19 +1,19 @@
-import { useCallback } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
+import { useCallback } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
 
 function RemoveBg() {
-  const validateFile = useCallback((selectedFile) => {
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
+  const validateFile = useCallback(selectedFile => {
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`,
+        message: `File "${selectedFile.name}" selected (${(selectedFile.size / 1024).toFixed(
+          1
+        )} KB)`,
       };
     }
     return {
       isValid: false,
-      message: "Error: Please select an image file (PNG, JPG, JPEG, etc.)",
+      message: 'Error: Please select an image file (PNG, JPG, JPEG, etc.)',
     };
   }, []);
 
@@ -24,8 +24,8 @@ function RemoveBg() {
       validateFile={validateFile}
       apiEndpoint="/removeBg"
       fileFieldName="image"
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.split(".")[0];
+      getDownloadFilename={fileName => {
+        const originalName = fileName.split('.')[0];
         return `${originalName}_no_bg.png`;
       }}
       submitButtonText="Remove Background"

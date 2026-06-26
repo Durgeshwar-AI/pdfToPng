@@ -13,7 +13,7 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     // You can also log the error to an error reporting service
-    console.error("ErrorBoundary caught an error", error, errorInfo);
+    console.error('ErrorBoundary caught an error', error, errorInfo);
   }
 
   render() {
@@ -23,8 +23,8 @@ class ErrorBoundary extends React.Component {
         <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'system-ui, sans-serif' }}>
           <h2>Oops! Something went wrong.</h2>
           <p>We're sorry for the inconvenience. Please try refreshing the page.</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             style={{ padding: '10px 20px', cursor: 'pointer', marginTop: '10px', fontSize: '16px' }}
           >
             Refresh Page
@@ -33,7 +33,7 @@ class ErrorBoundary extends React.Component {
       );
     }
 
-    return this.props.children; 
+    return this.props.children;
   }
 }
 

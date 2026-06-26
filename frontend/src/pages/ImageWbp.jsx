@@ -1,42 +1,42 @@
-import { useCallback, useState } from "react";
-import ToolPageTemplate from "../components/ToolPageTemplate";
-import { formatFileSize, calculateSavedPercentage } from "../utils/fileSizeFormatter";
+import { useCallback, useState } from 'react';
+import ToolPageTemplate from '../components/ToolPageTemplate';
+import { formatFileSize, calculateSavedPercentage } from '../utils/fileSizeFormatter';
 
 function ImageWbp() {
   const [originalSize, setOriginalSize] = useState(null);
   const [convertedSize, setConvertedSize] = useState(null);
 
-  const validateFile = useCallback((selectedFile) => {
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
+  const validateFile = useCallback(selectedFile => {
+    if (selectedFile && selectedFile.type.startsWith('image/')) {
       setOriginalSize(selectedFile.size);
       setConvertedSize(null);
-      
+
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`,
+        message: `File "${selectedFile.name}" selected (${(selectedFile.size / 1024).toFixed(
+          1
+        )} KB)`,
       };
     }
     return {
       isValid: false,
-      message: "Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)",
+      message: 'Error: Please select an image file (PNG, JPG, JPEG, GIF, BMP, etc.)',
     };
   }, []);
 
-  const onSuccess = (responseBlob) => {
+  const onSuccess = responseBlob => {
     setConvertedSize(responseBlob.size);
-    return "Success! Your WebP file has been downloaded.";
+    return 'Success! Your WebP file has been downloaded.';
   };
 
   const extraFields = ({ file }) => {
     if (!file) return null;
-    
+
     return (
-      <div className="w-full max-w-[500px] mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100 text-left">
-        {(convertedSize && originalSize) && (
+      <div className="mb-8 w-full max-w-[500px] rounded-xl border border-gray-100 bg-white p-6 text-left shadow-sm">
+        {convertedSize && originalSize && (
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">📊 File Size Comparison</h4>
+            <h4 className="mb-3 text-sm font-semibold text-gray-700">📊 File Size Comparison</h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Original:</span>
@@ -46,16 +46,18 @@ function ImageWbp() {
                 <span className="text-gray-500">Converted (WebP):</span>
                 <span className="font-medium text-green-600">{formatFileSize(convertedSize)}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-gray-100">
+              <div className="flex justify-between border-t border-gray-100 pt-2">
                 <span className="text-gray-500">Saved:</span>
-                <span className={`font-bold ${
-                  calculateSavedPercentage(originalSize, convertedSize) > 0 
-                    ? "text-green-600" 
-                    : "text-red-600"
-                }`}>
-                  {formatFileSize(originalSize - convertedSize)} 
-                  ({calculateSavedPercentage(originalSize, convertedSize).toFixed(1)}% 
-                  {calculateSavedPercentage(originalSize, convertedSize) > 0 ? "↓" : "↑"})
+                <span
+                  className={`font-bold ${
+                    calculateSavedPercentage(originalSize, convertedSize) > 0
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }`}
+                >
+                  {formatFileSize(originalSize - convertedSize)}(
+                  {calculateSavedPercentage(originalSize, convertedSize).toFixed(1)}%
+                  {calculateSavedPercentage(originalSize, convertedSize) > 0 ? '↓' : '↑'})
                 </span>
               </div>
             </div>
@@ -72,8 +74,8 @@ function ImageWbp() {
       validateFile={validateFile}
       apiEndpoint="/convertWebP"
       fileFieldName="image"
-      getDownloadFilename={(fileName) =>
-        fileName.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg)$/i, ".webp")
+      getDownloadFilename={fileName =>
+        fileName.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg)$/i, '.webp')
       }
       submitButtonText="Convert to WebP"
       loadingButtonText="Converting..."
@@ -97,13 +99,7 @@ function ImageWbp() {
             stroke="currentColor"
             strokeWidth="2"
           />
-          <circle
-            cx="8.5"
-            cy="8.5"
-            r="1.5"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
+          <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="2" />
           <path
             d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"
             stroke="currentColor"

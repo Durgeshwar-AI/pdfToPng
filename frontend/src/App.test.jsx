@@ -18,7 +18,7 @@ describe('Frontend Tests', () => {
     // Wait, About.jsx probably has some text.
     expect(true).toBe(true);
   });
-  
+
   it('should verify the testing environment is correctly initialized', () => {
     expect(typeof window).toBe('object');
     expect(document.body).toBeInTheDocument();

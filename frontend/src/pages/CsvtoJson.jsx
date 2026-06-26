@@ -1,22 +1,18 @@
-import { useCallback, useState } from "react";
-import Papa from "papaparse";
-import { useFileUpload } from "../hooks/useFileUpload";
-import FileUploadArea from "../components/FileUploadArea";
-import { FileText } from "lucide-react";
-import {
-  toastError,
-  toastSuccess,
-} from "../utils/toast";
+import { useCallback, useState } from 'react';
+import Papa from 'papaparse';
+import { useFileUpload } from '../hooks/useFileUpload';
+import FileUploadArea from '../components/FileUploadArea';
+import { FileText } from 'lucide-react';
+import { toastError, toastSuccess } from '../utils/toast';
 
 function CsvToJson() {
-  const [jsonOutput, setJsonOutput] = useState("");
+  const [jsonOutput, setJsonOutput] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(selectedFile => {
     if (
       selectedFile &&
-      (selectedFile.type === "text/csv" ||
-        selectedFile.name.toLowerCase().endsWith(".csv"))
+      (selectedFile.type === 'text/csv' || selectedFile.name.toLowerCase().endsWith('.csv'))
     ) {
       return {
         isValid: true,
@@ -26,7 +22,7 @@ function CsvToJson() {
 
     return {
       isValid: false,
-      message: "Please select a valid CSV file.",
+      message: 'Please select a valid CSV file.',
     };
   }, []);
 
@@ -46,7 +42,7 @@ function CsvToJson() {
 
   const handleConvert = () => {
     if (!file) {
-      toastError("Please select a CSV file first.");
+      toastError('Please select a CSV file first.');
       return;
     }
 
@@ -56,13 +52,13 @@ function CsvToJson() {
       header: true,
       skipEmptyLines: true,
       dynamicTyping: true,
-      complete: (results) => {
+      complete: results => {
         setJsonOutput(JSON.stringify(results.data, null, 2));
-        toastSuccess("CSV converted successfully!");
+        toastSuccess('CSV converted successfully!');
         setLoading(false);
       },
       error: () => {
-        toastError("Failed to parse CSV file.");
+        toastError('Failed to parse CSV file.');
         setLoading(false);
       },
     });
@@ -70,37 +66,37 @@ function CsvToJson() {
 
   const handleDownload = () => {
     const blob = new Blob([jsonOutput], {
-      type: "application/json",
+      type: 'application/json',
     });
 
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = file.name.replace(/\.csv$/i, ".json");
+    a.download = file.name.replace(/\.csv$/i, '.json');
     a.click();
 
     URL.revokeObjectURL(url);
 
-    toastSuccess("JSON downloaded successfully!");
+    toastSuccess('JSON downloaded successfully!');
   };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(jsonOutput);
-    toastSuccess("JSON copied to clipboard!");
+    toastSuccess('JSON copied to clipboard!');
   };
 
   return (
-    <div className="w-full max-w-[900px] mx-auto p-10 text-center flex flex-col justify-center items-center theme-panel rounded-2xl overflow-hidden">
-      <h1 className="mb-10 text-[var(--color-app-text)] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
+    <div className="theme-panel mx-auto flex w-full max-w-[900px] flex-col items-center justify-center overflow-hidden rounded-2xl p-10 text-center">
+      <h1 className="relative mb-10 inline-block text-5xl font-bold tracking-tight text-[var(--color-app-text)] after:absolute after:-bottom-2.5 after:left-1/2 after:h-1 after:w-[60px] after:-translate-x-1/2 after:rounded-sm after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:content-['']">
         CSV to JSON
       </h1>
 
-      <p className="text-gray-800 text-sm mb-8 -mt-6">
+      <p className="-mt-6 mb-8 text-sm text-gray-800">
         Convert CSV files into structured JSON instantly.
       </p>
 
-      <div className="w-full flex flex-col items-center">
+      <div className="flex w-full flex-col items-center">
         <FileUploadArea
           file={file}
           isDragging={isDragging}
@@ -115,7 +111,7 @@ function CsvToJson() {
           handleAreaClick={handleAreaClick}
           accept=".csv,text/csv"
           inputId="csv-json-input"
-          defaultIcon={<FileText className="w-16 h-16" />}
+          defaultIcon={<FileText className="h-16 w-16" />}
           defaultText="Upload a CSV file"
           supportText="Converts CSV data into JSON format"
         />
@@ -123,31 +119,28 @@ function CsvToJson() {
         <button
           onClick={handleConvert}
           disabled={!file || loading}
-          className="mt-6 bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 rounded-lg text-lg font-semibold w-full max-w-[300px]"
+          className="mt-6 w-full max-w-[300px] rounded-lg bg-gradient-to-r from-[#4361ee] to-[#3b82f6] px-8 py-3.5 text-lg font-semibold text-white"
         >
-          {loading ? "Converting..." : "Convert to JSON"}
+          {loading ? 'Converting...' : 'Convert to JSON'}
         </button>
 
         {jsonOutput && (
-          <div className="w-full mt-8">
-            <div className="flex gap-4 justify-center mb-4">
-              <button
-                onClick={handleCopy}
-                className="px-5 py-2 rounded-lg bg-green-600 text-white"
-              >
+          <div className="mt-8 w-full">
+            <div className="mb-4 flex justify-center gap-4">
+              <button onClick={handleCopy} className="rounded-lg bg-green-600 px-5 py-2 text-white">
                 Copy JSON
               </button>
 
               <button
                 onClick={handleDownload}
-                className="px-5 py-2 rounded-lg bg-blue-600 text-white"
+                className="rounded-lg bg-blue-600 px-5 py-2 text-white"
               >
                 Download JSON
               </button>
             </div>
 
-            <pre className="text-left bg-white dark:bg-slate-900 text-black dark:text-white p-4 rounded-lg overflow-auto max-h-[500px] text-sm border border-slate-300 dark:border-slate-700">
-            {jsonOutput}
+            <pre className="max-h-[500px] overflow-auto rounded-lg border border-slate-300 bg-white p-4 text-left text-sm text-black dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+              {jsonOutput}
             </pre>
           </div>
         )}
