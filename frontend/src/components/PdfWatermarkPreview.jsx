@@ -108,13 +108,13 @@ export default function PdfWatermarkPreview({
       <div className="flex justify-center">
 
         <div
-          className="relative"
+          className="relative max-w-full"
           style={{ display: "inline-block" }}
         >
 
           <canvas
             ref={canvasRef}
-            className="border rounded shadow-sm block"
+            className="border rounded shadow-sm block max-w-full h-auto"
           />
 
           {watermarkType === "text" ? (
