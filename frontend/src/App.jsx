@@ -46,6 +46,7 @@ const PdfToText = lazy(() => import("./pages/PdfToText"));
 const PdfInfo = lazy(() => import("./pages/PdfInfo"));
 const PdfPageNumber = lazy(() => import("./pages/PdfPageNumber"));
 const PptxToPdf = lazy(() => import("./pages/PptxToPdf"));
+const PdfToPptx = lazy(() => import("./pages/PdfToPptx"));
 const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
 
 // Informational pages (linked from the footer)
@@ -92,6 +93,7 @@ function App() {
             <Route path="/pdf-info" element={<PdfInfo />} />
             <Route path="/pdf-page-number" element={<PdfPageNumber />} />
             <Route path="/pptx-to-pdf" element={<PptxToPdf />} />
+            <Route path="/pdf-to-pptx" element={<PdfToPptx />} />
 
             <Route path="/image-blur" element={<BlurImage />} />
             <Route path="/image-to-webp" element={<ImageWbp />} />
