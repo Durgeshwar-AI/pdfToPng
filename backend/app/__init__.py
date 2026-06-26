@@ -69,6 +69,7 @@ def create_app():
     from blueprints.protect_pdf import protect_pdf_bp
     from blueprints.unlock_pdf import unlock_pdf_bp
     from blueprints.pptx_to_pdf import pptx_pdf_bp
+    from blueprints.pdf_to_pptx import pdf_pptx_bp
 
     app.register_blueprint(pdf_bp)
     app.register_blueprint(pdf_docx_bp)
@@ -88,5 +89,6 @@ def create_app():
     app.register_blueprint(protect_pdf_bp)
     app.register_blueprint(unlock_pdf_bp)
     app.register_blueprint(pptx_pdf_bp)
+    app.register_blueprint(pdf_pptx_bp)
 
     return app

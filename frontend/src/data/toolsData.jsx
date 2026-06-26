@@ -141,6 +141,16 @@ const tools = [
     iconGradient: "from-sky-500 to-indigo-500",
   },
   {
+    id: "pdf-to-pptx",
+    name: "PDF to PPTX",
+    category: "Conversion Tools",
+    icon: <FileText />,
+    description: "Convert PDF files to editable PowerPoint presentations (.pptx). Each page becomes a slide.",
+    path: "/pdf-to-pptx",
+    gradient: "from-indigo-500/10 to-purple-500/10",
+    iconGradient: "from-indigo-500 to-purple-500",
+  },
+  {
     id: "pdf-compress",
     name: "PDF Compressor",
     category: "PDF Tools",
