@@ -3,7 +3,6 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { PDFDocument, degrees } from "pdf-lib";
 import { Toaster, toast } from "sonner";
-// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import {
   RotateCcw,
@@ -468,7 +467,6 @@ const transformAndDownload = async () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
-              {/* eslint-disable-next-line no-unused-vars */}
               {ACTIONS.map(({ id, label, icon: Icon }) => (
                 <motion.button
                   key={id}

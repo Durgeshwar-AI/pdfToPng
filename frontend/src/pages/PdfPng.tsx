@@ -7,7 +7,6 @@ import JSZip from "jszip";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import MultiFileResults from "../components/MultiFileResults";
 import {
-  toastSuccess,
   toastError,
   toastLoading,
   toastDismiss,
