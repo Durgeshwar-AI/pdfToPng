@@ -276,8 +276,11 @@ export default function PdfBlankRemover() {
       copiedPages.forEach((page) => newPdf.addPage(page));
 
       const pdfBytes = await newPdf.save();
+      
+     const blob = new Blob([pdfBytes as BlobPart], {
+      type: "application/pdf",
+    });
 
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
 
       setResultUrl(url);
