@@ -70,6 +70,28 @@ def validate_image_file(file):
             400,
         )
 
+def validate_pdf_magic_bytes(file_bytes):
+    """
+    Validate PDF file by checking magic bytes (file signature).
+    PDF files must start with %PDF signature to be legitimate.
+    This prevents attackers from uploading non-PDF files renamed with .pdf extension.
+
+    Magic bytes: %PDF (0x25 0x50 0x44 0x46)
+    """
+    if len(file_bytes) < 4:
+        return error("File is too small to be a valid PDF", 400)
+
+    # Check for PDF magic bytes at the start
+    pdf_signature = b'%PDF'
+    if not file_bytes.startswith(pdf_signature):
+        return error(
+            "Invalid PDF file. File does not have valid PDF signature. "
+            "Please upload a legitimate PDF file.",
+            400
+        )
+
+    return None
+
 def validate_pdf_file(
     file,
     filename,
@@ -85,5 +107,15 @@ def validate_pdf_file(
 
     if mime_error:
         return mime_error
+
+    # **CRITICAL:** Server-side magic byte validation
+    # Do not rely on file extension or client-provided MIME type (both attacker-controlled)
+    # Check actual file signature to ensure legitimacy
+    file_bytes = file.read()
+    file.seek(0)  # Reset file pointer for downstream processing
+
+    magic_error = validate_pdf_magic_bytes(file_bytes)
+    if magic_error:
+        return magic_error
 
     return None
