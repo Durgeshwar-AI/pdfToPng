@@ -19,6 +19,7 @@ export default function MultiFileResults({ files }) {
     };
   }, [files]);
 
+
   const handleCopy = async (blob, index) => {
     try {
       await navigator.clipboard.write([
@@ -35,6 +36,9 @@ export default function MultiFileResults({ files }) {
       toast.error("Unable to copy image. Please download it instead.");
     }
   };
+
+
+
 
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
