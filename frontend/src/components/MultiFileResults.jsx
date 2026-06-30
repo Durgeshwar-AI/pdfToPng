@@ -1,26 +1,18 @@
 import { useEffect, useState } from "react";
-
-
-import { Download, Copy, Check, AlertCircle } from "lucide-react";
-
 import { Download, Copy, Check } from "lucide-react";
-<<<<<<< Updated upstream
 import JSZip from "jszip";
-
-=======
 import { toast } from "sonner";
->>>>>>> Stashed changes
 
 export default function MultiFileResults({ files }) {
   const [previewUrls, setPreviewUrls] = useState([]);
   const [copiedIndex, setCopiedIndex] = useState(null);
-  const [copyErrorIndex, setCopyErrorIndex] = useState(null);
 
   useEffect(() => {
     const urls = files.map((f) =>
       f.blob.type.startsWith("image/") ? URL.createObjectURL(f.blob) : null
     );
     setPreviewUrls(urls);
+
     return () => {
       urls.forEach((url) => {
         if (url) URL.revokeObjectURL(url);
@@ -29,71 +21,45 @@ export default function MultiFileResults({ files }) {
   }, [files]);
 
   const handleCopy = async (blob, index) => {
-<<<<<<< Updated upstream
-  try {
-    setCopyErrorIndex(null);
-
-    await navigator.clipboard.write([
-      new window.ClipboardItem({
-        [blob.type]: blob,
-      }),
-    ]);
-
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
-  } catch (err) {
-    console.error("Failed to copy image:", err);
-    setCopyErrorIndex(index);
-    setCopiedIndex(null);
-
-    setTimeout(() => setCopyErrorIndex(null), 3000);
-  }
-};
-=======
     try {
       await navigator.clipboard.write([
         new window.ClipboardItem({
           [blob.type]: blob,
         }),
       ]);
+
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
-   } catch (err) {
-  console.error("Failed to copy image:", err);
-  setCopiedIndex(null);
-  toast.error("Unable to copy image. Please download it instead.");
-}
+    } catch (err) {
+      console.error("Failed to copy image:", err);
+      setCopiedIndex(null);
+      toast.error("Unable to copy image. Please download it instead.");
+    }
   };
->>>>>>> Stashed changes
 
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+
     URL.revokeObjectURL(url);
   };
+
   const downloadAllAsZip = async () => {
-  const zip = new JSZip();
+    const zip = new JSZip();
 
-  files.forEach((file) => {
-    zip.file(file.name, file.blob);
-  });
+    files.forEach((file) => {
+      zip.file(file.name, file.blob);
+    });
 
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-
-  const url = URL.createObjectURL(zipBlob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "converted-images.zip";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    downloadBlob(zipBlob, "converted-images.zip");
+  };
 
   if (!files?.length) return null;
 
@@ -102,16 +68,18 @@ export default function MultiFileResults({ files }) {
       <h3 className="text-lg font-semibold text-[var(--color-app-text)] mb-4">
         {files.length} file{files.length !== 1 ? "s" : ""} ready
       </h3>
+
       <div className="mb-4">
-  <button
-    type="button"
-    onClick={downloadAllAsZip}
-    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-app-border)] text-sm font-semibold text-[var(--color-app-primary)] hover:bg-[var(--color-app-surface-soft)] transition-colors"
-  >
-    <Download size={16} />
-    Download All as ZIP
-  </button>
-</div>
+        <button
+          type="button"
+          onClick={downloadAllAsZip}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-app-border)] text-sm font-semibold text-[var(--color-app-primary)] hover:bg-[var(--color-app-surface-soft)] transition-colors"
+        >
+          <Download size={16} />
+          Download All as ZIP
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {files.map((file, index) => (
           <div
@@ -131,6 +99,7 @@ export default function MultiFileResults({ files }) {
                 </span>
               )}
             </div>
+
             <div className="p-2 border-t border-[var(--color-app-border)]">
               <p
                 className="text-[11px] font-medium theme-muted truncate mb-2"
@@ -138,6 +107,7 @@ export default function MultiFileResults({ files }) {
               >
                 {file.name}
               </p>
+
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -148,6 +118,7 @@ export default function MultiFileResults({ files }) {
                   <Download size={14} />
                   Download
                 </button>
+
                 <button
                   type="button"
                   onClick={() => handleCopy(file.blob, index)}
@@ -170,14 +141,7 @@ export default function MultiFileResults({ files }) {
                     </>
                   )}
                 </button>
-                
               </div>
-              {copyErrorIndex === index && (
-  <p className="mt-2 flex items-center gap-1 text-[11px] text-red-600">
-    <AlertCircle size={12} />
-    Unable to copy image. Please download it instead.
-  </p>
-)}
             </div>
           </div>
         ))}
