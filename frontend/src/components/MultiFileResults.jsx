@@ -10,7 +10,6 @@ export default function MultiFileResults({ files }) {
     const urls = files.map((f) =>
       f.blob.type.startsWith("image/") ? URL.createObjectURL(f.blob) : null
     );
-
     setPreviewUrls(urls);
 
     return () => {
@@ -40,13 +39,11 @@ export default function MultiFileResults({ files }) {
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
     URL.revokeObjectURL(url);
   };
 
