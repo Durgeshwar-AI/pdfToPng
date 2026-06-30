@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Download, Copy, Check } from "lucide-react";
-import JSZip from "jszip";
 import { toast } from "sonner";
 
 export default function MultiFileResults({ files }) {
@@ -11,6 +10,7 @@ export default function MultiFileResults({ files }) {
     const urls = files.map((f) =>
       f.blob.type.startsWith("image/") ? URL.createObjectURL(f.blob) : null
     );
+
     setPreviewUrls(urls);
 
     return () => {
@@ -50,17 +50,6 @@ export default function MultiFileResults({ files }) {
     URL.revokeObjectURL(url);
   };
 
-  const downloadAllAsZip = async () => {
-    const zip = new JSZip();
-
-    files.forEach((file) => {
-      zip.file(file.name, file.blob);
-    });
-
-    const zipBlob = await zip.generateAsync({ type: "blob" });
-    downloadBlob(zipBlob, "converted-images.zip");
-  };
-
   if (!files?.length) return null;
 
   return (
@@ -68,17 +57,6 @@ export default function MultiFileResults({ files }) {
       <h3 className="text-lg font-semibold text-[var(--color-app-text)] mb-4">
         {files.length} file{files.length !== 1 ? "s" : ""} ready
       </h3>
-
-      <div className="mb-4">
-        <button
-          type="button"
-          onClick={downloadAllAsZip}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-app-border)] text-sm font-semibold text-[var(--color-app-primary)] hover:bg-[var(--color-app-surface-soft)] transition-colors"
-        >
-          <Download size={16} />
-          Download All as ZIP
-        </button>
-      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {files.map((file, index) => (
