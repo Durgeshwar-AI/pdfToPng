@@ -28,6 +28,16 @@ import {
 
 const tools = [
   {
+    id: "pdf-searchable-ocr",
+    name: "Scanned PDF OCR",
+    category: "PDF Tools",
+    icon: <FileSearch />,
+    description: "Convert scanned image-only PDFs into searchable PDFs with selectable text.",
+    path: "/pdf-searchable-ocr",
+    gradient: "from-blue-500/10 to-indigo-500/10",
+    iconGradient: "from-blue-500 to-indigo-500",
+  },
+  {
     id: "pdf-to-png",
     name: "PDF to PNG",
     category: "PDF Tools",

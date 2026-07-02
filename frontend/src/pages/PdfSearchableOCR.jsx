@@ -75,7 +75,7 @@ function PdfSearchableOCR() {
     <ToolPageTemplate
       title="Scanned PDF OCR"
       description="Convert image-only scanned PDFs into searchable PDFs with selectable text."
-      endpoint="/searchable-pdf-ocr"
+      apiEndpoint="/searchable-pdf-ocr"
       accept="application/pdf"
       validateFile={validateFile}
       modifyFormData={modifyFormData}
