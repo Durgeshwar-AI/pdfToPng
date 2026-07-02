@@ -32,6 +32,21 @@ def convert_pdf_to_png():
 
         target_lang = request.form.get("language", "eng")
 
+        # Extract DPI/resolution settings. Default to 72 DPI (standard screen resolution).
+        # DPI determines the scaling: zoom = requested_dpi / 72
+        # For 150 DPI: zoom = 150/72 = 2.08
+        # For 300 DPI: zoom = 300/72 = 4.17
+        dpi = request.form.get("dpi", "72")
+        try:
+            dpi = int(dpi)
+            if dpi < 72 or dpi > 600:
+                return error("DPI must be between 72 and 600")
+        except (ValueError, TypeError):
+            return error("Invalid DPI value. Must be an integer.")
+
+        # Calculate zoom level from DPI
+        zoom = dpi / 72.0
+
         doc = fitz.open(
             stream=pdf_bytes,
             filetype="pdf",
@@ -42,8 +57,6 @@ def convert_pdf_to_png():
                 return error("Empty PDF")
 
             page = doc.load_page(0)
-
-            zoom = 1.0
 
             mat = fitz.Matrix(zoom, zoom)
 
