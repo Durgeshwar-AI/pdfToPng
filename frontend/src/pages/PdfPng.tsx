@@ -12,6 +12,7 @@ import {
   toastDismiss,
   parseApiError,
 } from "../utils/toast";
+import { resolveServerPageRange } from "../utils/pdfPngServerParams";
 
 const PdfPng = () => {
   const [scale, setScale] = useState(2.0);
@@ -220,9 +221,18 @@ const PdfPng = () => {
       setStatusMessage("Trying server fallback...");
 
       try {
+        const { start_page, end_page } = resolveServerPageRange({
+          pageMode,
+          singlePage,
+          pageRange,
+          totalPages: numPages,
+        });
+
         const form = new FormData();
         form.append("file", file);
         form.append("language", language);
+        form.append("start_page", String(start_page));
+        form.append("end_page", String(end_page));
 
         const tryUrls = ["/convertPng", "http://localhost:5000/convertPng"];
         let response = null;
@@ -238,12 +248,16 @@ const PdfPng = () => {
 
         if (response && response.ok) {
           const blob = await response.blob();
-          const name = file.name.replace(/\.pdf$/i, ".png");
+          // A multi-page range comes back as a ZIP (see #450); a single
+          // page still comes back as a raw PNG.
+          const isZip = (response.headers.get("Content-Type") || "").includes("zip");
+          const baseName = file.name.replace(/\.pdf$/i, "");
+          const name = isZip ? `${baseName}_pages.zip` : `${baseName}.png`;
           setOutputFiles([{ name, blob }]);
           const downloadUrl = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = downloadUrl;
-          a.download = file.name.replace(/\.pdf$/i, ".png");
+          a.download = name;
           document.body.appendChild(a);
           document.body.removeChild(a);
           window.URL.revokeObjectURL(downloadUrl);
@@ -252,7 +266,7 @@ const PdfPng = () => {
 
           if (addToHistory) {
             const historyUrl = window.URL.createObjectURL(blob);
-            addToHistory(historyUrl, file.name.replace(/\.pdf$/i, ".png"));
+            addToHistory(historyUrl, name);
           }
         } else {
           const msg = response
