@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 mock_modules = [
     'fitz',
     'docx',
+    'docx.shared',
     'reportlab',
     'reportlab.lib',
     'reportlab.lib.pagesizes',
