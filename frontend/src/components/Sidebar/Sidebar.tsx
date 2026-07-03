@@ -1,48 +1,33 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, X, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import tools from "../../data/toolsData";
 
 const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-   
+
   const navigate = useNavigate();
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
- 
+
   const filteredTools = tools.filter((tool) => {
-    const query = searchQuery
-      .toLowerCase()
-      .trim()
-      .replace(/[-_\s]+/g, "");
-
-    const toolName = tool.name
-      .toLowerCase()
-      .replace(/[-_\s]+/g, "");
-
-    const toolDescription = tool.description
-      .toLowerCase()
-      .replace(/[-_\s]+/g, "");
-
-    return (
-      toolName.includes(query) ||
-      toolDescription.includes(query)
-    );
+    const query = searchQuery.toLowerCase().trim().replace(/[-_\s]+/g, "");
+    const toolName = tool.name.toLowerCase().replace(/[-_\s]+/g, "");
+    const toolDescription = tool.description.toLowerCase().replace(/[-_\s]+/g, "");
+    return toolName.includes(query) || toolDescription.includes(query);
   });
 
   const menuItems = filteredTools.map((t) => ({
     id: t.id,
     label: t.name,
-    icon: t.icon, // Pass the raw icon, handle cloning during render
+    icon: t.icon,
     description: t.description,
-    category: t.category || "Utilities", // Default to an existing category
+    category: t.category || "Utilities",
   }));
 
   const groupedTools = menuItems.reduce((acc, tool) => {
-    if (!acc[tool.category]) {
-      acc[tool.category] = [];
-    }
+    if (!acc[tool.category]) acc[tool.category] = [];
     acc[tool.category].push(tool);
     return acc;
   }, {});
@@ -55,8 +40,9 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
     "Utilities",
   ];
 
-  // Base the empty state on visible categories, not total items
-  const visibleCategories = categoryOrder.filter((category) => groupedTools[category]);
+  const visibleCategories = categoryOrder.filter(
+    (category) => groupedTools[category]
+  );
 
   const handleNavigation = (id) => {
     navigate(`/${id}`);
@@ -65,7 +51,6 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
 
   return (
     <>
-      {/* Mobile overlay backdrop with high z-index */}
       {isMobile && isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9998]"
@@ -76,7 +61,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
 
       <aside
         className={`
-          ${isMobile ? "fixed" : "sticky"} 
+          ${isMobile ? "fixed" : "sticky"}
           top-0 left-0 h-screen bg-white dark:bg-gray-900
           text-blue-500 dark:text-gray-200 transition-all duration-300 ease-in-out z-[10000]
           ${isMobile && !isMobileMenuOpen ? "-translate-x-full" : "translate-x-0"}
@@ -119,7 +104,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto flex flex-col">
           {!isCollapsed && (
             <div className="mb-4">
               <input
@@ -132,66 +117,86 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
             </div>
           )}
 
-          {/* Condition updated to check visibleCategories instead of menuItems */}
-          {visibleCategories.length > 0 ? (
-            visibleCategories.map((category) => {
-              const items = groupedTools[category];
-
-              return (
-                <div key={category} className="mb-6">
-                  {!isCollapsed && (
-                    <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
-                      {category}
-                    </h3>
-                  )}
-
-                  <ul className="space-y-2">
-                    {items.map((item) => (
-                      <li key={item.id}>
-                        <button
-                          onClick={() => handleNavigation(item.id)}
-                          className={`
-                            w-full flex ${
-                              isCollapsed ? "flex-col" : "flex-row"
-                            } items-center gap-3 p-3 rounded-lg transition-colors
-                            ${
-                              activeTab === item.id
-                                ? "bg-blue-600 text-white shadow-lg"
-                                : "hover:bg-slate-50 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300"
-                            }
-                            ${isCollapsed ? "justify-center" : ""}
-                          `}
-                          title={isCollapsed ? item.label : ""}
-                        >
-                          <span className="flex-shrink-0">
-                            {/* Safely render the icon whether it's an element or component */}
-                            {typeof item.icon === "function" ? (
-                              <item.icon className="w-5 h-5" />
-                            ) : React.isValidElement(item.icon) ? (
-                              React.cloneElement(item.icon, { className: "w-5 h-5" })
-                            ) : null}
-                          </span>
-
-                          {!isCollapsed && (
-                            <div className="flex-1 text-left">
-                              <div className="font-medium">{item.label}</div>
-                              <div className="text-xs opacity-75 mt-0.5">
-                                {item.description}
+          <div className="flex-1">
+            {visibleCategories.length > 0 ? (
+              visibleCategories.map((category) => {
+                const items = groupedTools[category];
+                return (
+                  <div key={category} className="mb-6">
+                    {!isCollapsed && (
+                      <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
+                        {category}
+                      </h3>
+                    )}
+                    <ul className="space-y-2">
+                      {items.map((item) => (
+                        <li key={item.id}>
+                          <button
+                            onClick={() => handleNavigation(item.id)}
+                            className={`
+                              w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-colors
+                              ${
+                                activeTab === item.id
+                                  ? "bg-blue-600 text-white shadow-lg"
+                                  : "hover:bg-slate-50 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300"
+                              }
+                              ${isCollapsed ? "justify-center" : ""}
+                            `}
+                            title={isCollapsed ? item.label : ""}
+                          >
+                            <span className="flex-shrink-0">
+                              {typeof item.icon === "function" ? (
+                                <item.icon className="w-5 h-5" />
+                              ) : React.isValidElement(item.icon) ? (
+                                React.cloneElement(item.icon, { className: "w-5 h-5" })
+                              ) : null}
+                            </span>
+                            {!isCollapsed && (
+                              <div className="flex-1 text-left">
+                                <div className="font-medium">{item.label}</div>
+                                <div className="text-xs opacity-75 mt-0.5">
+                                  {item.description}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ); 
-            })
-          ) : (
-            <div className="text-center text-slate-500 dark:text-gray-400 py-4">
-              No tools found
-            </div>
-          )}
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center text-slate-500 dark:text-gray-400 py-4">
+                No tools found
+              </div>
+            )}
+          </div>
+
+         {/* History Link */}
+<div className="border-t border-slate-200 dark:border-gray-700 pt-4 mt-4">
+  <button
+    onClick={() => handleNavigation("history")}
+    className={`
+      w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-colors
+      ${
+        activeTab === "history"
+          ? "bg-purple-600 text-white shadow-lg"
+          : "bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800"
+      }
+      ${isCollapsed ? "justify-center" : ""}
+    `}
+    title={isCollapsed ? "History" : ""}
+  >
+    <Clock className="w-5 h-5 flex-shrink-0" />
+    {!isCollapsed && (
+      <div className="flex-1 text-left">
+        <div className="font-semibold">🕐 History</div>
+        <div className="text-xs opacity-75 mt-0.5">Recent conversions</div>
+      </div>
+    )}
+  </button>
+</div>
         </nav>
       </aside>
     </>

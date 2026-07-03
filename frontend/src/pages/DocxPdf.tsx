@@ -3,10 +3,14 @@ import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText } from "lucide-react";
 import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
+import { useHistory } from "../context/HistoryContext";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function DocxPdf() {
+
+  const { addToHistory } = useHistory();
+
   const validateFile = useCallback(async (selectedFile: any) => {
     const accepted = [
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -50,7 +54,7 @@ function DocxPdf() {
     }
 
     setLoading(true);
-    const loadingId = toastLoading(`Converting "${file.name}" to PDF…`);
+    const loadingId = toastLoading(`Converting "${file.name}" to PDF...`);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -65,13 +69,22 @@ function DocxPdf() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = file.name.replace(/\.(docx|doc)$/i, ".pdf");
+        const downloadName = file.name.replace(/\.(docx|doc)$/i, ".pdf");
+        a.download = downloadName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         toastDismiss(loadingId);
         toastSuccess("Your PDF has been downloaded!");
+
+        const historyUrl = window.URL.createObjectURL(blob);
+        addToHistory({
+          fileName: file.name,
+          conversionType: "DOCX to PDF",
+          downloadUrl: historyUrl,
+          downloadName: downloadName,
+        });
       } else {
         const errorMsg = await parseApiError(null, response);
         toastDismiss(loadingId);
@@ -121,7 +134,7 @@ function DocxPdf() {
           {loading ? (
             <>
               <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
-              Converting…
+              Converting...
             </>
           ) : (
             "Convert to PDF"

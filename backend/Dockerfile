@@ -31,5 +31,12 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
-# Command to run the application (Fixed - using shell form)
-CMD gunicorn --bind 0.0.0.0:5000 --workers 1 --timeout 120 main:app
+# Command to run the application
+#
+# A single sync worker fully blocks on every request for its entire duration,
+# so a large PDF conversion stalls all other traffic (including health checks)
+# until it finishes. gthread workers with multiple threads let the OS
+# context-switch between in-flight requests instead of serializing them,
+# and PyMuPDF/python-docx release the GIL during their C-level page/render
+# work, so concurrent requests actually make progress instead of queuing.
+CMD gunicorn --bind 0.0.0.0:5000 --workers 2 --threads 4 --worker-class gthread --timeout 120 main:app

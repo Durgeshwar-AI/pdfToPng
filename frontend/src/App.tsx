@@ -2,12 +2,10 @@ import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
 import ScrollToTop from "./components/ScrollToTop";
-
 import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
 
 const UrlToQr = lazy(() => import("./pages/UrlToQr"));
-
 const PdfMerge = lazy(() => import("./pages/PdfMerge"));
 const PdfSign = lazy(() => import("./pages/PdfSign"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -47,9 +45,9 @@ const PdfInfo = lazy(() => import("./pages/PdfInfo"));
 const PdfPageNumber = lazy(() => import("./pages/PdfPageNumber"));
 const PptxToPdf = lazy(() => import("./pages/PptxToPdf"));
 const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
+const History = lazy(() => import("./pages/History"));
 const PdfBlankRemover = lazy(() => import("./pages/PdfBlankRemover"));
 
-// Informational pages (linked from the footer)
 const About = lazy(() => import("./pages/About"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -62,17 +60,13 @@ function App() {
       <ScrollToTop />
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          {/* The Landing Page has its own clean view */}
           <Route path="/" element={<LandingPage />} />
-
-          {/* Informational pages (Navbar + Footer wrapper, no tool sidebar) */}
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/cookies" element={<Cookies />} />
           <Route path="/gdpr" element={<Gdpr />} />
 
-          {/* All application tools share the Layout with the Sidebar */}
           <Route element={<Layout />}>
             <Route path="/pdf-to-png" element={<PdfPng />} />
             <Route path="/pdf-to-word" element={<PdfDocx />} />
@@ -113,7 +107,7 @@ function App() {
             <Route path="/md-to-docx" element={<MdToDocx />} />
             <Route path="/url-to-qr" element={<UrlToQr />} />
             <Route path="/csv-to-json" element={<CsvToJson />} />
-
+            <Route path="/history" element={<History />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

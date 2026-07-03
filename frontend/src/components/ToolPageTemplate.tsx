@@ -1,3 +1,4 @@
+import { useHistory } from "../context/HistoryContext";
 import React, { useState, useCallback, lazy, Suspense } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import {
@@ -64,11 +65,7 @@ const ToolPageTemplate = ({
   const [statusType, setStatusType] = useState("info");
   const [inlineProgress, setInlineProgress] = useState("");
 
-  // Placeholder for addToHistory (if HistoryContext is missing)
-  const addToHistory = (data: any) => {
-    console.log("[History] Saved:", data);
-  };
-
+const { addToHistory } = useHistory();
   const internalValidate = useCallback(
     async (selectedFile: any) => {
       if (validateFile) {
@@ -126,6 +123,7 @@ const ToolPageTemplate = ({
     let loadingToastId = null;
 
     try {
+<<<<<<< HEAD
       if (onSubmit) {
         await onSubmit({
           file,
@@ -145,6 +143,27 @@ const ToolPageTemplate = ({
         });
         return;
       }
+=======
+     if (onSubmit) {
+  await onSubmit({
+    file,
+    formData,
+    setStatusMessage: setInlineProgress,
+    setLoading,
+    setStatusType,
+    previewUrl,
+    addToHistory: (downloadUrl, downloadName) => {
+      addToHistory({
+        fileName: file.name,
+        conversionType: title,
+        downloadUrl,
+        downloadName,
+      });
+    },
+  });
+  return;
+}
+>>>>>>> origin/main
 
       if (!apiEndpoint) {
         throw new Error("No API endpoint or custom onSubmit handler provided.");
@@ -172,6 +191,7 @@ const ToolPageTemplate = ({
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
+<<<<<<< HEAD
 
         const historyUrl = window.URL.createObjectURL(blob);
         addToHistory({
@@ -181,6 +201,16 @@ const ToolPageTemplate = ({
           downloadName,
         });
 
+=======
+const historyUrl = window.URL.createObjectURL(blob);
+addToHistory({
+  fileName: file.name,
+  conversionType: title,
+  downloadUrl: historyUrl,
+  downloadName: downloadName,
+});
+        // Call onSuccess callback if provided
+>>>>>>> origin/main
         let successMsg = onSuccessMessage || "Success! File downloaded.";
         if (onSuccess) {
           const customMessage = onSuccess(blob, file.name);

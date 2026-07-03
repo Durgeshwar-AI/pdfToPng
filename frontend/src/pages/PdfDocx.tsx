@@ -3,10 +3,13 @@ import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText } from "lucide-react";
 import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
+import { useHistory } from "../context/HistoryContext";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function PdfDocx() {
+
+  const { addToHistory } = useHistory();
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
@@ -46,7 +49,7 @@ function PdfDocx() {
     }
 
     setLoading(true);
-    const loadingId = toastLoading(`Converting "${file.name}" to Word…`);
+    const loadingId = toastLoading(`Converting "${file.name}" to Word...`);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -61,13 +64,22 @@ function PdfDocx() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = file.name.replace(/\.pdf$/i, ".docx");
+        const downloadName = file.name.replace(/\.pdf$/i, ".docx");
+        a.download = downloadName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         toastDismiss(loadingId);
         toastSuccess("Your Word document has been downloaded!");
+
+        const historyUrl = window.URL.createObjectURL(blob);
+        addToHistory({
+          fileName: file.name,
+          conversionType: "PDF to Word",
+          downloadUrl: historyUrl,
+          downloadName: downloadName,
+        });
       } else {
         const errorMsg = await parseApiError(null, response);
         toastDismiss(loadingId);
@@ -119,7 +131,7 @@ function PdfDocx() {
           {loading ? (
             <>
               <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
-              Converting…
+              Converting...
             </>
           ) : (
             "Convert to Word"

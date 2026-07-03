@@ -14,8 +14,8 @@ import {
 } from "../utils/toast";
 
 const PdfPng = () => {
-  const [scale, setScale] = useState(2.0); // Default scale (2x)
-  const [pageMode, setPageMode] = useState("all"); // all, single, range
+  const [scale, setScale] = useState(2.0);
+  const [pageMode, setPageMode] = useState("all");
   const [pageRange, setPageRange] = useState("");
   const [singlePage, setSinglePage] = useState("1");
   const [numPages, setNumPages] = useState(0);
@@ -23,18 +23,41 @@ const PdfPng = () => {
   const [previewImage , setPreviewImage] = useState(null);
   const [cropEnabled , setCropEnabled] = useState(false);
   const [crop , setCrop] = useState({
-    unit : "px" as const,
+    unit : "%" as const,
     x : 10,
     y : 10,
     width : 80,
     height : 80,
-
   });
-  useEffect(() => {
-  const generatePreview = async () => {
-    try {
-      if (!cropEnabled) return;
 
+  useEffect(() => {
+    const generatePreview = async () => {
+      try {
+        if (!cropEnabled) return;
+        const input = document.querySelector('input[type="file"]');
+        const selectedFile = input?.files?.[0];
+        if (!selectedFile) return;
+        const pdfjsLib = await import("pdfjs-dist");
+        const pdfWorker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d");
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        setPreviewImage(canvas.toDataURL("image/png"));
+      } catch (err) {
+        console.error("Preview error:", err);
+      }
+    };
+    generatePreview();
+  }, [cropEnabled]);
+
+<<<<<<< HEAD
       const input = document.querySelector('input[type="file"]') as HTMLInputElement | null;;
       const selectedFile = input?.files?.[0];
 
@@ -79,6 +102,8 @@ const PdfPng = () => {
 
   generatePreview();
 }, [cropEnabled]);
+=======
+>>>>>>> origin/main
   const [outputFiles, setOutputFiles] = useState([]);
 
   const validateFile = useCallback(async (selectedFile) => {
@@ -86,25 +111,16 @@ const PdfPng = () => {
       try {
         const arrayBuffer = await selectedFile.arrayBuffer();
         const pdfjsLib = await import("pdfjs-dist");
-
-        const pdfWorker = await import(
-          "pdfjs-dist/build/pdf.worker.min.mjs?url"
-        );
-
+        const pdfWorker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
         pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
-
-        const pdf = await pdfjsLib.getDocument({
-          data: arrayBuffer,
-        }).promise;
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         setNumPages(pdf.numPages);
       } catch (err) {
         console.error("Error loading PDF info:", err);
       }
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
-          selectedFile.size / 1024
-        ).toFixed(1)} KB)`,
+        message: `File "${selectedFile.name}" selected (${(selectedFile.size / 1024).toFixed(1)} KB)`,
       };
     }
     return {
@@ -123,19 +139,13 @@ const PdfPng = () => {
     setOutputFiles([]);
   };
 
-  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading }) => {
-    // setStatusMessage here maps to inlineProgress — used for per-page progress text
-    setStatusMessage("Loading PDF…");
-
+  const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, addToHistory }) => {
+    setStatusMessage("Loading PDF...");
     let loadingToastId = null;
 
     try {
       const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
-
-      const pdfWorker = await import(
-        "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url"
-      );
-
+      const pdfWorker = await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url");
       pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -147,9 +157,7 @@ const PdfPng = () => {
       } else if (pageMode === "single") {
         const pageNum = parseInt(singlePage);
         if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
-          toastError(
-            `Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`,
-          );
+          toastError(`Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`);
           setStatusMessage("");
           setLoading(false);
           return;
@@ -170,7 +178,6 @@ const PdfPng = () => {
         });
       }
 
-      // Deduplicate and sort
       pagesToRender = [...new Set(pagesToRender)].sort((a, b) => a - b);
 
       if (pagesToRender.length === 0) {
@@ -180,79 +187,49 @@ const PdfPng = () => {
         return;
       }
 
-      setOutputFiles([]); // Clear previous results
-      loadingToastId = toastLoading(
-        `Converting ${pagesToRender.length} page${pagesToRender.length > 1 ? "s" : ""} to PNG…`,
-      );
+      setOutputFiles([]);
+      loadingToastId = toastLoading(`Converting ${pagesToRender.length} page${pagesToRender.length > 1 ? "s" : ""} to PNG...`);
 
       const zip = new JSZip();
       const results = [];
 
       for (let i = 0; i < pagesToRender.length; i++) {
         const pageNum = pagesToRender[i];
-        // Inline progress text (shows below the button)
-        setStatusMessage(
-          `Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})…`,
-        );
+        setStatusMessage(`Rendering page ${pageNum} (${i + 1}/${pagesToRender.length})...`);
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale });
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
         canvas.height = viewport.height;
         canvas.width = viewport.width;
+<<<<<<< HEAD
 
         await page.render({ canvas: canvas, canvasContext: context, viewport }).promise;
+=======
+        await page.render({ canvasContext: context, viewport }).promise;
+>>>>>>> origin/main
 
-if (cropEnabled) {
-  const croppedCanvas = document.createElement("canvas");
-
-  const sx = (crop.x / 100) * canvas.width;
-  const sy = (crop.y / 100) * canvas.height;
-  const sw = (crop.width / 100) * canvas.width;
-  const sh = (crop.height / 100) * canvas.height;
-
-  croppedCanvas.width = sw;
-  croppedCanvas.height = sh;
-
-  const croppedCtx = croppedCanvas.getContext("2d");
-  if(!croppedCtx){
-    throw new Error ("Failed to get canvas context");
-  }
-
-  croppedCtx.drawImage(
-    canvas,
-    sx,
-    sy,
-    sw,
-    sh,
-    0,
-    0,
-    sw,
-    sh
-  );
-
-  const blob = await new Promise((resolve) =>
-    croppedCanvas.toBlob(resolve, "image/png")
-  );
-
-  results.push({
-    name: `page-${pageNum}.png`,
-    blob,
-  });
-} else {
-  const blob = await new Promise((resolve) =>
-    canvas.toBlob(resolve, "image/png")
-  );
-
-  results.push({
-    name: `page-${pageNum}.png`,
-    blob,
-  });
-}
+        if (cropEnabled) {
+          const croppedCanvas = document.createElement("canvas");
+          const sx = (crop.x / 100) * canvas.width;
+          const sy = (crop.y / 100) * canvas.height;
+          const sw = (crop.width / 100) * canvas.width;
+          const sh = (crop.height / 100) * canvas.height;
+          croppedCanvas.width = sw;
+          croppedCanvas.height = sh;
+          const croppedCtx = croppedCanvas.getContext("2d");
+          if (!croppedCtx) throw new Error("Failed to get canvas context");
+          croppedCtx.drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+          const blob = await new Promise((resolve) => croppedCanvas.toBlob(resolve, "image/png"));
+          results.push({ name: `page-${pageNum}.png`, blob });
+        } else {
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+          results.push({ name: `page-${pageNum}.png`, blob });
+        }
       }
 
       setOutputFiles(results);
-      setStatusMessage(""); // Clear inline progress
+      setStatusMessage("");
 
       if (results.length === 1) {
         const url = window.URL.createObjectURL(results[0].blob);
@@ -260,13 +237,16 @@ if (cropEnabled) {
         a.href = url;
         a.download = file.name.replace(/\.pdf$/i, ".png");
         document.body.appendChild(a);
-        // a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         toastDismiss(loadingToastId);
-        // toastSuccess("Your PNG file has been downloaded successfully!");
+
+        if (addToHistory) {
+          const historyUrl = window.URL.createObjectURL(results[0].blob);
+          addToHistory(historyUrl, file.name.replace(/\.pdf$/i, ".png"));
+        }
       } else {
-        setStatusMessage("Packaging files into ZIP…");
+        setStatusMessage("Packaging files into ZIP...");
         results.forEach((res) => zip.file(res.name, res.blob));
         const zipBlob = await zip.generateAsync({ type: "blob" });
         const url = window.URL.createObjectURL(zipBlob);
@@ -274,24 +254,22 @@ if (cropEnabled) {
         a.href = url;
         a.download = `${file.name.replace(/\.pdf$/i, "")}_pages.zip`;
         document.body.appendChild(a);
-        // a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         setStatusMessage("");
         toastDismiss(loadingToastId);
-        // toastSuccess(
-        //   `ZIP file with ${results.length} pages downloaded successfully!`,
-        // );
+
+        if (addToHistory) {
+          const historyUrl = window.URL.createObjectURL(zipBlob);
+          addToHistory(historyUrl, `${file.name.replace(/\.pdf$/i, "")}_pages.zip`);
+        }
       }
     } catch (error) {
       console.error("Client-side conversion error:", error);
       if (loadingToastId) toastDismiss(loadingToastId);
 
-      // Attempt server-side conversion fallback
-      const serverLoadingId = toastLoading(
-        "Client conversion failed — trying server fallback…",
-      );
-      setStatusMessage("Trying server fallback…");
+      const serverLoadingId = toastLoading("Client conversion failed — trying server fallback...");
+      setStatusMessage("Trying server fallback...");
 
       try {
         const form = new FormData();
@@ -299,7 +277,6 @@ if (cropEnabled) {
         form.append("language", language);
 
         const tryUrls = ["/convertPng", "http://localhost:5000/convertPng"];
-
         let response = null;
         for (const url of tryUrls) {
           try {
@@ -320,12 +297,15 @@ if (cropEnabled) {
           a.href = downloadUrl;
           a.download = file.name.replace(/\.pdf$/i, ".png");
           document.body.appendChild(a);
-          // a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(downloadUrl);
           setStatusMessage("");
           toastDismiss(serverLoadingId);
-          // toastSuccess("PNG downloaded via server fallback!");
+
+          if (addToHistory) {
+            const historyUrl = window.URL.createObjectURL(blob);
+            addToHistory(historyUrl, file.name.replace(/\.pdf$/i, ".png"));
+          }
         } else {
           const msg = response
             ? await parseApiError(null, response)
@@ -338,28 +318,21 @@ if (cropEnabled) {
         console.error("Server fallback error:", serverErr);
         setStatusMessage("");
         toastDismiss(serverLoadingId);
-        toastError(
-          await parseApiError(serverErr) ||
-            "Failed to convert file. Please try again.",
-        );
+        toastError(await parseApiError(serverErr) || "Failed to convert file. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Local warning helper (toastWarning isn't imported by default — inline here)
   const toastWarningMsg = (msg) => {
-    import("sonner").then(({ toast }) =>
-      toast.warning(msg, { duration: 5000 }),
-    );
+    import("sonner").then(({ toast }) => toast.warning(msg, { duration: 5000 }));
   };
 
   const extraFields = ({ file }) => {
     if (!file) return null;
     return (
       <div className="w-full space-y-6 mb-8 text-left theme-card p-6 rounded-xl shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-        {/* Quality Slider */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider">
@@ -385,17 +358,17 @@ if (cropEnabled) {
           </div>
         </div>
 
-      <div className="space-y-3">
-  <label className="flex items-center gap-2 font-medium">
-    <input
-      type="checkbox"
-      checked={cropEnabled}
-      onChange={(e) => setCropEnabled(e.target.checked)}
-    />
-    Enable Crop Tool
-  </label>
-</div>
-        
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 font-medium">
+            <input
+              type="checkbox"
+              checked={cropEnabled}
+              onChange={(e) => setCropEnabled(e.target.checked)}
+            />
+            Enable Crop Tool
+          </label>
+        </div>
+
         <div className="space-y-3">
           <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider block">
             Document Language
@@ -405,15 +378,14 @@ if (cropEnabled) {
             onChange={(e) => setLanguage(e.target.value)}
             className="w-full p-2.5 theme-field rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-app-focus)] transition-all font-medium cursor-pointer"
           >
-            <option value="eng">🇬🇧 English (Default)</option>
-            <option value="hin">🇮🇳 Hindi (हिन्दी)</option>
-            <option value="spa">🇪🇸 Spanish (Español)</option>
-            <option value="fra">🇫🇷 French (Français)</option>
-            <option value="deu">🇩🇪 German (Deutsch)</option>
+            <option value="eng">GB English (Default)</option>
+            <option value="hin">IN Hindi</option>
+            <option value="spa">ES Spanish</option>
+            <option value="fra">FR French</option>
+            <option value="deu">DE German</option>
           </select>
         </div>
 
-        {/* Page Selection */}
         <div className="space-y-4">
           <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider">
             Page Selection {numPages > 0 && `(Total: ${numPages})`}
@@ -438,9 +410,7 @@ if (cropEnabled) {
           {pageMode === "single" && (
             <div className="animate-in zoom-in-95 duration-200">
               <div className="flex items-center space-x-3">
-                <span className="text-sm theme-muted font-medium">
-                  Page:
-                </span>
+                <span className="text-sm theme-muted font-medium">Page:</span>
                 <input
                   type="number"
                   min="1"
@@ -449,9 +419,7 @@ if (cropEnabled) {
                   onChange={(e) => setSinglePage(e.target.value)}
                   className="w-24 p-3 theme-field rounded-xl focus:outline-none focus:ring-4 focus:ring-[var(--color-app-focus)] focus:border-[var(--color-app-primary)] transition-colors font-bold text-center"
                 />
-                <span className="text-xs theme-subtle">
-                  of {numPages}
-                </span>
+                <span className="text-xs theme-subtle">of {numPages}</span>
               </div>
             </div>
           )}
@@ -470,23 +438,15 @@ if (cropEnabled) {
               </p>
             </div>
           )}
-          {previewImage && cropEnabled && (
-  <div className="mt-6">
-    <h3 className="font-semibold mb-3">
-      Select Area To Convert
-    </h3>
 
-    <ReactCrop
-      crop={crop}
-      onChange={(c) => setCrop(c)}
-    >
-      <img
-        src={previewImage}
-        alt="PDF Preview"
-      />
-    </ReactCrop>
-  </div>
-)}
+          {previewImage && cropEnabled && (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-3">Select Area To Convert</h3>
+              <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
+                <img src={previewImage} alt="PDF Preview" />
+              </ReactCrop>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -501,47 +461,17 @@ if (cropEnabled) {
       onSubmit={handleCustomSubmit}
       onClear={handleClear}
       submitButtonText="Convert to PNG"
-      loadingButtonText="Converting…"
+      loadingButtonText="Converting..."
       extraFields={extraFields}
       extraContent={() => <MultiFileResults files={outputFiles} />}
       maxWidthClass="max-w-[600px]"
       inputId="file-input"
       defaultIcon={
-        <svg
-          width="64"
-          height="64"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M14 2V8H20"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M12 18V12"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9 15L12 12L15 15"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 18V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 15L12 12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       }
       defaultText="Choose PDF file or drag & drop here"

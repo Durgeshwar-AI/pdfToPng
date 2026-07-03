@@ -3,8 +3,8 @@ import ToolPageTemplate from "../components/ToolPageTemplate";
 import { toastSuccess, toastError } from "../utils/toast";
 
 const MdToHtml = () => {
-  const [outputFilename, setOutputFilename] = useState(""); // optional
-  const [theme, setTheme] = useState("light"); // light, dark, blue
+  const [outputFilename, setOutputFilename] = useState("");
+  const [theme, setTheme] = useState("light");
 
   const validateFile = useCallback(async (selectedFile) => {
     if (selectedFile && selectedFile.name.toLowerCase().endsWith(".md")) {
@@ -26,10 +26,7 @@ const MdToHtml = () => {
     setTheme("light");
   };
 
-  const handleCustomSubmit = async ({
-    file,
-    setLoading,
-  }) => {
+  const handleCustomSubmit = async ({ file, setLoading, addToHistory }) => {
     try {
       const form = new FormData();
       form.append("file", file);
@@ -47,23 +44,30 @@ const MdToHtml = () => {
       if (response.ok) {
         const blob = await response.blob();
         const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = downloadUrl;
-        // Determine download name: if output_filename provided, use it; else use input name with .html
+
         let downloadName = outputFilename.trim();
         if (!downloadName) {
           downloadName = file.name.replace(/\.md$/i, ".html");
         }
-        // Ensure .html extension
         if (!downloadName.toLowerCase().endsWith(".html")) {
           downloadName += ".html";
         }
+
+        const a = document.createElement("a");
+        a.href = downloadUrl;
         a.download = downloadName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(downloadUrl);
+
         toastSuccess("HTML file has been downloaded!");
+
+        // Add to history
+        if (addToHistory) {
+          const historyUrl = window.URL.createObjectURL(blob);
+          addToHistory(historyUrl, downloadName);
+        }
       } else {
         const msg = response ? await response.text() : "Server conversion unavailable";
         toastError(msg || "Conversion failed. Please try again.");
@@ -79,7 +83,6 @@ const MdToHtml = () => {
   const extraFields = () => {
     return (
       <div className="w-full space-y-6 mb-8 text-left bg-white/50 p-6 rounded-xl border border-[#c7d2fe] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-        {/* Output Filename */}
         <div className="space-y-3">
           <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
             Output Filename (optional)
@@ -96,7 +99,6 @@ const MdToHtml = () => {
           </p>
         </div>
 
-        {/* Theme Selection */}
         <div className="space-y-3">
           <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
             Theme
@@ -111,9 +113,7 @@ const MdToHtml = () => {
                   onChange={(e) => setTheme(e.target.value)}
                   className="h-4 w-4 text-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/20"
                 />
-                <span className="text-sm font-medium text-[#1a1a2e] capitalize">
-                  {t}
-                </span>
+                <span className="text-sm font-medium text-[#1a1a2e] capitalize">{t}</span>
               </label>
             ))}
           </div>
@@ -160,34 +160,10 @@ const MdToHtml = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <path
-            d="M2 12h4"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M2 18h4"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M10 12h8"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M10 18h8"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <path d="M2 12h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M2 18h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 12h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 18h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       }
       defaultText="Choose Markdown file or drag & drop here"
