@@ -19,7 +19,7 @@ function ImageOCR() {
     };
   }, []);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
         isValid: true,

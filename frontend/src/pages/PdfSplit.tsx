@@ -215,7 +215,7 @@ export default function PdfSplit() {
 
       const pdfBytes = await newPdf.save();
 
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
 
       setResultUrl(url);

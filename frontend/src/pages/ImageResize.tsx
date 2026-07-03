@@ -8,7 +8,7 @@ function ImageResize() {
   const [unit, setUnit] = useState("px");
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
         isValid: true,
@@ -183,8 +183,6 @@ const handleBeforeSubmit = () => {
     <ToolPageTemplate
       title="Image Resize"
       description="Resize images to custom dimensions"
-      onSubmit={/* ... */}
-      onClear={/* ... */}
       accept="image/*"
       validateFile={validateFile}
       apiEndpoint="/resizeImage"

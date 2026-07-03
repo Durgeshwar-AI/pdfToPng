@@ -4,7 +4,7 @@ import ToolPageTemplate from "../components/ToolPageTemplate";
 function PdfSign() {
   const [signature, setSignature] = useState("");
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,

@@ -114,7 +114,7 @@ function stripMetadataViaCanvas(file, mimeType, quality) {
         );
       };
       img.onerror = () => reject(new Error("Failed to load image preview."));
-      img.src = e.target.result;
+      img.src = e.target.result as string;
     };
     reader.onerror = () => reject(new Error("Failed to read image file."));
     reader.readAsDataURL(file);
@@ -126,7 +126,7 @@ export default function ImageMetadata() {
   const [securityReport, setSecurityReport] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
   
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
         isValid: true,

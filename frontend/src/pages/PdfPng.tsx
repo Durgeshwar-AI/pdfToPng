@@ -35,7 +35,7 @@ const PdfPng = () => {
     try {
       if (!cropEnabled) return;
 
-      const input = document.querySelector('input[type="file"]');
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement | null;;
       const selectedFile = input?.files?.[0];
 
       if (!selectedFile) return;
@@ -201,7 +201,7 @@ const PdfPng = () => {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        await page.render({ canvasContext: context, viewport }).promise;
+        await page.render({ canvas: canvas, canvasContext: context, viewport }).promise;
 
 if (cropEnabled) {
   const croppedCanvas = document.createElement("canvas");

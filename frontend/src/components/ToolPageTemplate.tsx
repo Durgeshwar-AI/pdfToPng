@@ -153,7 +153,7 @@ const ToolPageTemplate = ({
       loadingToastId = toastLoading(`Processing "${file.name}"…`);
 
       const response = await fetch(
-        `\( {import.meta.env.VITE_API_URL} \){apiEndpoint}`,
+        `( {import.meta.env.VITE_API_URL} ){apiEndpoint}`,
         { method: "POST", body: formData }
       );
 

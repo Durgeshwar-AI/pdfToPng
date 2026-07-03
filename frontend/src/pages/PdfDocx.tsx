@@ -7,7 +7,7 @@ import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } f
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function PdfDocx() {
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,

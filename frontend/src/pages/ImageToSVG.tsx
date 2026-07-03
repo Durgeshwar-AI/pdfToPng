@@ -6,7 +6,7 @@ import { toastSuccess, toastError } from "../utils/toast";
 function ImageToSVG() {
   const [svg, setSvg] = useState("");
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
         isValid: true,

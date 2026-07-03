@@ -13,7 +13,7 @@ function PdfToText() {
   const [hasSelectableText, setHasSelectableText] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,

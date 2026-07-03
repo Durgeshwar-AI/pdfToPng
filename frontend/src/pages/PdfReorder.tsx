@@ -206,7 +206,7 @@ export default function PdfReorder() {
       }
 
       const pdfBytes = await newPdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
       setResultUrl(URL.createObjectURL(blob));
       toast.success("PDF reordered successfully!");
     } catch (e) {

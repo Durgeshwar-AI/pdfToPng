@@ -18,7 +18,7 @@ export default function RotateFlip() {
   const [resultUrl, setResultUrl] = useState(null);
   const [resultExt, setResultExt] = useState("png");
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     setResultUrl(null); // Clear result when new file is selected
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };

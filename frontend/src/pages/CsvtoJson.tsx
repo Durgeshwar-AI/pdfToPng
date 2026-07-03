@@ -12,7 +12,7 @@ function CsvToJson() {
   const [jsonOutput, setJsonOutput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (
       selectedFile &&
       (selectedFile.type === "text/csv" ||
@@ -69,10 +69,7 @@ function CsvToJson() {
   };
 
   const handleDownload = () => {
-    const blob = new Blob([jsonOutput], {
-      type: "application/json",
-    });
-
+    const blob = new Blob([jsonOutput], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
@@ -81,7 +78,6 @@ function CsvToJson() {
     a.click();
 
     URL.revokeObjectURL(url);
-
     toastSuccess("JSON downloaded successfully!");
   };
 
@@ -147,7 +143,7 @@ function CsvToJson() {
             </div>
 
             <pre className="text-left bg-white dark:bg-slate-900 text-black dark:text-white p-4 rounded-lg overflow-auto max-h-[500px] text-sm border border-slate-300 dark:border-slate-700">
-            {jsonOutput}
+              {jsonOutput}
             </pre>
           </div>
         )}

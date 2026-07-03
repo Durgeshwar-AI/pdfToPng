@@ -226,7 +226,7 @@ const transformAndDownload = async () => {
 
     const pdfBytes = await newPdfDoc.save();
 
-    const blob = new Blob([pdfBytes], {
+    const blob = new Blob([new Uint8Array(pdfBytes)], {
       type: "application/pdf",
     });
 
