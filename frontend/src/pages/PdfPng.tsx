@@ -12,6 +12,7 @@ import {
   toastDismiss,
   parseApiError,
 } from "../utils/toast";
+import { resolveServerDpi } from "../utils/pdfPngServerParams";
 
 const PdfPng = () => {
   const [scale, setScale] = useState(2.0);
@@ -220,9 +221,12 @@ const PdfPng = () => {
       setStatusMessage("Trying server fallback...");
 
       try {
+        const dpi = resolveServerDpi(scale);
+
         const form = new FormData();
         form.append("file", file);
         form.append("language", language);
+        form.append("dpi", String(dpi));
 
         const tryUrls = ["/convertPng", "http://localhost:5000/convertPng"];
         let response = null;
