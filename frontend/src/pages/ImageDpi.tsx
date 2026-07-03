@@ -67,8 +67,8 @@ export default function ImageDpi() {
 
     const form = new FormData();
     form.append("images", file);
-    form.append("dpi", dpi);
-    form.append("resample", resample);
+    form.append("dpi", dpi.toString());
+    form.append("resample", resample.toString());
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/convert-dpi`, {

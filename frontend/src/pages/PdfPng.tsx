@@ -23,7 +23,7 @@ const PdfPng = () => {
   const [previewImage , setPreviewImage] = useState(null);
   const [cropEnabled , setCropEnabled] = useState(false);
   const [crop , setCrop] = useState({
-    unit : "%",
+    unit : "px" as const,
     x : 10,
     y : 10,
     width : 80,
@@ -68,6 +68,7 @@ const PdfPng = () => {
       await page.render({
         canvasContext: ctx,
         viewport,
+	canvas: canvas,
       }).promise;
 
       setPreviewImage(canvas.toDataURL("image/png"));

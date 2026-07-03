@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { toastError, toastSuccess, toastLoading, toastDismiss } from "../utils/toast";
 
+interface FileWithType extends File { type: string; }
+
 const POSITION_OPTIONS = [
   { value: "top-left", label: "Top Left" },
   { value: "top-right", label: "Top Right" },
@@ -30,8 +32,8 @@ function ImageWatermark() {
 
   const resetStatus = () => {};
 
-  const handleImageUpload = useCallback((incoming) => {
-    const img = Array.from(incoming).find((f) => f.type?.startsWith("image/"));
+  const handleImageUpload = useCallback((incoming: FileList | File[]) => {
+    const img = Array.from(incoming).find((f: any) => f.type?.startsWith("image/"));
     if (!img) {
       toastError("Only image files are accepted.");
       return;
@@ -105,8 +107,8 @@ function ImageWatermark() {
       formData.append("image", file);
       formData.append("watermark_type", watermarkType);
       formData.append("position", position);
-      formData.append("opacity", opacity);
-      formData.append("size", size);
+      formData.append("opacity", opacity.toString());
+      formData.append("size", size.toString());
 
       if (watermarkType === "text") {
         formData.append("watermark_text", watermarkText);

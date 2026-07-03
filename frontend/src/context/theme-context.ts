@@ -1,5 +1,13 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, ReactNode } from "react";
 
-export const ThemeContext = createContext();
+interface ThemeContextType {isDark: boolean; toggleTheme: () => void;}
 
-export const useTheme = () => useContext(ThemeContext);
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

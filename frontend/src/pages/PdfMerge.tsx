@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 
+declare global { interface Window { pdfjsLib: any; } }
+
 let pdfjsLib = null;
 
 async function getPdfJs() {
@@ -100,9 +102,9 @@ export default function MergePdf() {
   };
 
 
-  const addFiles = useCallback((incoming) => {
+  const addFiles = useCallback((incoming: FileList | File[]) => {
     const pdfs = Array.from(incoming).filter(
-      (f) => f.type === "application/pdf",
+      (f: any) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
     );
     if (!pdfs.length) {
       showStatus("Only PDF files are accepted.", "error");

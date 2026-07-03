@@ -231,6 +231,7 @@ function PdfInfo() {
               icon={<HardDrive className="w-3.5 h-3.5" />}
               label="File Size"
               value={formatBytes(info.file_size_bytes)}
+	      highlight={false}
             />
 
             <InfoCard

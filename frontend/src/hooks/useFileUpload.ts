@@ -1,30 +1,40 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { toastError, toastInfo } from "../utils/toast";
 
+interface UseFileUploadOptions {
+  maxSize?: number;
+  maxFiles?: number;
+  multiple?: boolean;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  message: string;
+}
+
 /**
  * Custom hook for handling file uploads, previews, and drag-and-drop logic.
- * @param {Function} validateFile - Callback to validate the selected file. Should return { isValid: boolean, message: string }.
- * @param {Object} options - Configuration options.
- * @param {number} options.maxSize - Maximum file size in bytes (default: 10 MB).
- * @param {number} options.maxFiles - Maximum number of files allowed (default: 1).
- * @param {boolean} options.multiple - Whether to allow multiple file uploads (default: false).
  */
-export const useFileUpload = (validateFile, options = {}) => {
+export const useFileUpload = (
+  validateFile: (file: File) => Promise<ValidationResult>,
+  options: UseFileUploadOptions = {}
+) => {
   const {
     maxSize = 10 * 1024 * 1024,
     maxFiles = 1,
     multiple = false,
   } = options;
 
-  const [file, setFile] = useState(null); // Keeps first file for backward compatibility
-  const [files, setFiles] = useState([]); // Array for multi-file support
+  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const fileInputRef = useRef(null);
-  const dropAreaRef = useRef(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropAreaRef = useRef<HTMLDivElement>(null);
 
   // Cleanup object URL to prevent memory leaks
   useEffect(() => {
@@ -35,25 +45,22 @@ export const useFileUpload = (validateFile, options = {}) => {
     };
   }, [previewUrl]);
 
-  const handleClear = useCallback(
-    (e) => {
-      if (e) e.stopPropagation();
-      setFile(null);
-      setFiles([]);
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(null);
-      }
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      setStatusMessage("");
-    },
-    [previewUrl],
-  );
+  const handleClear = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setFile(null);
+    setFiles([]);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setStatusMessage("");
+  }, [previewUrl]);
 
   const processFiles = useCallback(
-    async (selectedFilesArray) => {
+    async (selectedFilesArray: FileList | File[]) => {
       if (!selectedFilesArray || selectedFilesArray.length === 0) return;
 
       const newFiles = multiple ? Array.from(selectedFilesArray) : [selectedFilesArray[0]];
@@ -63,7 +70,7 @@ export const useFileUpload = (validateFile, options = {}) => {
         return;
       }
 
-      const validFiles = [];
+      const validFiles: { file: File; message: string }[] = [];
       for (const f of newFiles) {
         if (f.size > maxSize) {
           toastError(`File "${f.name}" exceeds the limit. Please choose a smaller file.`);
@@ -102,19 +109,21 @@ export const useFileUpload = (validateFile, options = {}) => {
   );
 
   const processFile = useCallback(
-    (selectedFile) => processFiles([selectedFile]),
+    (selectedFile: File) => processFiles([selectedFile]),
     [processFiles]
   );
 
-  const handleFileChange = (e) => {
-    processFiles(e.target.files);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      processFiles(e.target.files);
+    }
   };
 
   // Clipboard paste support
   useEffect(() => {
-    const handlePaste = (e) => {
-      // Prevent handling paste if user is typing in an input or textarea
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    const handlePaste = (e: ClipboardEvent) => {
+      if (e.target instanceof HTMLElement && 
+          (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
 
       const clipboardFiles = e.clipboardData?.files;
       if (clipboardFiles && clipboardFiles.length > 0) {
@@ -126,49 +135,46 @@ export const useFileUpload = (validateFile, options = {}) => {
     return () => window.removeEventListener("paste", handlePaste);
   }, [processFiles]);
 
-  const handleDragEnter = (e) => {
+  const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isDragging) setIsDragging(true);
   };
 
-  const handleDragLeave = (e) => {
+  const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (dropAreaRef.current && !dropAreaRef.current.contains(e.relatedTarget)) {
+    if (dropAreaRef.current && !dropAreaRef.current.contains(e.relatedTarget as Node)) {
       setIsDragging(false);
     }
   };
 
-  const handleDrop = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
 
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        processFiles(e.dataTransfer.files);
-        e.dataTransfer.clearData();
-      }
-    },
-    [processFiles],
-  );
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
+      e.dataTransfer.clearData();
+    }
+  }, [processFiles]);
 
-  const handleAreaClick = (e) => {
-    // Prevent triggering when clicking on the label/X button
+  const handleAreaClick = (e: React.MouseEvent) => {
     if (
+      e.target instanceof HTMLElement &&
       e.target.tagName.toLowerCase() !== "label" &&
       !e.target.closest("label") &&
       e.target.tagName.toLowerCase() !== "button" &&
       !e.target.closest("button")
     ) {
-      fileInputRef.current.click();
+      fileInputRef.current?.click();
     }
   };
 

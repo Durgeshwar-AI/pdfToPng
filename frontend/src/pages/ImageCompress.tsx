@@ -164,11 +164,15 @@ function ImageCompress() {
   return (
     <ToolPageTemplate
       title="Image Compressor"
+      description="Reduce image file size while maintaining quality"
       accept="image/*"
       validateFile={validateFile}
       apiEndpoint="/compress"
       fileFieldName="image"
       modifyFormData={modifyFormData}
+      onSubmit={/* your handler if needed */}
+      onClear={handleClear}
+      onSuccess={onSuccess}
       getDownloadFilename={(fileName) => {
         let extension = fileName.split(".").pop().toLowerCase();
         if (!["jpg", "jpeg", "webp", "png"].includes(extension)) {

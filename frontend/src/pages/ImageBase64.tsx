@@ -27,7 +27,7 @@ function ImageBase64() {
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setBase64String(reader.result);
+        setBase64String(reader.result as string);
         setLoading(false);
         toastSuccess("Image converted to Base64 successfully!");
       };

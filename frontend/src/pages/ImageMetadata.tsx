@@ -192,7 +192,7 @@ export default function ImageMetadata() {
         const strippedBuffer = stripJpegMetadataLossless(arrayBuffer);
         finalBlob = new Blob([strippedBuffer], { type: fileMime });
       } else {
-        finalBlob = await stripMetadataViaCanvas(file, fileMime, 95);
+        finalBlob = await stripMetadataViaCanvas(file, fileMime, 95) as Blob;
       }
 
       const url = URL.createObjectURL(finalBlob);

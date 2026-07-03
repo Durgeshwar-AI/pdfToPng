@@ -8,9 +8,35 @@ import {
   parseApiError,
 } from "../utils/toast";
 
-
 const FileUploadArea = lazy(() => import("./FileUploadArea"));
 
+// ==================== INTERFACE ====================
+interface ToolPageTemplateProps {
+  title: string;
+  description?: string;
+  accept?: string;
+  validateFile?: (file: any) => Promise<{ isValid: boolean; message: string }>;
+  apiEndpoint?: string;
+  fileFieldName?: string;
+  modifyFormData?: (formData: FormData) => void;
+  onSubmit?: (data: any) => Promise<void>;
+  onClear?: () => void;
+  submitButtonText?: string;
+  loadingButtonText?: string;
+  onSuccessMessage?: string;
+  onSuccess?: (blob: Blob, fileName: string) => string | void;
+  getDownloadFilename?: (fileName: string) => string;
+  extraFields?: React.ReactNode | ((context: any) => React.ReactNode);
+  extraContent?: React.ReactNode | ((context: any) => React.ReactNode);
+  showSubmitButton?: boolean;
+  maxWidthClass?: string;
+  defaultIcon?: React.ReactNode;
+  defaultText?: string;
+  supportText?: string;
+  inputId?: string;
+}
+
+// ==================== COMPONENT ====================
 const ToolPageTemplate = ({
   title,
   description,
@@ -24,7 +50,7 @@ const ToolPageTemplate = ({
   submitButtonText = "Submit",
   loadingButtonText = "Processing...",
   onSuccessMessage,
-  onSuccess, // Callback after successful response
+  onSuccess,
   getDownloadFilename,
   extraFields,
   extraContent,
@@ -34,14 +60,17 @@ const ToolPageTemplate = ({
   defaultText,
   supportText,
   inputId = "file-input",
-}) => {
+}: ToolPageTemplateProps) => {
   const [statusType, setStatusType] = useState("info");
-  // statusMessage is kept ONLY for inline progress text (e.g. "Rendering page 3/10…")
-  // Final success/error/warning messages go through toasts.
   const [inlineProgress, setInlineProgress] = useState("");
 
+  // Placeholder for addToHistory (if HistoryContext is missing)
+  const addToHistory = (data: any) => {
+    console.log("[History] Saved:", data);
+  };
+
   const internalValidate = useCallback(
-    async (selectedFile) => {
+    async (selectedFile: any) => {
       if (validateFile) {
         return await validateFile(selectedFile);
       }
@@ -69,16 +98,14 @@ const ToolPageTemplate = ({
     handleAreaClick,
   } = useFileUpload(internalValidate);
 
-  const handleClearAll = (e) => {
+  const handleClearAll = (e?: React.MouseEvent) => {
     handleClear(e);
     setStatusType("info");
     setInlineProgress("");
-    if (onClear) {
-      onClear();
-    }
+    if (onClear) onClear();
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!file) {
       toastError("Please select a file first.");
@@ -100,16 +127,21 @@ const ToolPageTemplate = ({
 
     try {
       if (onSubmit) {
-        // Custom submit handler — pass setStatusMessage for inline progress
-        // and toast helpers for final notifications
         await onSubmit({
           file,
           formData,
-          // Keep setStatusMessage for inline multi-step progress text
           setStatusMessage: setInlineProgress,
           setLoading,
           setStatusType,
           previewUrl,
+          addToHistory: (downloadUrl: string, downloadName: string) => {
+            addToHistory({
+              fileName: file.name,
+              conversionType: title,
+              downloadUrl,
+              downloadName,
+            });
+          },
         });
         return;
       }
@@ -121,11 +153,8 @@ const ToolPageTemplate = ({
       loadingToastId = toastLoading(`Processing "${file.name}"…`);
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}${apiEndpoint}`,
-        {
-          method: "POST",
-          body: formData,
-        },
+        `\( {import.meta.env.VITE_API_URL} \){apiEndpoint}`,
+        { method: "POST", body: formData }
       );
 
       if (response.ok) {
@@ -144,7 +173,14 @@ const ToolPageTemplate = ({
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
 
-        // Call onSuccess callback if provided
+        const historyUrl = window.URL.createObjectURL(blob);
+        addToHistory({
+          fileName: file.name,
+          conversionType: title,
+          downloadUrl: historyUrl,
+          downloadName,
+        });
+
         let successMsg = onSuccessMessage || "Success! File downloaded.";
         if (onSuccess) {
           const customMessage = onSuccess(blob, file.name);
@@ -192,25 +228,25 @@ const ToolPageTemplate = ({
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
         <Suspense fallback={<div>Loading upload...</div>}>
-        <FileUploadArea
-          file={file}
-          previewUrl={previewUrl}
-          isDragging={isDragging}
-          fileInputRef={fileInputRef}
-          dropAreaRef={dropAreaRef}
-          handleFileChange={handleFileChange}
-          handleClear={handleClearAll}
-          handleDragEnter={handleDragEnter}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          handleAreaClick={handleAreaClick}
-          accept={accept}
-          inputId={inputId}
-          defaultIcon={defaultIcon}
-          defaultText={defaultText}
-          supportText={supportText}
-        />
+          <FileUploadArea
+            file={file}
+            previewUrl={previewUrl}
+            isDragging={isDragging}
+            fileInputRef={fileInputRef}
+            dropAreaRef={dropAreaRef}
+            handleFileChange={handleFileChange}
+            handleClear={handleClearAll}
+            handleDragEnter={handleDragEnter}
+            handleDragOver={handleDragOver}
+            handleDragLeave={handleDragLeave}
+            handleDrop={handleDrop}
+            handleAreaClick={handleAreaClick}
+            accept={accept}
+            inputId={inputId}
+            defaultIcon={defaultIcon}
+            defaultText={defaultText}
+            supportText={supportText}
+          />
         </Suspense>
 
         {extraFields && (typeof extraFields === "function" ? extraFields(context) : extraFields)}
@@ -232,7 +268,6 @@ const ToolPageTemplate = ({
           </button>
         )}
 
-        {/* Inline progress text — only shown for multi-step operations (e.g. "Rendering page 3/10…") */}
         {inlineProgress && (
           <p className="mt-4 text-[0.9rem] theme-muted animate-pulse">
             {inlineProgress}

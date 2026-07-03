@@ -5,8 +5,10 @@ import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Tags, Trash2, Download } from "lucide-react";
 import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
 
+interface PdfMetadataType { title: string; author: string; subject: string; keywords: string; creator: string; producer: string; }
+
 function PdfMetadata() {
-  const [metadata, setMetadata] = useState({
+  const [metadata, setMetadata] = useState<PdfMetadataType>({
     title: "",
     author: "",
     subject: "",
@@ -69,7 +71,7 @@ function PdfMetadata() {
       const loadingId = toastLoading("Reading document properties…");
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         
         const title = pdfDoc.getTitle() || "";
         const author = pdfDoc.getAuthor() || "";
@@ -98,7 +100,7 @@ function PdfMetadata() {
     loadPdfMetadata();
   }, [file, setLoading]);
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof PdfMetadataType, value: string) => {
     setMetadata((prev) => ({ ...prev, [field]: value }));
   };
 

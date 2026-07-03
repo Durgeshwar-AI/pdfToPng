@@ -69,7 +69,7 @@ function PdfToText() {
           const textContent = await page.getTextContent();
           
           // Join text items on the page
-          const pageText = textContent.items.map((item) => item.str).join(" ");
+          const pageText = textContent.items.map((item: any) => item.str ? item.str : "").join(" ");
           
           if (pageText.trim()) {
             hasAnyText = true;

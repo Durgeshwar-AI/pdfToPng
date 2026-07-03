@@ -182,6 +182,9 @@ const handleBeforeSubmit = () => {
   return (
     <ToolPageTemplate
       title="Image Resize"
+      description="Resize images to custom dimensions"
+      onSubmit={/* ... */}
+      onClear={/* ... */}
       accept="image/*"
       validateFile={validateFile}
       apiEndpoint="/resizeImage"

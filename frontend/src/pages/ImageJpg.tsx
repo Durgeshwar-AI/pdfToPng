@@ -68,6 +68,7 @@ function ImageJpg() {
   return (
     <ToolPageTemplate
       title="Image to JPG Converter"
+      description="..."
       accept="image/*"
       validateFile={validateFile}
       apiEndpoint="/convertJpeg"

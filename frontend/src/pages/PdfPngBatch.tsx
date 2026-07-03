@@ -39,7 +39,7 @@ async function convertPdfToPngs(file, scale, onProgress) {
     const context = canvas.getContext("2d");
     canvas.height = viewport.height;
     canvas.width = viewport.width;
-    await page.render({ canvasContext: context, viewport }).promise;
+    await page.render({ canvasContext: context, viewport, canvas: canvas }).promise;
 
     const blob = await new Promise((resolve) =>
       canvas.toBlob(resolve, "image/png")
@@ -65,7 +65,7 @@ export default function PdfPngBatch() {
 
   const addFiles = (fileList) => {
     const pdfs = Array.from(fileList).filter(
-      (f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
+      (f: any) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
     );
     if (pdfs.length === 0) {
       setError("Please select PDF files only.");
