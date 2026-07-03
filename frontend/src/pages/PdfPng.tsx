@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from "react";
-import ReactCrop from "react-image-crop";
+import ReactCrop, { type Crop, type PercentCrop} from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
 import JSZip from "jszip";
@@ -22,7 +22,7 @@ const PdfPng = () => {
   const [language, setLanguage] = useState("eng");
   const [previewImage , setPreviewImage] = useState(null);
   const [cropEnabled , setCropEnabled] = useState(false);
-  const [crop , setCrop] = useState({
+  const [crop , setCrop] = useState<PercentCrop>({
     unit : "%" as const,
     x : 10,
     y : 10,
@@ -34,30 +34,7 @@ const PdfPng = () => {
     const generatePreview = async () => {
       try {
         if (!cropEnabled) return;
-        const input = document.querySelector('input[type="file"]');
-        const selectedFile = input?.files?.[0];
-        if (!selectedFile) return;
-        const pdfjsLib = await import("pdfjs-dist");
-        const pdfWorker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
-        const arrayBuffer = await selectedFile.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.5 });
-        const canvas = document.createElement("canvas");
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext("2d");
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        setPreviewImage(canvas.toDataURL("image/png"));
-      } catch (err) {
-        console.error("Preview error:", err);
-      }
-    };
-    generatePreview();
-  }, [cropEnabled]);
 
-<<<<<<< HEAD
       const input = document.querySelector('input[type="file"]') as HTMLInputElement | null;;
       const selectedFile = input?.files?.[0];
 
@@ -102,8 +79,7 @@ const PdfPng = () => {
 
   generatePreview();
 }, [cropEnabled]);
-=======
->>>>>>> origin/main
+
   const [outputFiles, setOutputFiles] = useState([]);
 
   const validateFile = useCallback(async (selectedFile) => {
@@ -202,13 +178,8 @@ const PdfPng = () => {
         const context = canvas.getContext("2d");
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-<<<<<<< HEAD
 
         await page.render({ canvas: canvas, canvasContext: context, viewport }).promise;
-=======
-        await page.render({ canvasContext: context, viewport }).promise;
->>>>>>> origin/main
-
         if (cropEnabled) {
           const croppedCanvas = document.createElement("canvas");
           const sx = (crop.x / 100) * canvas.width;
@@ -442,7 +413,7 @@ const PdfPng = () => {
           {previewImage && cropEnabled && (
             <div className="mt-6">
               <h3 className="font-semibold mb-3">Select Area To Convert</h3>
-              <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
+              <ReactCrop crop={crop} onChange={(_, percentCrop) => setCrop(percentCrop)}>
                 <img src={previewImage} alt="PDF Preview" />
               </ReactCrop>
             </div>

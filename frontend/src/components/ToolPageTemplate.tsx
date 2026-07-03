@@ -123,7 +123,6 @@ const { addToHistory } = useHistory();
     let loadingToastId = null;
 
     try {
-<<<<<<< HEAD
       if (onSubmit) {
         await onSubmit({
           file,
@@ -143,27 +142,6 @@ const { addToHistory } = useHistory();
         });
         return;
       }
-=======
-     if (onSubmit) {
-  await onSubmit({
-    file,
-    formData,
-    setStatusMessage: setInlineProgress,
-    setLoading,
-    setStatusType,
-    previewUrl,
-    addToHistory: (downloadUrl, downloadName) => {
-      addToHistory({
-        fileName: file.name,
-        conversionType: title,
-        downloadUrl,
-        downloadName,
-      });
-    },
-  });
-  return;
-}
->>>>>>> origin/main
 
       if (!apiEndpoint) {
         throw new Error("No API endpoint or custom onSubmit handler provided.");
@@ -191,7 +169,6 @@ const { addToHistory } = useHistory();
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-<<<<<<< HEAD
 
         const historyUrl = window.URL.createObjectURL(blob);
         addToHistory({
@@ -201,16 +178,6 @@ const { addToHistory } = useHistory();
           downloadName,
         });
 
-=======
-const historyUrl = window.URL.createObjectURL(blob);
-addToHistory({
-  fileName: file.name,
-  conversionType: title,
-  downloadUrl: historyUrl,
-  downloadName: downloadName,
-});
-        // Call onSuccess callback if provided
->>>>>>> origin/main
         let successMsg = onSuccessMessage || "Success! File downloaded.";
         if (onSuccess) {
           const customMessage = onSuccess(blob, file.name);

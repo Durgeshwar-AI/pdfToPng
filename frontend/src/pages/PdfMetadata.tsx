@@ -65,7 +65,7 @@ function PdfMetadata() {
       const loadingId = toastLoading("Reading document properties...");
       try {
         const arrayBuffer = await file.arrayBuffer();
-<<<<<<< HEAD
+
         const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         
         const title = pdfDoc.getTitle() || "";
@@ -76,17 +76,6 @@ function PdfMetadata() {
         const producer = pdfDoc.getProducer() || "";
 
         setMetadata({ title, author, subject, keywords, creator, producer });
-=======
-        const pdfDoc = await PDFDocument.load(arrayBuffer);
-        setMetadata({
-          title: pdfDoc.getTitle() || "",
-          author: pdfDoc.getAuthor() || "",
-          subject: pdfDoc.getSubject() || "",
-          keywords: pdfDoc.getKeywords() || "",
-          creator: pdfDoc.getCreator() || "",
-          producer: pdfDoc.getProducer() || "",
-        });
->>>>>>> origin/main
         setPdfDocInstance(pdfDoc);
         toastDismiss(loadingId);
       } catch (err) {
@@ -232,7 +221,7 @@ function PdfMetadata() {
                   <input
                     type="text"
                     value={metadata[field]}
-                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    onChange={(e) => handleInputChange(field as keyof PdfMetadataType, e.target.value)}
                     placeholder={placeholder}
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
                   />
