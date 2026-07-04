@@ -68,6 +68,18 @@ def convert_pdf_to_png():
         )
 
         try:
+            # Password-protected PDFs must be rejected with a clean, specific
+            # message before any further processing touches them. Without this
+            # check, load_page()/get_pixmap() below would raise deep inside
+            # PyMuPDF and fall through to the generic handler at the bottom of
+            # this function.
+            if doc.needs_pass:
+                return error(
+                    "This PDF is password-protected and cannot be converted. "
+                    "Please remove the password and try again.",
+                    422,
+                )
+
             if doc.page_count == 0:
                 return error("Empty PDF")
 
