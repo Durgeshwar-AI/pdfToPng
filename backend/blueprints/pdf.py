@@ -34,6 +34,20 @@ def convert_pdf_to_png():
 
         target_lang = request.form.get("language", "eng")
 
+        # Extract DPI/resolution settings. Default to 72 DPI (standard screen resolution).
+        # DPI determines the scaling: zoom = requested_dpi / 72
+        # For 150 DPI: zoom = 150/72 = 2.08
+        # For 300 DPI: zoom = 300/72 = 4.17
+        dpi = request.form.get("dpi", "72")
+        try:
+            dpi = int(dpi)
+            if dpi < 72 or dpi > 600:
+                return error("DPI must be between 72 and 600")
+        except (ValueError, TypeError):
+            return error("Invalid DPI value. Must be an integer.")
+
+        # Calculate zoom level from DPI
+        zoom = dpi / 72.0
         # Extract page range parameters for selective page conversion.
         # If start_page and end_page are not specified, converts only the first page (backward compatible).
         # Pages are 1-indexed (start_page=1 is the first page).
@@ -61,8 +75,6 @@ def convert_pdf_to_png():
             end_page = min(end_page, doc.page_count)
             if start_page > doc.page_count:
                 return error(f"PDF has only {doc.page_count} pages. start_page exceeds page count.")
-
-            zoom = 1.0
 
             mat = fitz.Matrix(zoom, zoom)
 
