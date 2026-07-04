@@ -37,9 +37,13 @@ export default function PdfReorder() {
   const [overIndex, setOverIndex] = useState(null);
   const [pageLimitWarning, setPageLimitWarning] = useState(false);
   const [deletedPages, setDeletedPages] = useState([]);
+  const [previewSrc, setPreviewSrc] = useState(null);
+  const [previewPageNum, setPreviewPageNum] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // Refs
   const inputRef = useRef(null);
+  const pdfDocRef = useRef(null);
 
   // Revoke any generated object URL when it changes / on unmount
   useEffect(() => {
@@ -94,6 +98,8 @@ export default function PdfReorder() {
         data: bytes,
         verbosity: 0,
       }).promise;
+      pdfDocRef.current = pdf;
+      console.log("pdfDocRef SET on upload:", pdfDocRef.current);
       setTotalPages(pdf.numPages);
 
       if (pdf.numPages > 50) {
@@ -178,6 +184,45 @@ export default function PdfReorder() {
     );
   };
 
+const openPreview = async (item) => {
+  console.log("OPEN PREVIEW");
+  console.log(item);
+  console.log(pdfDocRef.current);
+
+  if (!pdfDocRef.current) return;
+
+  setPreviewLoading(true);
+  setPreviewPageNum(item.originalPageNum);
+
+  try {
+    const page = await pdfDocRef.current.getPage(item.originalPageNum);
+
+    const viewport = page.getViewport({ scale: 2 });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({
+      canvasContext: ctx,
+      viewport,
+    }).promise;
+
+    setPreviewSrc(canvas.toDataURL());
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setPreviewLoading(false);
+  }
+};
+
+  const closePreview = () => {
+    setPreviewSrc(null);
+    setPreviewPageNum(null);
+  };
+
   const reorderAndDownload = async () => {
     if (!file || loading) return;
     if (pages.length === 0) {
@@ -222,6 +267,7 @@ export default function PdfReorder() {
   };
 
   return (
+    <>
     <div className="w-full max-w-[1100px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-gradient-to-br from-gray-50 to-white dark:from-[#0f172a] dark:to-[#1e293b] rounded-3xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
       <Toaster position="top-right" richColors />
 
@@ -286,6 +332,7 @@ export default function PdfReorder() {
                     setPages([]);
                     setPageLimitWarning(false);
                     setDeletedPages([]);
+                    pdfDocRef.current = null;
                   }}
                   className="ml-4 p-2 text-red-500 hover:bg-red-100 rounded-full"
                   aria-label="Remove file"
@@ -355,11 +402,18 @@ export default function PdfReorder() {
                       <GripVertical size={14} />
                     </div>
 
-                    <div className="relative w-full h-36 flex items-center justify-center overflow-hidden rounded-xl mb-2 shadow-sm">
+                    <div
+                      className="relative w-full h-36 flex items-center justify-center overflow-hidden rounded-xl mb-2 shadow-sm cursor-zoom-in"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPreview(item);
+                      }}
+                    >
                       <img
                         src={item.src}
                         className="max-w-full max-h-full object-contain"
                         alt={`Page ${item.originalPageNum}`}
+                        draggable={false}
                       />
                     </div>
 
@@ -460,5 +514,43 @@ export default function PdfReorder() {
         </div>
       </div>
     </div>
+    {(previewSrc || previewLoading) && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+          onClick={closePreview}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col"
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-slate-700">
+              <span className="font-bold text-sm text-[#1a1a2e] dark:text-white">
+                Page {previewPageNum} Preview
+              </span>
+              <button
+                onClick={closePreview}
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg font-bold px-2"
+                aria-label="Close preview"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-50 dark:bg-slate-800">
+              {previewLoading && !previewSrc ? (
+                <RefreshCcw size={24} className="animate-spin text-[#4361ee]" />
+              ) : (
+                <img
+                  src={previewSrc}
+                  className="max-w-full max-h-full object-contain rounded-lg shadow"
+                  alt={`Preview of page ${previewPageNum}`}
+                />
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </>
   );
 }
