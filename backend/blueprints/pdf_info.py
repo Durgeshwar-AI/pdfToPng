@@ -1,8 +1,8 @@
 import fitz  # PyMuPDF
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 
-from utils.helpers import error
+from utils.helpers import error, success
 from utils.validators import validate_pdf_file, validate_uploaded_file
 
 pdf_info_bp = Blueprint("pdf_info", __name__)
@@ -110,9 +110,8 @@ def get_pdf_info():
                 }
             )
 
-        return jsonify(
+        return success(
             {
-                "success": True,
                 "file_name": filename,
                 "page_count": page_count,
                 "file_size_bytes": file_size,
@@ -120,7 +119,8 @@ def get_pdf_info():
                 "pdf_version": pdf_version,
                 "is_encrypted": is_encrypted,
                 "pages": pages_info,
-            }
+            },
+	    "PDF information retrieved successfully",
         )
 
     except fitz.FileDataError:

@@ -1,11 +1,11 @@
 import os
 from io import BytesIO
 
-from flask import Blueprint, jsonify
+from flask import Blueprint
 from PIL import Image, ExifTags
 
 from utils.decorators import process_image_request
-from utils.helpers import send_file_and_cleanup
+from utils.helpers import send_file_and_cleanup, success
 
 metadata_bp = Blueprint("metadata", __name__)
 
@@ -349,10 +349,13 @@ def view_metadata(img, filename, file_bytes):
     metadata = _extract_metadata(img, file_bytes, filename)
     security_report = _analyze_metadata_security(metadata)
 
-    return jsonify({
-        "metadata": metadata,
-        "security_report": security_report
-    })
+    return success(
+	{
+	    "metadata": metadata,
+            "security_report": security_report,
+	},
+	"Metadata extracted successfully.",
+    )
 
 
 @metadata_bp.route("/strip-metadata", methods=["POST"])

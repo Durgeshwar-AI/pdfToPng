@@ -1,8 +1,35 @@
+import os
+from flask import send_file, after_this_request, jsonify
+from werkzeug.utils import secure_filename
+import gc
+
+def safe_gc_collect():
+    try:
+        gc.collect()
+    except Exception:
+        pass
+
+def error(message, status_code=400):
+    return jsonify({"success": False, "message": message}), status_code
+
+def success(data=None, message="Success", status_code=200):
+    return jsonify({"success": True, "message": message, "data": data}), status_code
+
+
 def send_file_and_cleanup(filename, **kwargs):
     """
     Sends a file and deletes it after the request is completed.
     Also forces garbage collection for large responses.
     """
+    # Defense in depth: sanitise download_name here, centrally, so every
+    # caller is protected even if an upstream route forgets to sanitise the
+    # original upload filename before deriving an output name from it.
+    # secure_filename() strips path separators, ".." segments, and other
+    # characters that could otherwise influence the Content-Disposition
+    # header returned to the client.
+    if kwargs.get("download_name"):
+        kwargs["download_name"] = secure_filename(kwargs["download_name"]) or "download"
+
     # Support bytes or file-like objects to avoid touching disk
     try:
         from io import BytesIO
