@@ -76,11 +76,11 @@ const Navbar = () => {
               key={item.name}
               to={item.path || `/#${item.hash}`}
               onClick={() => handleDesktopNavClick(item.name)}
-              className={`relative font-semibold hover:text-purple-600 py-2 px-4 rounded-xl text-lg transition-all duration-300 hover:bg-purple-100 hover:scale-105 ${
-                activeSection === item.name.toLowerCase()
-                  ? "text-purple-600 dark:text-purple-300"
-                  : "text-slate-700 dark:text-slate-200"
-              }`}
+            className={`relative font-semibold py-2 px-4 rounded-xl text-lg transition-all duration-300 hover:scale-105 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-950 ${
+              activeSection === item.name.toLowerCase()
+                ? "text-purple-600 dark:text-purple-300"
+                : "text-slate-700 dark:text-slate-200"
+            }`}
             >
               {item.name}
             </Link>
