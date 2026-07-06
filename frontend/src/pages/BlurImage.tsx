@@ -15,7 +15,7 @@ function BlurImage() {
     y: 0,
   });
 
-  const validateFile = (file) => {
+  const validateFile = async (file: any) => {
     if (!file || !file.type.startsWith("image/")) {
       return {
         isValid: false,
@@ -29,12 +29,12 @@ function BlurImage() {
     };
   };
 
-  const handleCustomSubmit = ({ file }) => {
+  const handleCustomSubmit = async ({ file }: { file: any }) => {
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      setImageFile(e.target.result);
+      setImageFile(e.target.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -166,7 +166,7 @@ function BlurImage() {
               min="2"
               max="40"
               value={blurAmount}
-              onChange={(e) => setBlurAmount(e.target.value)}
+              onChange={(e) => setBlurAmount(Number(e.target.value) || 0)}
               className="w-[140px] accent-[#4361ee]"
             />
           </div>
@@ -181,7 +181,7 @@ function BlurImage() {
               min="10"
               max="200"
               value={brushSize}
-              onChange={(e) => setBrushSize(e.target.value)}
+              onChange={(e) => setBrushSize(Number(e.target.value) || 0)}
               className="w-[140px] accent-[#4361ee]"
             />
           </div>

@@ -5,7 +5,8 @@ import { Menu, Sun, Moon, Home } from "lucide-react";
 import { useTheme } from "../../context/theme-context";
 
 const Layout = () => {
-  const { isDark, toggleTheme } = useTheme();
+  const theme = useTheme();
+  const { isDark, toggleTheme } = theme;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();

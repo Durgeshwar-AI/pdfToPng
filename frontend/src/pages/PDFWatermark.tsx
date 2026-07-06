@@ -8,6 +8,8 @@ import {
   toastDismiss,
 } from "../utils/toast";
 
+interface FileWithType extends File { type: string};
+
 const POSITION_OPTIONS = [
   { value: "top-left", label: "Top Left" },
   { value: "top-right", label: "Top Right" },
@@ -33,8 +35,8 @@ function PDFWatermark() {
 
   const resetStatus = () => { };
 
-  const handlePdfUpload = useCallback((incoming) => {
-    const pdf = Array.from(incoming).find((f) => f.type === "application/pdf");
+  const handlePdfUpload = useCallback((incoming: FileList | File[]) => {
+    const pdf = Array.from(incoming).find((f: any) => f.type === "application/pdf");
     if (!pdf) {
       toastError("Only PDF files are accepted.");
       return;
@@ -115,13 +117,13 @@ function PDFWatermark() {
     const loadingId = toastLoading("Applying watermark…");
 
     try {
-      const pdfBytes = await file.arrayBuffer();
+      const pdfBytes = await (file as File).arrayBuffer();
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       let imageEmbed = null;
 
       if (watermarkType === "image") {
-        const imageBytes = await watermarkImage.arrayBuffer();
+        const imageBytes = await (watermarkImage as File).arrayBuffer();
         if (watermarkImage.type === "image/png") {
           imageEmbed = await pdfDoc.embedPng(imageBytes);
         } else {
@@ -205,7 +207,7 @@ function PDFWatermark() {
       });
 
       const updatedPdfBytes = await pdfDoc.save();
-      const blob = new Blob([updatedPdfBytes], { type: "application/pdf" });
+      const blob = new Blob([new Uint8Array(updatedPdfBytes)], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

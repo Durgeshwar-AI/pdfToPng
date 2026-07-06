@@ -12,7 +12,7 @@ function PdfUnlock() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,

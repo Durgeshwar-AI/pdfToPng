@@ -6,7 +6,7 @@ function ImageJpg() {
   const [originalSize, setOriginalSize] = useState(null);
   const [convertedSize, setConvertedSize] = useState(null);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       setOriginalSize(selectedFile.size);
       setConvertedSize(null);
@@ -68,6 +68,7 @@ function ImageJpg() {
   return (
     <ToolPageTemplate
       title="Image to JPG Converter"
+      description="..."
       accept="image/*"
       validateFile={validateFile}
       apiEndpoint="/convertJpeg"

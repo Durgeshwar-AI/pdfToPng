@@ -17,7 +17,7 @@ export default function ImageDpi() {
   const [resample, setResample] = useState(false);
   const [dpiResults, setDpiResults] = useState([]);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     const ACCEPTED = ["image/jpeg", "image/png", "image/tiff", "image/bmp", "image/jpg"];
     if (selectedFile && ACCEPTED.includes(selectedFile.type)) {
       return {
@@ -67,8 +67,8 @@ export default function ImageDpi() {
 
     const form = new FormData();
     form.append("images", file);
-    form.append("dpi", dpi);
-    form.append("resample", resample);
+    form.append("dpi", dpi.toString());
+    form.append("resample", resample.toString());
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/convert-dpi`, {
@@ -229,6 +229,7 @@ export default function ImageDpi() {
   return (
     <ToolPageTemplate
       title="Image DPI Converter"
+      description="Change image DPI metadata or resample pixels"
       accept=".jpg,.jpeg,.png,.tiff,.tif,.bmp"
       validateFile={validateFile}
       onClear={handleClear}

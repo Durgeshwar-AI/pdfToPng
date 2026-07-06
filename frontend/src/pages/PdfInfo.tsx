@@ -24,7 +24,7 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-function InfoCard({ icon, label, value, highlight }) {
+function InfoCard({ icon, label, value, highlight = false }) {
   return (
     <div
       className={`flex flex-col gap-1.5 p-4 rounded-xl border ${
@@ -53,7 +53,7 @@ function PdfInfo() {
   const [info, setInfo] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,
@@ -231,6 +231,7 @@ function PdfInfo() {
               icon={<HardDrive className="w-3.5 h-3.5" />}
               label="File Size"
               value={formatBytes(info.file_size_bytes)}
+	      highlight={false}
             />
 
             <InfoCard

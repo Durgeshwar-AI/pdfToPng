@@ -8,9 +8,10 @@ import { useHistory } from "../context/HistoryContext";
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function PptxToPdf() {
+
   const { addToHistory } = useHistory();
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: File) => {
     const accepted = [
       "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     ];

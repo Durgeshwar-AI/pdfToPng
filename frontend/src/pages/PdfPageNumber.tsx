@@ -15,7 +15,7 @@ function PdfPageNumber() {
   const [marginY, setMarginY] = useState(20);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,
@@ -73,7 +73,7 @@ function PdfPageNumber() {
       });
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

@@ -76,16 +76,19 @@ const getOptimizedImageBytes = async (file, rotation = 0) => {
   const mimeType = isPng ? "image/png" : "image/jpeg";
   const quality = isPng ? undefined : 0.92;
 
-  const blob = await new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (result) => {
-        if (result) resolve(result);
-        else reject(new Error("Failed to convert image"));
-      },
-      mimeType,
-      quality,
-    );
-  });
+ const blob = await new Promise<Blob>((resolve, reject) => {
+  canvas.toBlob(
+    (result) => {
+      if (result) {
+        resolve(result);
+      } else {
+        reject(new Error("Failed to convert image"));
+      }
+    },
+    mimeType,
+    quality,
+  );
+});
 
   return {
     bytes: await blob.arrayBuffer(),
@@ -290,7 +293,7 @@ function ImagePdf() {
       }
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {type: "application/pdf"});
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement("a");

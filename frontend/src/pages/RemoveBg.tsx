@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 
 function RemoveBg() {
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
         isValid: true,

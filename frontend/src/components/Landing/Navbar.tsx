@@ -4,7 +4,8 @@ import { useTheme } from "../../context/theme-context";
 import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
-  const { isDark, toggleTheme } = useTheme();
+  const theme = useTheme();
+  const { isDark, toggleTheme } = theme;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [stars, setStars] = useState(null);

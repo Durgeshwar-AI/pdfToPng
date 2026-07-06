@@ -43,6 +43,7 @@ export default function PdfWatermarkPreview({
         await page.render({
           canvasContext: context,
           viewport,
+	  canvas: canvas,
         }).promise;
       } catch (err) {
         console.error(err);
@@ -52,7 +53,7 @@ export default function PdfWatermarkPreview({
     renderPdf();
   }, [file]);
 
-  const style = {
+  const style: React.CSSProperties = {
     position: "absolute",
     zIndex: 10,
     opacity: opacity / 100,
@@ -128,9 +129,9 @@ export default function PdfWatermarkPreview({
                 alt="Watermark Preview"
                 style={{
                   ...style,
-                  width: `${(size / 100) * canvasRef.current?.width}px`,
+                  width: `${(size / 100) * canvasRef.current?.width || 800}px`,
                   height: "auto",
-                }}
+                } as React.CSSProperties}
               />
             )
           )}

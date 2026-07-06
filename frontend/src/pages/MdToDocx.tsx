@@ -6,7 +6,7 @@ import { toastSuccess, toastError } from "../utils/toast";
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function MdToDocx() {
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.name.toLowerCase().endsWith(".md")) {
       return {
         isValid: true,

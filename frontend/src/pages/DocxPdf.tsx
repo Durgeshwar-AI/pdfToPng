@@ -8,9 +8,10 @@ import { useHistory } from "../context/HistoryContext";
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function DocxPdf() {
+
   const { addToHistory } = useHistory();
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     const accepted = [
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
@@ -18,7 +19,7 @@ function DocxPdf() {
     if (selectedFile && accepted.includes(selectedFile.type)) {
       return {
         isValid: true,
-        message: `File "${selectedFile.name}" selected (${(
+        message: `File "( {selectedFile.name}" selected ( ){(
           selectedFile.size / 1024
         ).toFixed(1)} KB)`,
       };
@@ -45,7 +46,7 @@ function DocxPdf() {
     handleAreaClick,
   } = useFileUpload(validateFile);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
       toastError("Please select a DOCX file first.");

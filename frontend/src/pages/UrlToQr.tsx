@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import QRCodeStyling from "qr-code-styling";
+import QRCodeStyling, { type DotType, type CornerSquareType } from "qr-code-styling";
 import { Link as LinkIcon, Download, QrCode, Upload, Palette, Shapes, Type, Layout } from "lucide-react";
 
 const UrlToQr = () => {
   const [url, setUrl] = useState("");
   const [size, setSize] = useState(300);
   const [error, setError] = useState("");
-  const [dotsType, setDotsType] = useState("rounded");
-  const [cornersType, setCornersType] = useState("extra-rounded");
+  const [dotsType, setDotsType] = useState<DotType>("rounded");
+  const [cornersType, setCornersType] = useState<CornerSquareType>("extra-rounded");
   const [dotsColor, setDotsColor] = useState("#4361ee");
   const [dotsColorSecondary, setDotsColorSecondary] = useState("#3b82f6");
   const [isGradient, setIsGradient] = useState(true);
@@ -246,7 +246,7 @@ const UrlToQr = () => {
                 <label className="text-[10px] font-bold text-slate-500 uppercase">Dots Style</label>
                 <select
                   value={dotsType}
-                  onChange={(e) => setDotsType(e.target.value)}
+                  onChange={(e) => setDotsType(e.target.value as DotType)}
                   className="w-full p-2 border border-[#e2e8f0] rounded-lg text-sm bg-slate-50 focus:ring-2 focus:ring-[#4361ee]/20 focus:outline-none"
                 >
                   {["square", "rounded", "dots", "classy", "classy-rounded", "extra-rounded"].map((t) => (
@@ -258,7 +258,7 @@ const UrlToQr = () => {
                 <label className="text-[10px] font-bold text-slate-500 uppercase">Corners Style</label>
                 <select
                   value={cornersType}
-                  onChange={(e) => setCornersType(e.target.value)}
+                  onChange={(e) => setCornersType(e.target.value as CornerSquareType)}
                   className="w-full p-2 border border-[#e2e8f0] rounded-lg text-sm bg-slate-50 focus:ring-2 focus:ring-[#4361ee]/20 focus:outline-none"
                 >
                   {["square", "dot", "extra-rounded"].map((t) => (
@@ -387,7 +387,7 @@ const UrlToQr = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleDownload()}
+                  onClick={() => handleDownload(downloadExt)}
                   className="flex-1 flex items-center justify-center gap-2 bg-linear-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-6 rounded-2xl font-bold shadow-[0_8px_20px_rgba(59,130,246,0.25)] hover:shadow-[0_12px_25px_rgba(59,130,246,0.35)] hover:-translate-y-1 transition-all duration-300"
                 >
                   <Download size={20} />

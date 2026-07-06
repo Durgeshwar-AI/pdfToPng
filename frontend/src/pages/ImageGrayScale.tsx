@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 
 const ImageGrayScale = () => {
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };
     }
