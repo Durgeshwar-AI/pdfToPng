@@ -1,10 +1,16 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
-import { FileText, Hash, LayoutGrid } from "lucide-react";
+import { FileText, Hash, LayoutGrid, Eye } from "lucide-react";
 import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
 import { useHistory } from "../context/HistoryContext";
+import * as pdfjsLib from "pdfjs-dist";
+
+import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
+const PREVIEW_WIDTH = 380;
 
 function PdfPageNumber() {
   const { addToHistory } = useHistory();
@@ -14,6 +20,12 @@ function PdfPageNumber() {
   const [marginX, setMarginX] = useState(20);
   const [marginY, setMarginY] = useState(20);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
+  const canvasRef = useRef(null);
+  const pdfDocRef = useRef(null);
+  const lastFileRef = useRef(null);
+  const debounceRef = useRef(null);
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
@@ -38,7 +50,85 @@ function PdfPageNumber() {
     setFontSize(10);
     setMarginX(20);
     setMarginY(20);
+    pdfDocRef.current = null;
+    setPreviewError(null);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx && ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   };
+
+  const buildLabel = (pageIndex, totalPages) => {
+    if (style === "simple") return `${pageIndex + 1}`;
+    if (style === "page-of") return `Page ${pageIndex + 1} of ${totalPages}`;
+    if (style === "fraction") return `${pageIndex + 1}/${totalPages}`;
+    return "";
+  };
+
+  const renderPreview = useCallback(async () => {
+    if (!file) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    setPreviewLoading(true);
+    setPreviewError(null);
+
+    try {
+      if (!pdfDocRef.current || lastFileRef.current !== file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        pdfDocRef.current = pdf;
+        lastFileRef.current = file;
+      }
+
+      const pdf = pdfDocRef.current;
+      const totalPages = pdf.numPages;
+      const page = await pdf.getPage(1);
+
+      const unscaledViewport = page.getViewport({ scale: 1 });
+      const scale = PREVIEW_WIDTH / unscaledViewport.width;
+      const viewport = page.getViewport({ scale });
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      // Same position math as handleSubmit, just scaled + flipped for canvas
+      const text = buildLabel(0, totalPages);
+      const scaledFontSize = fontSize * scale;
+      ctx.font = `${scaledFontSize}px Helvetica, Arial, sans-serif`;
+      ctx.fillStyle = "rgba(77, 77, 77, 0.95)";
+      const textWidth = ctx.measureText(text).width;
+
+      const width = viewport.width;
+      const height = viewport.height;
+      const sMarginX = marginX * scale;
+      const sMarginY = marginY * scale;
+
+      let x = 0, yFromBottom = 0;
+      if (position === "bottom-center") { x = width / 2 - textWidth / 2; yFromBottom = sMarginY; }
+      else if (position === "bottom-right") { x = width - textWidth - sMarginX; yFromBottom = sMarginY; }
+      else if (position === "top-center") { x = width / 2 - textWidth / 2; yFromBottom = height - sMarginY - scaledFontSize; }
+      else if (position === "top-right") { x = width - textWidth - sMarginX; yFromBottom = height - sMarginY - scaledFontSize; }
+
+      ctx.fillText(text, x, height - yFromBottom);
+    } catch (err) {
+      console.error("Preview render failed:", err);
+      setPreviewError("Couldn't render a preview for this PDF.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [file, style, position, fontSize, marginX, marginY]);
+
+  useEffect(() => {
+    if (!file) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => renderPreview(), 150);
+    return () => clearTimeout(debounceRef.current);
+  }, [file, style, position, fontSize, marginX, marginY, renderPreview]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,7 +163,7 @@ function PdfPageNumber() {
       });
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
+      const blob = new Blob([pdfBytes] as BlobPart[], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -171,6 +261,30 @@ function PdfPageNumber() {
                   className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200" />
               </label>
             </div>
+          </div>
+        )}
+
+        {file && !loading && (
+          <div className="w-full mb-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2 mb-4">
+              <Eye className="w-4 h-4 text-[#4361ee]" />
+              Live Preview
+            </p>
+            <div className="w-full flex justify-center bg-gray-50 rounded-lg p-4 relative min-h-[200px]">
+              {previewLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-lg">
+                  <span className="inline-block w-6 h-6 border-[3px] border-gray-200 rounded-full border-t-[#4361ee] animate-spin"></span>
+                </div>
+              )}
+              {previewError ? (
+                <p className="text-sm text-red-500 py-8">{previewError}</p>
+              ) : (
+                <canvas ref={canvasRef} className="max-w-full border border-gray-200 shadow-sm rounded-sm bg-white" />
+              )}
+            </div>
+            <p className="text-xs text-gray-400 mt-3">
+              Preview reflects page 1 — the same style, position, and size will be applied to every page on export.
+            </p>
           </div>
         )}
 
