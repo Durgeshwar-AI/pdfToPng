@@ -11,7 +11,7 @@ function CsvToJson() {
   const [loading, setLoading] = useState(false);
   const { addToHistory } = useHistory();
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (
       selectedFile &&
       (selectedFile.type === "text/csv" ||

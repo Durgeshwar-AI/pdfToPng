@@ -8,11 +8,11 @@ import {
 
 function ImageCompress() {
   const [quality, setQuality] = useState(70);
-  const [originalSize, setOriginalSize] = useState(null);
-  const [convertedSize, setConvertedSize] = useState(null);
-  const [, setUploadedFile] = useState(null);
+  const [originalSize, setOriginalSize] = useState<number | null>(null);
+  const [convertedSize, setConvertedSize] = useState<number | null>(null);
+  const [, setUploadedFile] = useState<File | null>(null);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       setOriginalSize(selectedFile.size);
       setConvertedSize(null);
@@ -46,16 +46,16 @@ function ImageCompress() {
     },
   ];
 
-  const modifyFormData = (formData) => {
-    formData.append("quality", quality);
+  const modifyFormData = (formData: FormData) => {
+    formData.append("quality", String(quality));
   };
 
-  const onSuccess = (responseBlob) => {
+  const onSuccess = (responseBlob: Blob) => {
     setConvertedSize(responseBlob.size);
     return `Success! Image compressed with ${quality}% quality.`;
   };
 
-  const extraFields = ({ file }) => {
+  const extraFields = ({ file }: { file: File | null }) => {
     if (!file) return null;
 
     return (
@@ -164,11 +164,13 @@ function ImageCompress() {
   return (
     <ToolPageTemplate
       title="Image Compressor"
+      description="Reduce image file size while maintaining quality"
       accept="image/*"
       validateFile={validateFile}
       apiEndpoint="/compress"
       fileFieldName="image"
       modifyFormData={modifyFormData}
+      onSuccess={onSuccess}
       getDownloadFilename={(fileName) => {
         let extension = fileName.split(".").pop().toLowerCase();
         if (!["jpg", "jpeg", "webp", "png"].includes(extension)) {
@@ -178,7 +180,6 @@ function ImageCompress() {
       }}
       submitButtonText="Compress Image"
       loadingButtonText="Compressing..."
-      onSuccess={onSuccess}
       extraFields={extraFields}
       maxWidthClass="max-w-[700px]"
       defaultIcon={<Sliders className="w-16 h-16" />}

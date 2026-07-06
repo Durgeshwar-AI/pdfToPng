@@ -6,9 +6,11 @@ import { FileText, Tags, Trash2, Download } from "lucide-react";
 import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
 import { useHistory } from "../context/HistoryContext";
 
+interface PdfMetadataType { title: string; author: string; subject: string; keywords: string; creator: string; producer: string; }
+
 function PdfMetadata() {
   const { addToHistory } = useHistory();
-  const [metadata, setMetadata] = useState({
+  const [metadata, setMetadata] = useState<PdfMetadataType>({
     title: "",
     author: "",
     subject: "",
@@ -20,7 +22,7 @@ function PdfMetadata() {
   const [pdfDocInstance, setPdfDocInstance] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,
@@ -63,15 +65,17 @@ function PdfMetadata() {
       const loadingId = toastLoading("Reading document properties...");
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const pdfDoc = await PDFDocument.load(arrayBuffer);
-        setMetadata({
-          title: pdfDoc.getTitle() || "",
-          author: pdfDoc.getAuthor() || "",
-          subject: pdfDoc.getSubject() || "",
-          keywords: pdfDoc.getKeywords() || "",
-          creator: pdfDoc.getCreator() || "",
-          producer: pdfDoc.getProducer() || "",
-        });
+
+        const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+        
+        const title = pdfDoc.getTitle() || "";
+        const author = pdfDoc.getAuthor() || "";
+        const subject = pdfDoc.getSubject() || "";
+        const keywords = pdfDoc.getKeywords() || "";
+        const creator = pdfDoc.getCreator() || "";
+        const producer = pdfDoc.getProducer() || "";
+
+        setMetadata({ title, author, subject, keywords, creator, producer });
         setPdfDocInstance(pdfDoc);
         toastDismiss(loadingId);
       } catch (err) {
@@ -90,7 +94,7 @@ function PdfMetadata() {
     loadPdfMetadata();
   }, [file, setLoading]);
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof PdfMetadataType, value: string) => {
     setMetadata((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -217,7 +221,7 @@ function PdfMetadata() {
                   <input
                     type="text"
                     value={metadata[field]}
-                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    onChange={(e) => handleInputChange(field as keyof PdfMetadataType, e.target.value)}
                     placeholder={placeholder}
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-[#1a1a2e] text-sm font-medium focus:outline-none focus:border-[#4361ee] focus:ring-2 focus:ring-[#4361ee]/15 transition-all"
                   />

@@ -1,5 +1,28 @@
 import React from "react";
 
+interface FileUploadAreaProps {
+  file: File | null;
+  previewUrl?: string | null;
+  isDragging: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  dropAreaRef: React.RefObject<HTMLDivElement>;
+  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleClear: (e?: React.MouseEvent) => void;
+  handleDragEnter: (e: React.DragEvent) => void;
+  handleDragOver: (e: React.DragEvent) => void;
+  handleDragLeave: (e: React.DragEvent) => void;
+  handleDrop: (e: React.DragEvent) => void;
+  handleAreaClick?: (e: React.MouseEvent) => void;
+  accept?: string;
+  multiple?: boolean;
+  files?: File[];
+  inputId?: string;
+  defaultIcon?: React.ReactNode;
+  defaultText?: string;
+  supportText?: string;
+  pdfIcon?: React.ReactNode;
+}
+
 const FileUploadArea = ({
   file,
   previewUrl,
@@ -21,7 +44,7 @@ const FileUploadArea = ({
   defaultText,
   supportText,
   pdfIcon,
-}) => {
+}: FileUploadAreaProps) => {
   return (
     <div
       ref={dropAreaRef}

@@ -13,7 +13,7 @@ function PdfToText() {
   const [hasSelectableText, setHasSelectableText] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,
@@ -69,7 +69,7 @@ function PdfToText() {
           const textContent = await page.getTextContent();
           
           // Join text items on the page
-          const pageText = textContent.items.map((item) => item.str).join(" ");
+          const pageText = textContent.items.map((item: any) => item.str ? item.str : "").join(" ");
           
           if (pageText.trim()) {
             hasAnyText = true;

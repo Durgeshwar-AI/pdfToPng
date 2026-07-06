@@ -4,7 +4,7 @@ import ToolPageTemplate from "../components/ToolPageTemplate";
 function ImageUpscale() {
   const [scaleFactor, setScaleFactor] = useState(2);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };
     }

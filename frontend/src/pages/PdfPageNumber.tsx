@@ -27,7 +27,7 @@ function PdfPageNumber() {
   const lastFileRef = useRef(null);
   const debounceRef = useRef(null);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,

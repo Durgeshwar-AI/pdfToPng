@@ -8,7 +8,7 @@ function ImageBase64() {
   const [base64String, setBase64String] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
         isValid: true,
@@ -28,8 +28,8 @@ function ImageBase64() {
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result;
-        setBase64String(result);
+	const result = reader.result;
+        setBase64String(reader.result as string);
         setLoading(false);
         toastSuccess("Image converted to Base64 successfully!");
 

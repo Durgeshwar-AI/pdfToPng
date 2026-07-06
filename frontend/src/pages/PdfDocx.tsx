@@ -8,9 +8,9 @@ import { useHistory } from "../context/HistoryContext";
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function PdfDocx() {
-  const { addToHistory } = useHistory();
 
-  const validateFile = useCallback((selectedFile) => {
+  const { addToHistory } = useHistory();
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       return {
         isValid: true,

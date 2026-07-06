@@ -55,7 +55,7 @@ function stripMetadataViaCanvas(file, mimeType, quality) {
         }, mimeType, quality / 100);
       };
       img.onerror = () => reject(new Error("Failed to load image preview."));
-      img.src = e.target.result;
+      img.src = e.target.result as string;
     };
     reader.onerror = () => reject(new Error("Failed to read image file."));
     reader.readAsDataURL(file);
@@ -67,7 +67,7 @@ export default function ImageMetadata() {
   const [securityReport, setSecurityReport] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
         isValid: true,
@@ -125,7 +125,7 @@ export default function ImageMetadata() {
         const strippedBuffer = stripJpegMetadataLossless(arrayBuffer);
         finalBlob = new Blob([strippedBuffer], { type: fileMime });
       } else {
-        finalBlob = await stripMetadataViaCanvas(file, fileMime, 95);
+        finalBlob = await stripMetadataViaCanvas(file, fileMime, 95) as Blob;
       }
       const url = URL.createObjectURL(finalBlob);
       const a = document.createElement("a");

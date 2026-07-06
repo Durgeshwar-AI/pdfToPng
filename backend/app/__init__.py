@@ -40,6 +40,23 @@ def create_app():
             response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
         return response
 
+    @app.after_request
+    def _add_security_headers(response):
+        # X-Content-Type-Options: stops browsers from MIME-sniffing a
+        # response away from the declared Content-Type, which matters here
+        # since converted files are served back to the browser.
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        # X-Frame-Options: prevents this API's responses (and any HTML error
+        # pages) from being embedded in a third-party iframe for clickjacking.
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
+        response.headers.setdefault(
+            "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+        )
+        return response
+
     @app.route("/", methods=["GET", "HEAD"])
     def home():
         return {"message": "Server running"}, 200

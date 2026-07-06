@@ -14,7 +14,7 @@ function PdfCompress() {
     { name: "High", value: "high", icon: <ShieldCheck className="w-4 h-4" />, desc: "Maximum reduction" },
   ];
 
-  const validateFile = useCallback((selectedFile) => {
+  const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
       setOriginalSize(selectedFile.size);
       setConvertedSize(null);
