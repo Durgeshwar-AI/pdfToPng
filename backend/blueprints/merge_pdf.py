@@ -11,8 +11,8 @@ def merge_pdfs():
     files = request.files.getlist("files")
 
     if not files or len(files) < 2:
-        return jsonify({"error": "Please upload at least 2 PDF files."}), 400
-
+        return error("Please upload at least 2 PDF files.",400),
+-
     merged = fitz.open()
 
     try:
@@ -30,7 +30,7 @@ def merge_pdfs():
             try:
                 src = fitz.open(stream=data, filetype="pdf")
             except fitz.FileDataError:
-                return jsonify({"error": f"'{f.filename}' appears to be corrupted or is not a valid PDF."}), 400
+                return error("'{f.filename}' appears to be corrupted or is not a valid PDF.",400),
             merged.insert_pdf(src)
             src.close()
 

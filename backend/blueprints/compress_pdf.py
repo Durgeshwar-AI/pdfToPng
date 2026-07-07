@@ -1,6 +1,7 @@
-from flask import Blueprint, request, send_file, jsonify
+from flask import Blueprint, request, send_file
 import fitz  # PyMuPDF
 import io
+from utils.helpers import error
 from utils.validators import validate_uploaded_file, validate_pdf_file
 
 compress_pdf_bp = Blueprint("compress_pdf", __name__)
@@ -43,10 +44,10 @@ def compress_pdf():
         )
 
     except fitz.FileDataError:
-        return jsonify({"error": "The uploaded file appears to be corrupted or is not a valid PDF."}), 400
+        return error("The uploaded file appears to be corrupted or is not a valid PDF.",400),
 
     except Exception as e:
-        return jsonify({"error": f"An error occurred while compressing the PDF: {str(e)}"}), 500
+        return error("An error occurred while compressing the PDF: {str(e)}",500),
 
     finally:
         if doc:

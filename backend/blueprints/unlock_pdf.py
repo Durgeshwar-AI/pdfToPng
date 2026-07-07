@@ -1,6 +1,7 @@
-from flask import Blueprint, request, send_file, jsonify
+from flask import Blueprint, request, send_file
 import fitz  # PyMuPDF
 import io
+from utils.helpers import error
 from utils.validators import validate_uploaded_file, validate_pdf_file
 
 unlock_pdf_bp = Blueprint("unlock_pdf", __name__)
@@ -18,7 +19,7 @@ def unlock_pdf():
 
     password = request.form.get("password", "").strip()
     if not password:
-        return jsonify({"error": "Password is required."}), 400
+        return error("Password is required.",400),
 
     data = file.read()
     doc = None
@@ -27,10 +28,10 @@ def unlock_pdf():
         doc = fitz.open(stream=data, filetype="pdf")
 
         if not doc.is_encrypted:
-            return jsonify({"error": "This PDF is not password protected."}), 400
+            return error("This PDF is not password protected.",400),
 
         if not doc.authenticate(password):
-            return jsonify({"error": "Incorrect password. Please try again."}), 401
+            return error("Incorrect password. Please try again.",401),
 
         buf = io.BytesIO()
         doc.save(buf)
@@ -47,10 +48,10 @@ def unlock_pdf():
         )
 
     except fitz.FileDataError:
-        return jsonify({"error": "The uploaded file appears to be corrupted or is not a valid PDF."}), 400
+        return error("The uploaded file appears to be corrupted or is not a valid PDF.",400),
 
     except Exception as e:
-        return jsonify({"error": f"An error occurred while unlocking the PDF: {str(e)}"}), 500
+        return error("An error occurred while unlocking the PDF: {str(e)}",500),
 
     finally:
         if doc:
