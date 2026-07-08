@@ -1,6 +1,9 @@
 from flask import Flask, request
 import os
+import logging
 from flask_cors import CORS
+
+logger = logging.getLogger(__name__)
 
 
 def create_app():
@@ -107,5 +110,14 @@ def create_app():
     app.register_blueprint(unlock_pdf_bp)
     app.register_blueprint(searchable_pdf_ocr_bp)
     app.register_blueprint(pptx_pdf_bp)
+
+    # Initialize background scheduler for cleanup jobs
+    try:
+        from utils.scheduler import init_scheduler
+        init_scheduler()
+    except ImportError:
+        logger.warning("APScheduler not installed. Cleanup jobs will not run automatically.")
+    except Exception as e:
+        logger.error(f"Failed to initialize scheduler: {e}")
 
     return app
