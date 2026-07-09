@@ -1,5 +1,6 @@
 from flask import Blueprint, request, send_file
 from PIL import Image, ImageDraw, ImageFont
+from utils.helpers import error
 import io
 import os
 
@@ -23,35 +24,35 @@ def add_watermark():
     - color: hex color for text (default: '#FFFFFF')
     - scale: scale percentage for image watermark (default: 20)
     """
-    
+
     output = None
     img = None
     watermark_layer = None
     result_img = None
-    
+
     try:
         # Validate inputs
         if 'image' not in request.files:
-            return {'error': 'No image provided'}, 400
-        
+            return error('No image provided',400),
+
         watermark_type = request.form.get('watermark_type', 'text')
         if watermark_type not in ['text', 'image']:
-            return {'error': 'Invalid watermark type'}, 400
-        
+            return error('Invalid watermark type',400),
+
         # Load main image
         image_file = request.files['image']
         img = Image.open(image_file).convert('RGBA')
         img_width, img_height = img.size
-        
+
         opacity = int(request.form.get('opacity', 70))
         position = request.form.get('position', 'bottom-right')
-        
+
         if watermark_type == 'text':
             # Text watermark
             watermark_text = request.form.get('watermark_text', 'Watermark')
             font_size = int(request.form.get('font_size', 40))
             color = request.form.get('color', '#FFFFFF')
-            
+
             # Create watermark layer
             watermark_layer = create_text_watermark(
                 watermark_text, font_size, color, opacity
@@ -59,15 +60,15 @@ def add_watermark():
         else:
             # Image watermark
             if 'watermark_image' not in request.files:
-                return {'error': 'No watermark image provided'}, 400
-            
+                return error('No watermark image provided',400),
+
             watermark_file = request.files['watermark_image']
             scale = int(request.form.get('scale', 20))
-            
+
             watermark_layer = create_image_watermark(
                 watermark_file, scale, img_width, img_height, opacity
             )
-        
+
         # Apply watermark
         if position == 'tiled':
             result_img = apply_tiled_watermark(img, watermark_layer)
@@ -75,28 +76,28 @@ def add_watermark():
             result_img = apply_positioned_watermark(
                 img, watermark_layer, position
             )
-        
+
         # Convert RGBA back to RGB for JPEG compatibility
         if result_img.mode == 'RGBA':
             background = Image.new('RGB', result_img.size, (255, 255, 255))
             background.paste(result_img, mask=result_img.split()[3])
             result_img = background
-        
+
         # Save to bytes
         output = io.BytesIO()
         result_img.save(output, format='PNG', quality=95)
         output.seek(0)
-        
+
         return send_file(
             output,
             mimetype='image/png',
             as_attachment=True,
             download_name='watermarked.png'
         )
-    
+
     except Exception as e:
-        return {'error': str(e)}, 500
-    
+        return error(str(e), 500),
+
     finally:
         # Clean up buffer
         if output:
@@ -104,20 +105,20 @@ def add_watermark():
                 output.close()
             except Exception:
                 pass
-        
+
         # Clean up images
         if img:
             try:
                 img.close()
             except Exception:
                 pass
-        
+
         if watermark_layer and watermark_layer is not img:
             try:
                 watermark_layer.close()
             except Exception:
                 pass
-        
+
         if result_img and result_img is not img and result_img is not watermark_layer:
             try:
                 result_img.close()
@@ -130,14 +131,14 @@ def create_text_watermark(text, font_size, color, opacity):
         font = ImageFont.load_default()
     except:
         font = ImageFont.load_default()
-    
+
     # Create temporary image to measure text
     temp_img = Image.new('RGBA', (1, 1))
     temp_draw = ImageDraw.Draw(temp_img)
     bbox = temp_draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
-    
+
     # Create watermark layer
     watermark = Image.new(
         'RGBA',
@@ -145,33 +146,33 @@ def create_text_watermark(text, font_size, color, opacity):
         (255, 255, 255, 0)
     )
     draw = ImageDraw.Draw(watermark)
-    
+
     # Convert hex color to RGB
     try:
         color_rgb = tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
     except:
         color_rgb = (255, 255, 255)  # Fallback to white
-    
+
     alpha = int(255 * opacity / 100)
-    
+
     draw.text((10, 10), text, font=font, fill=(*color_rgb, alpha))
-    
+
     return watermark
 
 
 def create_image_watermark(watermark_file, scale, img_width, img_height, opacity):
     """Create an image-based watermark layer"""
     watermark_img = Image.open(watermark_file).convert('RGBA')
-    
+
     # Scale based on image size
     max_size = min(img_width, img_height) * scale // 100
     watermark_img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
-    
+
     # Apply opacity
     alpha = watermark_img.split()[3]
     alpha = alpha.point(lambda p: int(p * opacity / 100))
     watermark_img.putalpha(alpha)
-    
+
     return watermark_img
 
 
@@ -211,9 +212,9 @@ def apply_tiled_watermark(base_img, watermark):
     """Apply watermark in a tiled pattern"""
     img_width, img_height = base_img.size
     wm_width, wm_height = watermark.size
-    
+
     output = base_img.copy()
-    
+
     # Tile the watermark across the image
     x = 0
     while x < img_width:
@@ -222,5 +223,5 @@ def apply_tiled_watermark(base_img, watermark):
             output.paste(watermark, (x, y), watermark)
             y += wm_height + 20  # Add spacing
         x += wm_width + 20
-    
+
     return output
