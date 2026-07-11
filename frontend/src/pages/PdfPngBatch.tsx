@@ -155,18 +155,18 @@ export default function PdfPngBatch() {
   const totalPdfs = files.length;
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-gradient-to-br from-gray-50 to-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="w-full max-w-[1100px] mx-auto p-6 md:p-10 text-center flex flex-col items-center bg-gradient-to-br from-gray-50 to-white dark:from-[#0f172a] dark:to-[#1e293b] rounded-3xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
       <Toaster position="top-right" richColors />
 
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4 text-[#1a1a2e] text-5xl font-extrabold tracking-tight"
+        className="mb-4 text-[#1a1a2e] dark:text-white text-5xl font-extrabold tracking-tight"
       >
         Batch PDF to PNG
       </motion.h1>
 
-      <p className="text-slate-500 mb-10 max-w-xl text-base leading-relaxed">
+      <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-xl text-base leading-relaxed">
         Convert multiple PDF files to PNG images at once, then download all the
         results as a single ZIP archive.
       </p>
@@ -187,10 +187,10 @@ export default function PdfPngBatch() {
             onDragLeave={() => setIsDragging(false)}
             onClick={() => inputRef.current?.click()}
             className={cn(
-              "w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300",
+              "w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 dark:border-slate-700",
               isDragging
-                ? "border-[#4361ee] bg-blue-50 scale-[1.03] shadow-lg"
-                : "border-slate-200 bg-slate-50/50 hover:border-[#4361ee] hover:bg-white hover:shadow-xl"
+                ? "border-[#4361ee] bg-blue-50 dark:bg-blue-900/20 scale-[1.03] shadow-lg"
+                : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 hover:border-[#4361ee] hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl"
             )}
           >
             <input
@@ -205,28 +205,28 @@ export default function PdfPngBatch() {
               }}
             />
             <div className="text-center">
-              <div className="mx-auto w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
+              <div className="mx-auto w-12 h-12 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-300 rounded-full flex items-center justify-center mb-3">
                 <Files size={24} />
               </div>
-              <p className="text-[#1a1a2e] font-bold text-sm">
+              <p className="text-[#1a1a2e] dark:text-white font-bold text-sm">
                 Click or drag &amp; drop multiple PDFs
               </p>
-              <p className="text-slate-400 text-xs mt-1">
+              <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">
                 Select several files for bulk conversion
               </p>
             </div>
           </div>
 
           {files.length > 0 && (
-            <div className="w-full bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+            <div className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] dark:text-white uppercase tracking-wider">
                   <FileText size={16} /> {files.length} file
                   {files.length > 1 ? "s" : ""} queued
                 </div>
                 <button
                   onClick={clearAll}
-                  className="text-[10px] font-bold text-gray-500 hover:text-gray-700 uppercase transition-colors"
+                  className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white uppercase transition-colors"
                 >
                   Clear All
                 </button>
@@ -236,16 +236,16 @@ export default function PdfPngBatch() {
                 {files.map((f, idx) => (
                   <li
                     key={idx}
-                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"
+                    className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl"
                   >
-                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                    <div className="p-2 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-200 rounded-lg">
                       <FileText size={16} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#1a1a2e] font-bold text-sm truncate">
+                      <p className="text-[#1a1a2e] dark:text-white font-bold text-sm truncate">
                         {f.name}
                       </p>
-                      <p className="text-slate-500 text-xs">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs">
                         {(f.size / 1024).toFixed(1)} KB
                       </p>
                     </div>
@@ -265,19 +265,19 @@ export default function PdfPngBatch() {
 
         {/* Right Panel */}
         <div className="space-y-6">
-          <div className="w-full bg-white border border-gray-200 rounded-3xl p-8 shadow-sm text-left">
-            <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] uppercase tracking-wider mb-6">
+          <div className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-8 shadow-sm text-left">
+            <div className="flex items-center gap-2 text-sm font-bold text-[#1a1a2e] dark:text-white uppercase tracking-wider mb-6">
               <RefreshCcw size={16} /> Settings &amp; Convert
             </div>
 
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
               Image Scale (quality)
             </label>
             <select
               value={scale}
               onChange={(e) => setScale(Number(e.target.value))}
               disabled={loading}
-              className="w-full mb-6 p-3 rounded-xl border border-slate-200 text-sm font-bold text-[#1a1a2e] focus:outline-none focus:border-[#4361ee]"
+              className="w-full mb-6 p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-900 text-sm font-bold text-[#1a1a2e] dark:text-white focus:outline-none focus:border-[#4361ee]"
             >
               <option value={1}>1x (faster, smaller)</option>
               <option value={2}>2x (balanced)</option>
@@ -297,9 +297,9 @@ export default function PdfPngBatch() {
             {loading && (
               <div className="space-y-3 p-2 mt-4">
                 {currentFile && (
-                  <p className="text-xs font-bold text-[#1a1a2e] truncate">
+                  <p className="text-xs font-bold text-[#1a1a2e] dark:text-white truncate">
                     <span className="text-[#4361ee]">Now:</span> {currentFile}{" "}
-                    <span className="text-slate-400">({fileProgress}%)</span>
+                    <span className="text-slate-400 dark:text-slate-500">({fileProgress}%)</span>
                   </p>
                 )}
                 <div className="flex items-center justify-between text-[10px] font-black text-[#4361ee] uppercase tracking-widest">
@@ -308,7 +308,7 @@ export default function PdfPngBatch() {
                   </span>
                   <span>{overallProgress}%</span>
                 </div>
-                <div className="w-full h-2 bg-blue-50 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-blue-50 dark:bg-blue-900/30 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${overallProgress}%` }}
@@ -319,15 +319,15 @@ export default function PdfPngBatch() {
             )}
 
             {error && (
-              <div className="flex items-center gap-2 p-4 mt-4 bg-red-50 text-red-500 rounded-xl text-xs font-bold">
+              <div className="flex items-center gap-2 p-4 mt-4 bg-red-50 dark:bg-red-950/30 text-red-500 rounded-xl text-xs font-bold">
                 <AlertCircle size={14} />
                 {error}
               </div>
             )}
 
             {zipUrl && !loading && (
-              <div className="mt-4 p-5 bg-[#f0f9ff] border border-blue-100 rounded-2xl space-y-4">
-                <div className="flex items-center gap-2 text-blue-700 text-xs font-bold uppercase">
+              <div className="mt-4 p-5 bg-[#f0f9ff] dark:bg-slate-900 border border-blue-100 dark:border-slate-700 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-200 text-xs font-bold uppercase">
                   <CheckCircle2 size={16} />
                   ZIP ready for download
                 </div>
