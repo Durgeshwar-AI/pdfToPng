@@ -1,6 +1,7 @@
 import { useHistory } from "../context/HistoryContext";
 import React, { useState, useCallback, lazy, Suspense } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
+import PrimaryButton from "./PrimaryButton";
 import {
   toastSuccess,
   toastError,
@@ -249,11 +250,7 @@ const { addToHistory } = useHistory();
         {extraFields && (typeof extraFields === "function" ? extraFields(context) : extraFields)}
 
         {showSubmitButton && (
-          <button
-            type="submit"
-            disabled={!file || loading}
-            className="bg-linear-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 border-none rounded-lg cursor-pointer text-lg font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] tracking-wide relative overflow-hidden w-full max-w-75 mx-auto hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_6px_16px_rgba(59,130,246,0.35)] active:enabled:translate-y-0.5 active:enabled:shadow-[0_2px_8px_rgba(59,130,246,0.2)] disabled:bg-linear-to-r disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none"
-          >
+          <PrimaryButton type="submit" disabled={!file || loading}>
             {loading ? (
               <>
                 <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
@@ -262,7 +259,7 @@ const { addToHistory } = useHistory();
             ) : (
               submitButtonText
             )}
-          </button>
+          </PrimaryButton>
         )}
 
         {inlineProgress && (

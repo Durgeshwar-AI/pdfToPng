@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import Papa from "papaparse";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
+import PrimaryButton from "../components/PrimaryButton";
 import { FileText } from "lucide-react";
 import { toastError, toastSuccess } from "../utils/toast";
 import { useHistory } from "../context/HistoryContext";
@@ -123,13 +124,13 @@ function CsvToJson() {
           supportText="Converts CSV data into JSON format"
         />
 
-        <button
+        <PrimaryButton
           onClick={handleConvert}
           disabled={!file || loading}
-          className="mt-6 bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 rounded-lg text-lg font-semibold w-full max-w-[300px]"
+          className="mt-6"
         >
           {loading ? "Converting..." : "Convert to JSON"}
-        </button>
+        </PrimaryButton>
 
         {jsonOutput && (
           <div className="w-full mt-8">

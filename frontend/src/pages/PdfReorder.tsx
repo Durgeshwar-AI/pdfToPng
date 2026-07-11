@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { PDFDocument } from "pdf-lib";
+import PrimaryButton from "../components/PrimaryButton";
 import { Toaster, toast } from "sonner";
 import { motion } from "framer-motion";
 import {
@@ -459,13 +460,13 @@ const openPreview = async (item) => {
               <RefreshCcw size={16} /> Actions
             </div>
 
-            <button
+            <PrimaryButton
               onClick={reorderAndDownload}
               disabled={!file || loading || pages.length === 0}
-              className="w-full mt-4 bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-4 max-w-none"
             >
               {loading ? "Processing..." : "Reorder & Generate PDF"}
-            </button>
+            </PrimaryButton>
 
             {loading && (
               <div className="space-y-3 p-2">

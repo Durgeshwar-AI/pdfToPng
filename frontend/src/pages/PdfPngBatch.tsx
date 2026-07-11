@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import PrimaryButton from "../components/PrimaryButton";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -284,15 +285,15 @@ export default function PdfPngBatch() {
               <option value={3}>3x (higher quality)</option>
             </select>
 
-            <button
+            <PrimaryButton
               onClick={runBatch}
               disabled={files.length === 0 || loading}
-              className="w-full bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="max-w-none"
             >
               {loading
                 ? "Converting..."
                 : `Convert ${totalPdfs > 0 ? totalPdfs + " PDF" + (totalPdfs > 1 ? "s" : "") : ""}`}
-            </button>
+            </PrimaryButton>
 
             {loading && (
               <div className="space-y-3 p-2 mt-4">
