@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useFileUpload } from "../useFileUpload";
+import { useFileUpload } from "../hooks/useFileUpload";
 
-vi.mock("../../utils/toast", () => ({
+vi.mock("../utils/toast", () => ({
   toastError: vi.fn(),
   toastInfo: vi.fn(),
 }));
