@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import Papa from "papaparse";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
-import PrimaryButton from "../components/PrimaryButton";
+import PrimaryButton from "../components/UI/PrimaryButton";
 import { FileText } from "lucide-react";
 import { toastError, toastSuccess } from "../utils/toast";
 import { useHistory } from "../context/HistoryContext";

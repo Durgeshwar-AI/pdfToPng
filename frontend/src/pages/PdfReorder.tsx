@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { PDFDocument } from "pdf-lib";
-import PrimaryButton from "../components/PrimaryButton";
+import PrimaryButton from "../components/UI/PrimaryButton";
 import { Toaster, toast } from "sonner";
 import { motion } from "framer-motion";
 import {

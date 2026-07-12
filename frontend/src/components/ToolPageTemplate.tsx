@@ -1,7 +1,7 @@
 import { useHistory } from "../context/HistoryContext";
 import React, { useState, useCallback, lazy, Suspense } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
-import PrimaryButton from "./PrimaryButton";
+import PrimaryButton from "./UI/PrimaryButton";
 import {
   toastSuccess,
   toastError,

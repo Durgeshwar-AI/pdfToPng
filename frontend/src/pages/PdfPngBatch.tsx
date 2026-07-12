@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import PrimaryButton from "../components/PrimaryButton";
+import PrimaryButton from "../components/UI/PrimaryButton";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
