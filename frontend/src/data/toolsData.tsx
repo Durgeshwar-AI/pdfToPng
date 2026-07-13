@@ -405,6 +405,17 @@ const tools = [
     iconGradient: "from-emerald-500 to-green-500",
   },
   {
+    id: "qr-reader",
+    name: "QR Code Reader",
+    category: "Utilities",
+    icon: <QrCode />,
+    description:
+      "Scan QR codes using your device's camera or upload QR code images to extract encoded links and text.",
+    path: "/qr-reader",
+    gradient: "from-blue-500/10 to-indigo-500/10",
+    iconGradient: "from-blue-500 to-indigo-500",
+  },
+  {
     id: "pdf-to-word",
     name: "PDF to Word",
     category: "Conversion Tools",
