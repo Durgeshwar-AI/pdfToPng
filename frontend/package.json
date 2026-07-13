@@ -16,6 +16,7 @@
     "axios": "^1.16.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
+    "heic2any": "^0.0.4",
     "imagetracerjs": "^1.2.6",
     "is-wsl": "^3.1.1",
     "jszip": "^3.10.1",
