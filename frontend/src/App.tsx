@@ -48,6 +48,7 @@ const PptxToPdf = lazy(() => import("./pages/PptxToPdf"));
 const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
 const History = lazy(() => import("./pages/History"));
 const PdfBlankRemover = lazy(() => import("./pages/PdfBlankRemover"));
+const QrReader = lazy(() => import("./pages/QrReader"));
 
 const About = lazy(() => import("./pages/About"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -108,6 +109,7 @@ function App() {
             <Route path="/md-to-html" element={<MdToHtml />} />
             <Route path="/md-to-docx" element={<MdToDocx />} />
             <Route path="/url-to-qr" element={<UrlToQr />} />
+            <Route path="/qr-reader" element={<QrReader />} />
             <Route path="/csv-to-json" element={<CsvToJson />} />
             <Route path="/history" element={<History />} />
             <Route path="*" element={<NotFound />} />

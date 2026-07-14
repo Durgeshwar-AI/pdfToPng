@@ -12,7 +12,7 @@ def merge_pdfs():
 
     if not files or len(files) < 2:
         return error("Please upload at least 2 PDF files.",400),
--
+
     merged = fitz.open()
 
     try:
