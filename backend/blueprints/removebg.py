@@ -43,6 +43,26 @@ def refine_alpha_mask(alpha, disk_radius=2, blur_radius=1.0):
 def remove_bg(img, filename, file_bytes):
     base = filename.rsplit('.', 1)[0]
 
+    # Validate image dimensions to prevent MemoryError on large images
+    # rembg requires significant memory for processing, especially with high-res images
+    max_dimension = 4096  # Maximum 4K resolution
+    max_megapixels = 50   # Maximum 50 megapixels (e.g., 7071x7071)
+
+    if img.width > max_dimension or img.height > max_dimension:
+        from flask import jsonify
+        return jsonify({
+            "error": f"Image dimensions too large. Maximum supported: {max_dimension}x{max_dimension}px. "
+                   f"Provided: {img.width}x{img.height}px"
+        }), 413
+
+    total_megapixels = (img.width * img.height) / (1024 * 1024)
+    if total_megapixels > max_megapixels:
+        from flask import jsonify
+        return jsonify({
+            "error": f"Image resolution too high. Maximum: {max_megapixels}MP. "
+                   f"Provided: {total_megapixels:.1f}MP"
+        }), 413
+
     # Run background removal using the uploaded file bytes
     output_bytes = remove(file_bytes)
 
