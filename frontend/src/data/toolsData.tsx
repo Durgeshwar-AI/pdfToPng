@@ -1,6 +1,7 @@
 import React from "react";
 import {
   FileText,
+  FileSpreadsheet,
   FileSearch,
   Image,
   FileImage,
@@ -414,6 +415,17 @@ const tools = [
     path: "/pdf-to-word",
     gradient: "from-blue-500/10 to-sky-500/10",
     iconGradient: "from-blue-500 to-sky-500",
+  },
+  {
+    id: "pdf-to-excel",
+    name: "PDF to Excel",
+    category: "Conversion Tools",
+    icon: <FileSpreadsheet />,
+    description:
+      "Extract tabular data from PDF documents into editable Excel (.xlsx) spreadsheets.",
+    path: "/pdf-to-excel",
+    gradient: "from-green-500/10 to-emerald-500/10",
+    iconGradient: "from-green-500 to-emerald-500",
   },
   {
     id: "csv-to-json",
