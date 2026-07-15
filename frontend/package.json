@@ -19,6 +19,7 @@
     "heic2any": "^0.0.4",
     "imagetracerjs": "^1.2.6",
     "is-wsl": "^3.1.1",
+    "jsqr": "^1.4.0",
     "jszip": "^3.10.1",
     "lucide-react": "^0.562.0",
     "motion": "^12.38.0",
