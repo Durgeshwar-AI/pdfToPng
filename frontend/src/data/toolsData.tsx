@@ -244,6 +244,16 @@ const tools = [
     iconGradient: "from-blue-500 to-indigo-500",
   },
   {
+    id: "heic-to-jpg",
+    name: "HEIC to JPG/PNG",
+    category: "Conversion Tools",
+    icon: <Image />,
+    description: "Convert Apple HEIC/HEIF images to standard JPG or PNG format client-side.",
+    path: "/heic-to-jpg",
+    gradient: "from-[#4361ee]/10 to-[#7209b7]/10",
+    iconGradient: "from-[#4361ee] to-[#7209b7]",
+  },
+  {
     id: "image-ocr",
     name: "Image OCR",
     category: "AI Tools",

@@ -48,6 +48,7 @@ const PptxToPdf = lazy(() => import("./pages/PptxToPdf"));
 const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
 const History = lazy(() => import("./pages/History"));
 const PdfBlankRemover = lazy(() => import("./pages/PdfBlankRemover"));
+const HeicToJpg = lazy(() => import("./pages/HeicToJpg"));
 const QrReader = lazy(() => import("./pages/QrReader"));
 
 const About = lazy(() => import("./pages/About"));
@@ -94,6 +95,7 @@ function App() {
             <Route path="/image-blur" element={<BlurImage />} />
             <Route path="/image-to-webp" element={<ImageWbp />} />
             <Route path="/image-to-jpg" element={<ImageJpg />} />
+            <Route path="/heic-to-jpg" element={<HeicToJpg />} />
             <Route path="/image-ocr" element={<ImageOCR />} />
             <Route path="/image-watermark" element={<ImageWatermark />} />
             <Route path="/image-to-svg" element={<ImageToSVG />} />
