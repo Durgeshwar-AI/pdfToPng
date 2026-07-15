@@ -2,12 +2,38 @@ import os
 from flask import send_file, after_this_request, jsonify
 from werkzeug.utils import secure_filename
 import gc
+import atexit
+import tempfile
 
 def safe_gc_collect():
     try:
         gc.collect()
     except Exception:
         pass
+
+def cleanup_orphaned_temp_files():
+    """
+    Emergency cleanup for orphaned temporary files that weren't cleaned up
+    properly. Runs at application shutdown.
+    """
+    try:
+        temp_dir = tempfile.gettempdir()
+        if os.path.exists(temp_dir):
+            import time
+            now = time.time()
+            # Remove files older than 2 hours to be conservative
+            for f in os.listdir(temp_dir):
+                try:
+                    fpath = os.path.join(temp_dir, f)
+                    if os.path.isfile(fpath) and os.stat(fpath).st_mtime < now - 7200:
+                        os.remove(fpath)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+# Register emergency cleanup at application shutdown
+atexit.register(cleanup_orphaned_temp_files)
 
 def error(message, status_code=400):
     return jsonify({"success": False, "message": message}), status_code
