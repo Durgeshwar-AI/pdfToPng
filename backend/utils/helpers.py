@@ -15,20 +15,27 @@ def cleanup_orphaned_temp_files():
     """
     Emergency cleanup for orphaned temporary files that weren't cleaned up
     properly. Runs at application shutdown.
+
+    Only removes files with the 'pngconverter_' prefix to avoid deleting
+    unrelated temp files from other processes in shared environments.
     """
     try:
         temp_dir = tempfile.gettempdir()
         if os.path.exists(temp_dir):
             import time
             now = time.time()
-            # Remove files older than 2 hours to be conservative
+            # Only remove app-specific temp files (with pngconverter_ prefix)
+            # older than 6 hours to be conservative
             for f in os.listdir(temp_dir):
-                try:
-                    fpath = os.path.join(temp_dir, f)
-                    if os.path.isfile(fpath) and os.stat(fpath).st_mtime < now - 7200:
-                        os.remove(fpath)
-                except Exception:
-                    pass
+                # Only target files with our app's prefix to avoid deleting
+                # unrelated files from other processes
+                if f.startswith('pngconverter_'):
+                    try:
+                        fpath = os.path.join(temp_dir, f)
+                        if os.path.isfile(fpath) and os.stat(fpath).st_mtime < now - 21600:
+                            os.remove(fpath)
+                    except Exception:
+                        pass
     except Exception:
         pass
 
