@@ -50,6 +50,7 @@ const History = lazy(() => import("./pages/History"));
 const PdfBlankRemover = lazy(() => import("./pages/PdfBlankRemover"));
 const HeicToJpg = lazy(() => import("./pages/HeicToJpg"));
 const QrReader = lazy(() => import("./pages/QrReader"));
+const SvgToImage = lazy(() => import("./pages/SvgToImage"));
 
 const About = lazy(() => import("./pages/About"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -99,6 +100,7 @@ function App() {
             <Route path="/image-ocr" element={<ImageOCR />} />
             <Route path="/image-watermark" element={<ImageWatermark />} />
             <Route path="/image-to-svg" element={<ImageToSVG />} />
+            <Route path="/svg-to-image" element={<SvgToImage />} />
             <Route path="/image-to-grayscale" element={<ImageGrayScale />} />
             <Route path="/remove-bg" element={<RemoveBg />} />
             <Route path="/rotate-flip" element={<RotateFlip />} />

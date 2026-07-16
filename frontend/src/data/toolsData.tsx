@@ -354,6 +354,16 @@ const tools = [
     iconGradient: "from-emerald-500 to-blue-500",
   },
   {
+    id: "svg-to-image",
+    name: "SVG to PNG/JPG",
+    category: "Conversion Tools",
+    icon: <Code />,
+    description: "Convert SVG vector files to standard PNG/JPG raster images client-side.",
+    path: "/svg-to-image",
+    gradient: "from-emerald-500/10 to-blue-500/10",
+    iconGradient: "from-emerald-500 to-blue-500",
+  },
+  {
     id: "docx-to-pdf",
     name: "DOCX to PDF",
     category: "Conversion Tools",
