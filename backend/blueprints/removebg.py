@@ -46,7 +46,7 @@ def remove_bg(img, filename, file_bytes):
     # Validate image dimensions to prevent MemoryError on large images
     # rembg requires significant memory for processing, especially with high-res images
     max_dimension = 4096  # Maximum 4K resolution
-    max_megapixels = 50   # Maximum 50 megapixels (e.g., 7071x7071)
+    max_megapixels = 10   # Maximum 50 megapixels (e.g., 7071x7071)
 
     if img.width > max_dimension or img.height > max_dimension:
         from flask import jsonify
