@@ -21,6 +21,7 @@ interface FileUploadAreaProps {
   defaultText?: string;
   supportText?: string;
   pdfIcon?: React.ReactNode;
+  ariaLabel?: string;
 }
 
 const FileUploadArea = ({
@@ -44,10 +45,27 @@ const FileUploadArea = ({
   defaultText,
   supportText,
   pdfIcon,
+  ariaLabel,
 }: FileUploadAreaProps) => {
+  const resolvedLabel =
+    ariaLabel ||
+    (typeof defaultText === "string" && defaultText.trim().length > 0
+      ? defaultText
+      : "Upload file, drag and drop or click to browse");
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      fileInputRef.current?.click();
+    }
+  };
+
   return (
     <div
       ref={dropAreaRef}
+      role="button"
+      tabIndex={0}
+      aria-label={resolvedLabel}
       className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none focus-within:ring-2 focus-within:ring-[var(--color-app-primary)] ${
         isDragging
           ? "border-[var(--color-app-primary)] bg-[var(--color-app-surface-soft)] scale-[1.02]"
@@ -58,6 +76,7 @@ const FileUploadArea = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={handleAreaClick}
+      onKeyDown={handleKeyDown}
     >
       <input
         type="file"
@@ -67,6 +86,8 @@ const FileUploadArea = ({
         id={inputId}
         ref={fileInputRef}
         className="sr-only"
+        aria-label={resolvedLabel}
+        tabIndex={-1}
       />
       <label
         htmlFor={inputId}
