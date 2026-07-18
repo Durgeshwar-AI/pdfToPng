@@ -47,3 +47,45 @@ def test_metadata_viewer_no_file(client):
     """Test the metadata viewer endpoint without file."""
     response = client.post("/view-metadata")
     assert response.status_code in [400, 500]
+from flask import Flask
+
+def test_create_app():
+    """Verify Flask application instance is created."""
+    app = create_app()
+    assert isinstance(app, Flask)
+
+
+def test_max_content_length():
+    """Verify MAX_CONTENT_LENGTH configuration."""
+    app = create_app()
+    assert app.config["MAX_CONTENT_LENGTH"] == 10 * 1024 * 1024
+
+
+def test_blueprints_registered():
+    """Verify expected blueprints are registered."""
+    app = create_app()
+
+    expected = [
+        "pdf_bp",
+        "pdf_docx_bp",
+        "docx_pdf_bp",
+        "image_bp",
+        "remove_bp",
+        "rotate_flip_bp",
+        "dpi_bp",
+        "metadata_bp",
+        "merge_pdf_bp",
+        "watermark_bp",
+        "sign_bp",
+        "markdown_bp",
+        "markdown_docx_bp",
+        "pdf_info_bp",
+        "compress_pdf_bp",
+        "protect_pdf_bp",
+        "unlock_pdf_bp",
+        "searchable_pdf_ocr_bp",
+        "pptx_pdf_bp",
+    ]
+
+    for bp in expected:
+        assert bp in app.blueprints
