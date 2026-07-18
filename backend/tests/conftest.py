@@ -5,7 +5,11 @@ from app import create_app
 def app():
     app = create_app()
     app.config["TESTING"] = True
+
+    yield app
+
     return app
+
 
 @pytest.fixture
 def client(app):
