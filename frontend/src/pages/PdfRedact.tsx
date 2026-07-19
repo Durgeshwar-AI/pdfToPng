@@ -60,7 +60,7 @@ function PdfRedact() {
       const historyUrl = window.URL.createObjectURL(blob);
       addToHistory(historyUrl, downloadName);
       setRegions([]);
-    } catch (err) {
+    } catch {
       toastError("Redaction failed. Please try again.");
     } finally {
       setLoading(false);
