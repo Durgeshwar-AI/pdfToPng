@@ -12,6 +12,7 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const ImagePdf = lazy(() => import("./pages/ImagePdf"));
 const PdfPng = lazy(() => import("./pages/PdfPng"));
 const PdfDocx = lazy(() => import("./pages/PdfDocx"));
+const PdfRedact = lazy(() => import("./pages/PdfRedact"));
 const ImageWbp = lazy(() => import("./pages/ImageWbp"));
 const ImageJpg = lazy(() => import("./pages/ImageJpg"));
 const RemoveBg = lazy(() => import("./pages/RemoveBg"));
@@ -71,6 +72,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/pdf-to-png" element={<PdfPng />} />
             <Route path="/pdf-to-word" element={<PdfDocx />} />
+            <Route path="/pdf-redact" element={<PdfRedact />} />
             <Route path="/docx-to-pdf" element={<DocxPdf />} />
             <Route path="/image-to-pdf" element={<ImagePdf />} />
             <Route path="/pdf-merge" element={<PdfMerge />} />
