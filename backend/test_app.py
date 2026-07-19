@@ -1,6 +1,7 @@
 import os
 import io
 import pytest
+from flask import Flask
 from app import create_app
 
 @pytest.fixture
@@ -47,7 +48,6 @@ def test_metadata_viewer_no_file(client):
     """Test the metadata viewer endpoint without file."""
     response = client.post("/view-metadata")
     assert response.status_code in [400, 500]
-from flask import Flask
 
 def test_create_app():
     """Verify Flask application instance is created."""
