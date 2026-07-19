@@ -1,6 +1,7 @@
 import gc
 import logging
 import os
+from io import BytesIO
 
 from flask import after_this_request, jsonify, send_file
 from werkzeug.utils import secure_filename
@@ -18,10 +19,6 @@ def error(message, status_code=400):
 
 def success(data=None, message="Success", status_code=200):
     return jsonify({"success": True, "message": message, "data": data}), status_code
-
-
-from io import BytesIO
-
 
 def _handle_bytes_response(data, **kwargs):
     """Handle bytes and bytearray responses."""
