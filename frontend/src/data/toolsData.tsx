@@ -27,6 +27,7 @@ import {
   Hash,
   Scissors,
   Layers,
+  EyeOff,
 } from "lucide-react";
 
 const tools = [
@@ -142,6 +143,17 @@ const tools = [
     path: "/pdf-protect",
     gradient: "from-red-500/10 to-rose-500/10",
     iconGradient: "from-red-500 to-rose-500",
+  },
+  {
+    id: "pdf-redact",
+    name: "Redact PDF",
+    category: "PDF Tools",
+    icon: <EyeOff />,
+    description:
+      "Permanently remove sensitive text or regions from a PDF before sharing — content is deleted, not just covered.",
+    path: "/pdf-redact",
+    gradient: "from-slate-700/10 to-gray-900/10",
+    iconGradient: "from-slate-700 to-gray-900",
   },
   {
     id: "pptx-to-pdf",
