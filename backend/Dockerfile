@@ -39,4 +39,4 @@ EXPOSE 5000
 # context-switch between in-flight requests instead of serializing them,
 # and PyMuPDF/python-docx release the GIL during their C-level page/render
 # work, so concurrent requests actually make progress instead of queuing.
-CMD gunicorn --bind 0.0.0.0:5000 --workers 2 --threads 4 --worker-class gthread --timeout 120 main:app
+CMD gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 2 --worker-class gthread --timeout 120 main:app
