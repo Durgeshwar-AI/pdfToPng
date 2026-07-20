@@ -90,6 +90,7 @@ def create_app():
     from blueprints.unlock_pdf import unlock_pdf_bp
     from blueprints.searchable_pdf_ocr import searchable_pdf_ocr_bp
     from blueprints.pptx_to_pdf import pptx_pdf_bp
+    from blueprints.pdf_to_xlsx import pdf_xlsx_bp
 
     app.register_blueprint(pdf_bp)
     app.register_blueprint(pdf_docx_bp)
@@ -110,5 +111,6 @@ def create_app():
     app.register_blueprint(unlock_pdf_bp)
     app.register_blueprint(searchable_pdf_ocr_bp)
     app.register_blueprint(pptx_pdf_bp)
+    app.register_blueprint(pdf_xlsx_bp)
 
     return app
