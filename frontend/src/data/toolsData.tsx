@@ -1,6 +1,7 @@
 import React from "react";
 import {
   FileText,
+  FileSpreadsheet,
   FileSearch,
   Image,
   FileImage,
@@ -244,6 +245,16 @@ const tools = [
     iconGradient: "from-blue-500 to-indigo-500",
   },
   {
+    id: "heic-to-jpg",
+    name: "HEIC to JPG/PNG",
+    category: "Conversion Tools",
+    icon: <Image />,
+    description: "Convert Apple HEIC/HEIF images to standard JPG or PNG format client-side.",
+    path: "/heic-to-jpg",
+    gradient: "from-[#4361ee]/10 to-[#7209b7]/10",
+    iconGradient: "from-[#4361ee] to-[#7209b7]",
+  },
+  {
     id: "image-ocr",
     name: "Image OCR",
     category: "AI Tools",
@@ -344,6 +355,16 @@ const tools = [
     iconGradient: "from-emerald-500 to-blue-500",
   },
   {
+    id: "svg-to-image",
+    name: "SVG to PNG/JPG",
+    category: "Conversion Tools",
+    icon: <Code />,
+    description: "Convert SVG vector files to standard PNG/JPG raster images client-side.",
+    path: "/svg-to-image",
+    gradient: "from-emerald-500/10 to-blue-500/10",
+    iconGradient: "from-emerald-500 to-blue-500",
+  },
+  {
     id: "docx-to-pdf",
     name: "DOCX to PDF",
     category: "Conversion Tools",
@@ -405,6 +426,17 @@ const tools = [
     iconGradient: "from-emerald-500 to-green-500",
   },
   {
+    id: "qr-reader",
+    name: "QR Code Reader",
+    category: "Utilities",
+    icon: <QrCode />,
+    description:
+      "Scan QR codes using your device's camera or upload QR code images to extract encoded links and text.",
+    path: "/qr-reader",
+    gradient: "from-blue-500/10 to-indigo-500/10",
+    iconGradient: "from-blue-500 to-indigo-500",
+  },
+  {
     id: "pdf-to-word",
     name: "PDF to Word",
     category: "Conversion Tools",
@@ -414,6 +446,17 @@ const tools = [
     path: "/pdf-to-word",
     gradient: "from-blue-500/10 to-sky-500/10",
     iconGradient: "from-blue-500 to-sky-500",
+  },
+  {
+    id: "pdf-to-excel",
+    name: "PDF to Excel",
+    category: "Conversion Tools",
+    icon: <FileSpreadsheet />,
+    description:
+      "Extract tabular data from PDF documents into editable Excel (.xlsx) spreadsheets.",
+    path: "/pdf-to-excel",
+    gradient: "from-green-500/10 to-emerald-500/10",
+    iconGradient: "from-green-500 to-emerald-500",
   },
   {
     id: "csv-to-json",

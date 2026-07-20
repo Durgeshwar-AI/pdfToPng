@@ -8,6 +8,10 @@ from werkzeug.utils import secure_filename
 from utils.helpers import error
 from utils.content_scanner import scan_pdf_bytes, scan_image_bytes
 
+# Set strict image size limit to prevent decompression bomb attacks
+# Default Pillow limit is ~89.5 Mpx; we use 40 Mpx as a safer threshold
+Image.MAX_IMAGE_PIXELS = 40_000_000
+
 ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 ALLOWED_PDF_EXTENSIONS = {".pdf"}
 ALLOWED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
@@ -117,6 +121,13 @@ def validate_image_file(file):
             return None, None, scan_error
 
         return img, file_bytes, None
+
+    except Image.DecompressionBombError:
+        return None, None, error(
+            "Image resolution exceeds maximum allowed size (40 megapixels). "
+            "Please use a smaller image.",
+            413,
+        )
 
     except (UnidentifiedImageError, OSError):
         return None, None, error(
