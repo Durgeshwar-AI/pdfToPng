@@ -62,10 +62,13 @@ def convert_pdf_to_png():
         except (ValueError, TypeError):
             return error("Invalid page numbers. Must be integers.")
 
-        doc = fitz.open(
-            stream=pdf_bytes,
-            filetype="pdf",
-        )
+        try:
+            doc = fitz.open(
+                stream=pdf_bytes,
+                filetype="pdf",
+            )
+        except Exception:
+            return error("Failed to process PDF file. The file may be corrupted or invalid.")
 
         try:
             # Password-protected PDFs must be rejected with a clean, specific
@@ -95,18 +98,21 @@ def convert_pdf_to_png():
             png_bytes_list = []
 
             for page_num in range(start_page - 1, end_page):
-                page = doc.load_page(page_num)
-                pix = page.get_pixmap(
-                    matrix=mat,
-                    alpha=False,
-                )
-                png_bytes = (
-                    pix.tobytes(output="png")
-                    if hasattr(pix, "tobytes")
-                    else pix.tobytes()
-                )
-                png_bytes_list.append((page_num + 1, png_bytes))
-                pix = None
+                try:
+                    page = doc.load_page(page_num)
+                    pix = page.get_pixmap(
+                        matrix=mat,
+                        alpha=False,
+                    )
+                    png_bytes = (
+                        pix.tobytes(output="png")
+                        if hasattr(pix, "tobytes")
+                        else pix.tobytes()
+                    )
+                    png_bytes_list.append((page_num + 1, png_bytes))
+                    pix = None
+                except Exception:
+                    return error(f"Failed to render page {page_num + 1}. The page may be corrupted or unsupported.")
 
             # If single page, use original behavior (backward compatible)
             if page_count == 1:

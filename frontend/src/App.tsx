@@ -49,6 +49,9 @@ const PptxToPdf = lazy(() => import("./pages/PptxToPdf"));
 const CsvToJson = lazy(() => import("./pages/CsvtoJson"));
 const History = lazy(() => import("./pages/History"));
 const PdfBlankRemover = lazy(() => import("./pages/PdfBlankRemover"));
+const HeicToJpg = lazy(() => import("./pages/HeicToJpg"));
+const QrReader = lazy(() => import("./pages/QrReader"));
+const SvgToImage = lazy(() => import("./pages/SvgToImage"));
 
 const About = lazy(() => import("./pages/About"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -95,9 +98,11 @@ function App() {
             <Route path="/image-blur" element={<BlurImage />} />
             <Route path="/image-to-webp" element={<ImageWbp />} />
             <Route path="/image-to-jpg" element={<ImageJpg />} />
+            <Route path="/heic-to-jpg" element={<HeicToJpg />} />
             <Route path="/image-ocr" element={<ImageOCR />} />
             <Route path="/image-watermark" element={<ImageWatermark />} />
             <Route path="/image-to-svg" element={<ImageToSVG />} />
+            <Route path="/svg-to-image" element={<SvgToImage />} />
             <Route path="/image-to-grayscale" element={<ImageGrayScale />} />
             <Route path="/remove-bg" element={<RemoveBg />} />
             <Route path="/rotate-flip" element={<RotateFlip />} />
@@ -110,6 +115,7 @@ function App() {
             <Route path="/md-to-html" element={<MdToHtml />} />
             <Route path="/md-to-docx" element={<MdToDocx />} />
             <Route path="/url-to-qr" element={<UrlToQr />} />
+            <Route path="/qr-reader" element={<QrReader />} />
             <Route path="/csv-to-json" element={<CsvToJson />} />
             <Route path="/history" element={<History />} />
             <Route path="*" element={<NotFound />} />

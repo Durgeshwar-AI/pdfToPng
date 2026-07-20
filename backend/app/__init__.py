@@ -6,6 +6,9 @@ from flask_cors import CORS
 def create_app():
     app = Flask(__name__)
 
+    # Disable debug mode explicitly to prevent Werkzeug debugger exposure in production
+    app.debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
+
     allowed_origins = os.getenv("ALLOWED_ORIGINS", "*")
 
     supports_credentials = False if allowed_origins.strip() == "*" else True
