@@ -19,7 +19,7 @@ function DocxPdf() {
     if (selectedFile && accepted.includes(selectedFile.type)) {
       return {
         isValid: true,
-        message: `File "( {selectedFile.name}" selected ( ){(
+        message: `File "${selectedFile.name}" selected (${(
           selectedFile.size / 1024
         ).toFixed(1)} KB)`,
       };
