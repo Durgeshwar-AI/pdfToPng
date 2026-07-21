@@ -76,19 +76,19 @@ const getOptimizedImageBytes = async (file, rotation = 0) => {
   const mimeType = isPng ? "image/png" : "image/jpeg";
   const quality = isPng ? undefined : 0.92;
 
- const blob = await new Promise<Blob>((resolve, reject) => {
-  canvas.toBlob(
-    (result) => {
-      if (result) {
-        resolve(result);
-      } else {
-        reject(new Error("Failed to convert image"));
-      }
-    },
-    mimeType,
-    quality,
-  );
-});
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (result) => {
+        if (result) {
+          resolve(result);
+        } else {
+          reject(new Error("Failed to convert image"));
+        }
+      },
+      mimeType,
+      quality,
+    );
+  });
 
   return {
     bytes: await blob.arrayBuffer(),
@@ -104,6 +104,7 @@ function ImagePdf() {
   const [loading, setLoading] = useState(false);
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const [previewItem, setPreviewItem] = useState(null);
   const [pageSize, setPageSize] = useState("original");
   const [margin, setMargin] = useState(36);
   const fileInputRef = useRef(null);
@@ -293,7 +294,7 @@ function ImagePdf() {
       }
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {type: "application/pdf"});
+      const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement("a");
@@ -326,11 +327,10 @@ function ImagePdf() {
       <form onSubmit={createPdf} className="w-full flex flex-col items-center">
         <div
           ref={dropAreaRef}
-          className={`w-full border-2 border-dashed rounded-2xl p-8 mb-6 cursor-pointer transition-all duration-300 flex flex-col items-center select-none ${
-            isDragging
+          className={`w-full border-2 border-dashed rounded-2xl p-8 mb-6 cursor-pointer transition-all duration-300 flex flex-col items-center select-none ${isDragging
               ? "border-[#3b82f6] bg-[#ebf5ff] scale-[1.02]"
               : "border-[#c7d2fe] bg-[rgba(239,246,255,0.6)] hover:border-[#4361ee] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[rgba(229,240,255,0.8)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)] active:bg-[rgba(219,234,254,0.9)]"
-          }`}
+            }`}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -403,11 +403,10 @@ function ImagePdf() {
                       key={key}
                       type="button"
                       onClick={() => setPageSize(key)}
-                      className={`px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                        pageSize === key
+                      className={`px-3.5 py-1.5 text-sm font-medium transition-colors ${pageSize === key
                           ? "bg-[#4361ee] text-white"
                           : "bg-white text-[#475569] hover:bg-[#f1f5f9]"
-                      }`}
+                        }`}
                     >
                       {label}
                     </button>
@@ -454,11 +453,10 @@ function ImagePdf() {
                 {items.map((item, index) => (
                   <div
                     key={item.id}
-                    className={`flex items-center gap-4 rounded-xl border bg-white p-3 shadow-sm transition-all ${
-                      dragOverId === item.id
+                    className={`flex items-center gap-4 rounded-xl border bg-white p-3 shadow-sm transition-all ${dragOverId === item.id
                         ? "border-[#4361ee] ring-2 ring-[#c7d2fe]"
                         : "border-[#e2e8f0]"
-                    }`}
+                      }`}
                     draggable
                     onDragStart={() => setDraggedId(item.id)}
                     onDragOver={(event) => {
@@ -497,6 +495,7 @@ function ImagePdf() {
                       <img
                         src={item.previewUrl}
                         alt={item.file.name}
+                        onClick={() => setPreviewItem(item)}
                         className="h-16 w-16 rounded-lg object-cover transition-transform duration-200"
                         style={{
                           transform: `rotate(${item.rotation}deg)`,
@@ -629,6 +628,35 @@ function ImagePdf() {
         </div>
 
       </form>
+      {previewItem && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          onClick={() => setPreviewItem(null)}
+        >
+          <div
+            className="relative bg-white rounded-xl p-4 max-w-[90vw] max-h-[95vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewItem(null)}
+              className="absolute top-3 right-3 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 shadow-lg"
+            >
+              ✕
+            </button>
+
+            <img
+              src={previewItem.previewUrl}
+              alt={previewItem.file.name}
+              className="max-w-[80vw] max-h-[80vh] object-contain"
+              style={{
+                transform: `rotate(${previewItem.rotation}deg)`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
