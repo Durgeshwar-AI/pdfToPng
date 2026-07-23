@@ -201,7 +201,7 @@ function PdfPageNumber() {
       <h1 className="mb-10 text-[#1a1a2e] dark:text-white text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         PDF Page Numbering
       </h1>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 -mt-6">
+      <p className="theme-muted text-sm mb-8 -mt-6">
         Add custom page numbers to your PDF documents entirely in the browser.
       </p>
 

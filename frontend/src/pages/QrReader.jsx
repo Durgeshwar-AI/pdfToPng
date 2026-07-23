@@ -217,12 +217,12 @@ export default function QrReader() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 md:p-10 text-center flex flex-col items-center">
+    <div className="w-full max-w-6xl mx-auto p-6 md:p-10 theme-panel rounded-2xl overflow-hidden flex flex-col items-center">
       {/* Title */}
       <h1 className="mb-4 text-[#1a1a2e] dark:text-white text-4xl md:text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-16 after:h-1.5 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         QR Code Reader
       </h1>
-      <p className="text-gray-500 dark:text-gray-400 mt-6 mb-10 max-w-xl">
+      <p className="theme-muted mt-6 mb-10 max-w-xl">
         Scan QR codes instantly in your browser using a webcam/camera or by uploading an image. 100% client-side and privacy-secure.
       </p>
 
@@ -255,7 +255,7 @@ export default function QrReader() {
       {/* Grid Layout for controls & results */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
         {/* Left Side: Scan Interface */}
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col justify-center min-h-[350px]">
+        <div className="theme-card rounded-2xl p-6 md:p-8 shadow-sm flex flex-col justify-center min-h-[350px]">
           {activeTab === "upload" ? (
             <div
               onDragOver={handleDragOver}
@@ -279,7 +279,7 @@ export default function QrReader() {
                 <QrCode size={32} />
               </div>
               <div>
-                <p className="text-gray-800 dark:text-white font-semibold text-lg">
+                <p className="text-[var(--color-app-text)] font-semibold text-lg">
                   Choose image file or drag & drop here
                 </p>
                 <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
@@ -378,7 +378,7 @@ export default function QrReader() {
               <div className="grid grid-cols-2 gap-3 mt-6">
                 <button
                   onClick={handleCopy}
-                  className="flex items-center justify-center gap-2 py-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl text-sm font-semibold transition-all cursor-pointer"
+                  className="flex items-center justify-center gap-2 py-3 border border-gray-200 dark:border-gray-700 theme-card text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl text-sm font-semibold transition-all cursor-pointer"
                 >
                   {copied ? <Check className="text-green-500" size={16} /> : <Copy size={16} />}
                   {copied ? "Copied" : "Copy to Clipboard"}
