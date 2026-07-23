@@ -115,7 +115,7 @@ function PdfInfo() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setInfo(data);
+        setInfo(data.data);
         toastDismiss(loadingId);
       } else {
         toastDismiss(loadingId);
