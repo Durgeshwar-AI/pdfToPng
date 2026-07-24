@@ -144,12 +144,12 @@ export default function HeicToJpg() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 md:p-10 text-center flex flex-col items-center">
+    <div className="w-full max-w-6xl mx-auto p-6 md:p-10 text-center flex flex-col items-center theme-panel rounded-3xl overflow-hidden">
       {/* Title */}
       <h1 className="mb-4 text-[#1a1a2e] dark:text-white text-4xl md:text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-16 after:h-1.5 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-3 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         HEIC to JPG/PNG
       </h1>
-      <p className="text-gray-500 dark:text-gray-400 mt-6 mb-10 max-w-xl">
+      <p className="theme-muted mt-6 mb-10 max-w-xl">
         Convert Apple HEIC/HEIF images to standard JPG or PNG format client-side. Fast, free, and completely secure.
       </p>
 
@@ -158,7 +158,7 @@ export default function HeicToJpg() {
         {/* Left Side: Upload & Options */}
         <div className="space-y-6 flex flex-col justify-between">
           {/* Upload card */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 rounded-2xl p-6 shadow-sm">
+          <div className="theme-card rounded-2xl p-6">
             {!file ? (
               <div
                 onDragOver={handleDragOver}
@@ -214,7 +214,7 @@ export default function HeicToJpg() {
           </div>
 
           {/* Options Card */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 rounded-2xl p-6 shadow-sm text-left flex-1 flex flex-col justify-between">
+          <div className="theme-card rounded-2xl p-6">
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-700 pb-3 flex items-center gap-2">
               <Settings className="w-5 h-5 text-[#4361ee]" />
               Conversion Settings
@@ -301,7 +301,7 @@ export default function HeicToJpg() {
         </div>
 
         {/* Right Side: Preview & Download */}
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/80 rounded-2xl p-6 shadow-sm flex flex-col min-h-[350px]">
+        <div className="theme-card rounded-2xl p-6">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-left border-b border-gray-100 dark:border-gray-700 pb-3 flex items-center gap-2">
             <ImageIcon className="w-5 h-5 text-[#4361ee]" />
             Conversion Preview
@@ -318,7 +318,7 @@ export default function HeicToJpg() {
               </div>
 
               <div className="w-full mt-6 space-y-4">
-                <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex justify-between items-center text-xs theme-muted">
                   <span>Output Size</span>
                   <span className="font-semibold text-gray-800 dark:text-white">
                     {formatBytes(convertedSize)}
