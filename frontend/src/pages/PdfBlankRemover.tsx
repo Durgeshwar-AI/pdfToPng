@@ -303,10 +303,10 @@ export default function PdfBlankRemover() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-8 bg-white rounded-3xl border border-slate-200 shadow-xl">
+    <div className="w-full max-w-6xl mx-auto p-8 theme-panel rounded-3xl overflow-hidden">
       <h1 className="text-5xl font-bold text-center mb-3"> PDF Blank Page Remover </h1>
 
-      <p className="text-center text-slate-500 mb-10">
+      <p className="text-center theme-muted mb-10">
         Automatically detect and remove blank or near-blank pages from your PDF.
       </p>
 
@@ -345,7 +345,7 @@ export default function PdfBlankRemover() {
                 <FileText />
                 <div>
                   <p className="font-semibold">{file.name}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm theme-muted">
                     {totalPages} pages
                     {deletedPages.size > 0 && (
                       <span className="ml-2 text-orange-400">
@@ -367,7 +367,7 @@ export default function PdfBlankRemover() {
           </div>
 
           {previews.length > 0 && (
-            <div className="mt-6 border rounded-3xl p-4">
+            <div className="mt-6 theme-card rounded-3xl p-4">
               <div className="flex items-center gap-2 mb-4">
                 <Eye size={16} />
                 Preview
@@ -444,7 +444,7 @@ export default function PdfBlankRemover() {
 
         {/* Right */}
         <div>
-          <div className="border rounded-3xl p-8">
+          <div className="theme-card rounded-3xl p-8">
             <div className="flex items-center gap-2 mb-6">
               <Scissors size={16} />
               Blank Page Detection
@@ -460,7 +460,7 @@ export default function PdfBlankRemover() {
                   const v = clamp(e.target.value, 1, totalPages || 1);
                   setStartPage(String(v));
                 }}
-                className="border rounded-xl p-3"
+                className="theme-field rounded-xl p-3"
               />
 
               <input
@@ -472,7 +472,7 @@ export default function PdfBlankRemover() {
                   const v = clamp(e.target.value, 1, totalPages || 1);
                   setEndPage(String(v));
                 }}
-                className="border rounded-xl p-3"
+                className="theme-field rounded-xl p-3"
               />
             </div>
 
@@ -480,7 +480,7 @@ export default function PdfBlankRemover() {
               <div className="mt-6 p-4 bg-blue-50 rounded-xl flex items-center gap-3">
                 <Scissors size={18} />
                 <div>
-                <p className="text-sm text-slate-500">Blank pages detected</p>
+                <p className="text-sm theme-muted">Blank pages detected</p>
                 <p className="font-semibold">
                   {blankPages.length > 0
                   ? `Detected blank page${blankPages.length !== 1 ? "s" : ""}: ${blankPages.join(", ")}`

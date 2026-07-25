@@ -84,11 +84,11 @@ function PdfUnlock() {
   };
 
   return (
-    <div className="w-full max-w-[750px] mx-auto p-10 text-center flex flex-col justify-center items-center bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0f172a] dark:to-[#111827] rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden">
+    <div className="w-full max-w-[750px] mx-auto p-10 text-center flex flex-col justify-center items-center theme-panel rounded-2xl overflow-hidden">
       <h1 className="mb-10 text-[#1a1a2e] dark:text-white text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         Unlock PDF
       </h1>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 -mt-6">Remove password protection from your PDF files.</p>
+      <p className="theme-muted text-sm mb-8 -mt-6">Remove password protection from your PDF files.</p>
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
         <FileUploadArea
@@ -104,8 +104,8 @@ function PdfUnlock() {
         />
 
         {file && (
-          <div className="w-full mb-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-5 shadow-sm text-left">
-            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
+          <div className="w-full mb-6 theme-card rounded-xl p-5 text-left">
+            <p className="text-sm font-semibold theme-muted mb-4 flex items-center gap-2">
               <Unlock className="w-4 h-4 text-[#4361ee]" />
               Enter PDF Password
             </p>

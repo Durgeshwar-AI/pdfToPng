@@ -236,10 +236,10 @@ export default function PdfSplit() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-8 bg-white rounded-3xl border border-slate-200 shadow-xl">
+    <div className="w-full max-w-6xl mx-auto p-8 theme-panel rounded-3xl overflow-hidden">
       <h1 className="text-5xl font-bold text-center mb-3">Split PDF</h1>
 
-      <p className="text-center text-slate-500 mb-10">
+      <p className="text-center theme-muted mb-10">
         Extract a specific range of pages from your PDF.
       </p>
 
@@ -278,7 +278,7 @@ export default function PdfSplit() {
                 <FileText />
                 <div>
                   <p className="font-semibold">{file.name}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm theme-muted">
                     {totalPages} pages
                     {deletedPages.size > 0 && (
                       <span className="ml-2 text-red-400">
@@ -300,7 +300,7 @@ export default function PdfSplit() {
           </div>
 
           {previews.length > 0 && (
-            <div className="mt-6 border rounded-3xl p-4">
+            <div className="mt-6 theme-card rounded-3xl p-4">
               <div className="flex items-center gap-2 mb-4">
                 <Eye size={16} />
                 Preview
@@ -376,7 +376,7 @@ export default function PdfSplit() {
 
         {/* Right */}
         <div>
-          <div className="border rounded-3xl p-8">
+          <div className="theme-card rounded-3xl p-8">
             <div className="flex items-center gap-2 mb-6">
               <Scissors size={16} />
               Extraction Range
@@ -392,7 +392,7 @@ export default function PdfSplit() {
                   const v = clamp(e.target.value, 1, totalPages || 1);
                   setStartPage(String(v));
                 }}
-                className="border rounded-xl p-3"
+                className="theme-field rounded-xl p-3"
               />
 
               <input
@@ -404,7 +404,7 @@ export default function PdfSplit() {
                   const v = clamp(e.target.value, 1, totalPages || 1);
                   setEndPage(String(v));
                 }}
-                className="border rounded-xl p-3"
+                className="theme-field rounded-xl p-3"
               />
             </div>
 
@@ -412,7 +412,7 @@ export default function PdfSplit() {
               <div className="mt-6 p-4 bg-blue-50 rounded-xl flex items-center gap-3">
                 <Scissors size={18} />
                 <div>
-                  <p className="text-sm text-slate-500">Extracting</p>
+                  <p className="text-sm theme-muted">Extracting</p>
                   <p className="font-semibold">
                     Pages {startPage} - {endPage}
                     {deletedPages.size > 0 && (
