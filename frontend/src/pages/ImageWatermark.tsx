@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { toastError, toastSuccess, toastLoading, toastDismiss } from "../utils/toast";
 
 interface FileWithType extends File { type: string; }
@@ -9,12 +9,27 @@ const POSITION_OPTIONS = [
   { value: "center", label: "Center" },
   { value: "bottom-left", label: "Bottom Left" },
   { value: "bottom-right", label: "Bottom Right" },
-  { value: "diagonal-center", label: "Diagonal Center" }, 
+  { value: "diagonal-center", label: "Diagonal Center" },
 ];
+
+function getWatermarkXY(canvasW: number, canvasH: number, wmW: number, wmH: number, position: string) {
+  const pad = 10;
+  switch (position) {
+    case "top-left": return { x: pad, y: pad, diagonal: false };
+    case "top-right": return { x: canvasW - wmW - pad, y: pad, diagonal: false };
+    case "center": return { x: (canvasW - wmW) / 2, y: (canvasH - wmH) / 2, diagonal: false };
+    case "bottom-left": return { x: pad, y: canvasH - wmH - pad, diagonal: false };
+    case "diagonal-center": return { x: (canvasW - wmW) / 2, y: (canvasH - wmH) / 2, diagonal: true };
+    case "bottom-right":
+    default: return { x: canvasW - wmW - pad, y: canvasH - wmH - pad, diagonal: false };
+  }
+}
 
 function ImageWatermark() {
   const [file, setFile] = useState(null);
   const [, setPreview] = useState(null);
+  const [imageEl, setImageEl] = useState<HTMLImageElement | null>(null);
+  const [watermarkImageEl, setWatermarkImageEl] = useState<HTMLImageElement | null>(null);
 
   const [watermarkType, setWatermarkType] = useState("text");
   const [watermarkText, setWatermarkText] = useState("CONFIDENTIAL");
@@ -29,8 +44,9 @@ function ImageWatermark() {
 
   const inputRef = useRef(null);
   const imageInputRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const resetStatus = () => {};
+  const resetStatus = () => { };
 
   const handleImageUpload = useCallback((incoming: FileList | File[]) => {
     const img = Array.from(incoming).find((f: any) => f.type?.startsWith("image/"));
@@ -66,11 +82,13 @@ function ImageWatermark() {
   const clearFile = () => {
     setFile(null);
     setPreview(null);
+    setImageEl(null);
     resetStatus();
   };
 
   const clearWatermarkImage = () => {
     setWatermarkImage(null);
+    setWatermarkImageEl(null);
     resetStatus();
   };
 
@@ -86,6 +104,88 @@ function ImageWatermark() {
     resetStatus();
     setWatermarkImage(imageFile);
   };
+
+  useEffect(() => {
+    if (!file) {
+      setImageEl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => setImageEl(img);
+    img.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  useEffect(() => {
+    if (!watermarkImage) {
+      setWatermarkImageEl(null);
+      return;
+    }
+    const url = URL.createObjectURL(watermarkImage);
+    const img = new Image();
+    img.onload = () => setWatermarkImageEl(img);
+    img.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [watermarkImage]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !imageEl) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const maxW = 520;
+    const scaleFactor = Math.min(1, maxW / imageEl.naturalWidth);
+    const cw = Math.round(imageEl.naturalWidth * scaleFactor);
+    const ch = Math.round(imageEl.naturalHeight * scaleFactor);
+    canvas.width = cw;
+    canvas.height = ch;
+
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.drawImage(imageEl, 0, 0, cw, ch);
+
+    ctx.save();
+    ctx.globalAlpha = opacity / 100;
+
+    if (watermarkType === "text" && watermarkText) {
+      const fontSize = Math.max(10, ch * (size / 500));
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.fillStyle = "#2563eb";
+      ctx.textBaseline = "top";
+      const textW = ctx.measureText(watermarkText).width;
+      const textH = fontSize;
+      const { x, y, diagonal } = getWatermarkXY(cw, ch, textW, textH, position);
+
+      if (diagonal) {
+        ctx.translate(x + textW / 2, y + textH / 2);
+        ctx.rotate((-45 * Math.PI) / 180);
+        ctx.fillText(watermarkText, -textW / 2, -textH / 2);
+      } else {
+        ctx.fillText(watermarkText, x, y);
+      }
+    } else if (watermarkType === "image" && watermarkImageEl) {
+      const maxWmSize = Math.min(cw, ch) * (size / 100);
+      const ratio = watermarkImageEl.naturalWidth / watermarkImageEl.naturalHeight;
+      let wmW = maxWmSize;
+      let wmH = maxWmSize / ratio;
+      if (wmH > maxWmSize) {
+        wmH = maxWmSize;
+        wmW = maxWmSize * ratio;
+      }
+      const { x, y, diagonal } = getWatermarkXY(cw, ch, wmW, wmH, position);
+
+      if (diagonal) {
+        ctx.translate(x + wmW / 2, y + wmH / 2);
+        ctx.rotate((-45 * Math.PI) / 180);
+        ctx.drawImage(watermarkImageEl, -wmW / 2, -wmH / 2, wmW, wmH);
+      } else {
+        ctx.drawImage(watermarkImageEl, x, y, wmW, wmH);
+      }
+    }
+
+    ctx.restore();
+  }, [imageEl, watermarkImageEl, watermarkType, watermarkText, position, opacity, size]);
 
   const applyWatermark = async () => {
     if (!file) {
@@ -150,11 +250,10 @@ function ImageWatermark() {
       </h1>
 
       <div
-        className={`w-full border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-6 ${
-          isDragging
+        className={`w-full border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 mb-6 ${isDragging
             ? "border-[#4361ee] bg-blue-50"
             : "border-gray-300 bg-[#fafbfc] hover:border-[#4361ee] hover:bg-blue-50"
-        }`}
+          }`}
         onDrop={onDrop}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
@@ -202,22 +301,20 @@ function ImageWatermark() {
               <button
                 type="button"
                 onClick={() => { setWatermarkType("text"); resetStatus(); }}
-                className={`py-3 rounded-xl border text-sm font-medium transition-colors ${
-                  watermarkType === "text"
+                className={`py-3 rounded-xl border text-sm font-medium transition-colors ${watermarkType === "text"
                     ? "border-[#4361ee] bg-[#eff6ff] text-[#1a1a2e]"
                     : "border-gray-200 bg-white text-gray-600 hover:border-[#4361ee]"
-                }`}
+                  }`}
               >
                 Text
               </button>
               <button
                 type="button"
                 onClick={() => { setWatermarkType("image"); resetStatus(); }}
-                className={`py-3 rounded-xl border text-sm font-medium transition-colors ${
-                  watermarkType === "image"
+                className={`py-3 rounded-xl border text-sm font-medium transition-colors ${watermarkType === "image"
                     ? "border-[#4361ee] bg-[#eff6ff] text-[#1a1a2e]"
                     : "border-gray-200 bg-white text-gray-600 hover:border-[#4361ee]"
-                }`}
+                  }`}
               >
                 Image
               </button>
@@ -327,6 +424,15 @@ function ImageWatermark() {
         )}
       </button>
 
+      {file && (
+        <div className="w-full mb-6 flex flex-col items-center gap-2">
+          <span className="text-sm font-semibold text-gray-600 self-start">Live Preview</span>
+          <canvas
+            ref={canvasRef}
+            className="w-full max-w-full rounded-xl border border-gray-200 shadow-sm bg-[#f8fafc]"
+          />
+        </div>
+      )}
     </div>
   );
 }
