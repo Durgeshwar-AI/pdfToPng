@@ -6,6 +6,24 @@ from flask_cors import CORS
 def create_app():
     app = Flask(__name__)
 
+    # SECURITY: Enforce SECRET_KEY from environment variable
+    # Prevent session forgery attacks by requiring a strong, externally-managed secret key
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise ValueError(
+            "CRITICAL: SECRET_KEY environment variable not set. "
+            "Flask session security requires a strong SECRET_KEY configured at startup. "
+            "Set SECRET_KEY to a cryptographically random value (e.g., output of os.urandom(32))."
+        )
+
+    if len(secret_key) < 32:
+        raise ValueError(
+            "CRITICAL: SECRET_KEY is too short (minimum 32 bytes required). "
+            "Use a cryptographically random key for security."
+        )
+
+    app.config["SECRET_KEY"] = secret_key
+
     # Disable debug mode explicitly to prevent Werkzeug debugger exposure in production
     app.debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
 
