@@ -12,6 +12,48 @@ logger = logging.getLogger(__name__)
 # Base directory for user-scoped temporary files
 TEMP_BASE_DIR = os.environ.get("TEMP_DIR", tempfile.gettempdir())
 
+# Per-IP concurrency limiter to prevent DoS via parallel uploads
+MAX_CONCURRENT_PER_IP = int(os.environ.get("MAX_CONCURRENT_PER_IP", "3"))
+_ip_concurrency_counter = {}
+
+
+def get_client_ip():
+    """Extract client IP from request, handling proxies safely."""
+    # Get trusted proxy IP from environment
+    if request.remote_addr == request.environ.get("HTTP_X_FORWARDED_FOR"):
+        # Only trust X-Forwarded-For if it comes from a trusted proxy
+        trusted_proxies = os.environ.get("TRUSTED_PROXIES", "").split(",")
+        if request.environ.get("REMOTE_ADDR") in trusted_proxies:
+            return request.environ.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+
+    return request.remote_addr or "unknown"
+
+
+def check_concurrency_limit():
+    """
+    Check and enforce per-IP concurrency limits to prevent DoS attacks.
+    Returns True if within limit, False if limit exceeded.
+    """
+    client_ip = get_client_ip()
+
+    # Increment counter for this IP
+    _ip_concurrency_counter[client_ip] = _ip_concurrency_counter.get(client_ip, 0) + 1
+
+    # Check if limit exceeded
+    if _ip_concurrency_counter[client_ip] > MAX_CONCURRENT_PER_IP:
+        _ip_concurrency_counter[client_ip] -= 1  # Rollback
+        return False
+
+    return True
+
+
+def decrement_concurrency(client_ip=None):
+    """Decrement concurrency counter after request completes."""
+    if not client_ip:
+        client_ip = get_client_ip()
+
+    _ip_concurrency_counter[client_ip] = max(0, _ip_concurrency_counter.get(client_ip, 1) - 1)
+
 
 def get_user_temp_dir(user_identifier=None):
     """
