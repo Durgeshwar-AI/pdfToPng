@@ -1,11 +1,44 @@
 import gc
 import logging
 import os
+import tempfile
+import uuid
 
-from flask import after_this_request, jsonify, send_file
+from flask import after_this_request, jsonify, send_file, request
 from werkzeug.utils import secure_filename
 
 logger = logging.getLogger(__name__)
+
+# Base directory for user-scoped temporary files
+TEMP_BASE_DIR = os.environ.get("TEMP_DIR", tempfile.gettempdir())
+
+
+def get_user_temp_dir(user_identifier=None):
+    """
+    Get a user-scoped temporary directory.
+    Creates per-user isolation to prevent cross-user access to temporary files.
+
+    Args:
+        user_identifier: Optional user ID. If not provided, uses session/request ID
+
+    Returns:
+        Path to user-specific temporary directory
+    """
+    if not user_identifier:
+        # Use session/request ID if available, otherwise generate unique ID
+        user_identifier = getattr(request, "user_id", None) or str(uuid.uuid4())
+
+    # Sanitize user identifier to prevent directory traversal
+    safe_user_id = secure_filename(str(user_identifier))
+    if not safe_user_id:
+        safe_user_id = str(uuid.uuid4())
+
+    user_temp_dir = os.path.join(TEMP_BASE_DIR, "pdfToPng_users", safe_user_id)
+
+    # Create directory if it doesn't exist (with restrictive permissions)
+    os.makedirs(user_temp_dir, mode=0o700, exist_ok=True)
+
+    return user_temp_dir
 
 
 def safe_gc_collect():
