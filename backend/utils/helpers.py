@@ -83,6 +83,40 @@ def get_user_temp_dir(user_identifier=None):
     return user_temp_dir
 
 
+def cleanup_temp_files(directory):
+    """
+    Safely cleanup temporary files and directories.
+    Ensures cleanup happens even if exceptions occur during processing.
+
+    Args:
+        directory: Path to temporary directory to cleanup
+    """
+    if not directory or not os.path.exists(directory):
+        return
+
+    try:
+        # Remove all files in directory
+        for filename in os.listdir(directory):
+            filepath = os.path.join(directory, filename)
+            try:
+                if os.path.isfile(filepath):
+                    os.remove(filepath)
+                elif os.path.isdir(filepath):
+                    import shutil
+                    shutil.rmtree(filepath)
+            except Exception:
+                logger.warning(f"Failed to cleanup {filepath}")
+
+        # Remove empty directory
+        try:
+            os.rmdir(directory)
+        except Exception:
+            logger.warning(f"Failed to remove directory {directory}")
+
+    except Exception:
+        logger.exception(f"Error during temp file cleanup: {directory}")
+
+
 def safe_gc_collect():
     """Safely trigger garbage collection and log failures."""
     try:
