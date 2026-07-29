@@ -31,6 +31,8 @@ function ImageJpg() {
 
   const extraFields = ({ file }) => {
     if (!file) return null;
+
+    if (!(convertedSize && originalSize)) return null;
     
     return (
       <div className="w-full max-w-[500px] mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100 text-left">
