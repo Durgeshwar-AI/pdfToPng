@@ -6,6 +6,7 @@ from PIL import Image, UnidentifiedImageError
 from werkzeug.utils import secure_filename
 
 from utils.helpers import error
+from utils.content_scanner import scan_pdf_bytes, scan_image_bytes
 
 # Set strict image size limit to prevent decompression bomb attacks
 # Default Pillow limit is ~89.5 Mpx; we use 40 Mpx as a safer threshold
@@ -114,6 +115,11 @@ def validate_image_file(file):
         img = Image.open(io.BytesIO(file_bytes))
         img.load()
 
+        scan_error = scan_image_bytes(file_bytes)
+        if scan_error:
+            img.close()
+            return None, None, scan_error
+
         return img, file_bytes, None
 
     except Image.DecompressionBombError:
@@ -176,5 +182,9 @@ def validate_pdf_file(
     magic_error = validate_pdf_magic_bytes(file_bytes)
     if magic_error:
         return magic_error
+
+    scan_error = scan_pdf_bytes(file_bytes)
+    if scan_error:
+        return scan_error
 
     return None

@@ -1,4 +1,20 @@
 services:
+  clamav:
+    image: clamav/clamav:stable
+    volumes:
+      - clamav_db:/var/lib/clamav
+    ports:
+      - "3310:3310"
+    restart: always
+    # First run downloads virus definitions (freshclam) - can take a few
+    # minutes before clamd is ready to accept connections.
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
   backend:
     build:
       context: ./backend
@@ -11,6 +27,14 @@ services:
     environment:
       - ALLOWED_ORIGINS=http://localhost:5173
       - FLASK_ENV=development
+      # Set to false (or remove the clamav service above) to run without
+      # ClamAV - structural/heuristic checks in content_scanner.py still
+      # apply either way.
+      - CLAMAV_ENABLED=true
+      - CLAMAV_HOST=clamav
+      - CLAMAV_PORT=3310
+    depends_on:
+      - clamav
     restart: always
 
   frontend:
@@ -32,3 +56,4 @@ services:
 
 volumes:
   rembg_models:
+  clamav_db:
