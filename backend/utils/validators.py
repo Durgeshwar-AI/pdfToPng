@@ -20,7 +20,7 @@ ALLOWED_PDF_MIME_TYPES = {"application/pdf"}
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 
 def validate_path_safety(filename, base_directory=None):
-    """
+    r"""
     Validate that a filename doesn't contain path traversal sequences.
     Ensures the resolved path stays within the intended directory.
 
