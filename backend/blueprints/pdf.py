@@ -10,7 +10,7 @@ pdf_bp = Blueprint("pdf", __name__)
 
 # Maximum number of pages that can be converted in a single request
 # to prevent resource exhaustion attacks
-MAX_PAGES_PER_REQUEST = 100
+MAX_PAGES_PER_REQUEST = 500
 
 @pdf_bp.route("/convertPng", methods=["POST"])
 def convert_pdf_to_png():
