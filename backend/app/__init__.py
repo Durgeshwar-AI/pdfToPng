@@ -30,9 +30,6 @@ def create_app():
                 response.headers["Access-Control-Allow-Origin"] = "*"
             elif origin and origin in allowed_list:
                 response.headers["Access-Control-Allow-Origin"] = origin
-            else:
-
-                response.headers["Access-Control-Allow-Origin"] = allowed_origins
         if "Access-Control-Allow-Headers" not in response.headers:
             response.headers["Access-Control-Allow-Headers"] = (
                 "Content-Type,Authorization,Accept,Origin"
