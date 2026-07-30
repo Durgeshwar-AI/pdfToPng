@@ -32,8 +32,7 @@ def test_cors_headers_present(client):
 def test_pdf_endpoint_no_file(client):
     """Test that the pdf conversion endpoint handles missing files correctly."""
     response = client.post("/convertPng")
-    # Should probably return 400 when no files are uploaded
-    assert response.status_code in [400, 500] 
+    assert response.status_code == 400
 
 def test_pdf_endpoint_invalid_file(client):
     """Test that uploading a non-PDF file returns an error."""
@@ -41,13 +40,12 @@ def test_pdf_endpoint_invalid_file(client):
         'file': (io.BytesIO(b"this is not a pdf"), 'test.txt')
     }
     response = client.post("/convertPng", data=data, content_type='multipart/form-data')
-    # Typically endpoints checking for pdf will return 400
-    assert response.status_code in [400, 500]
+    assert response.status_code == 400
 
 def test_metadata_viewer_no_file(client):
     """Test the metadata viewer endpoint without file."""
     response = client.post("/view-metadata")
-    assert response.status_code in [400, 500]
+    assert response.status_code == 400
 
 def test_create_app():
     """Verify Flask application instance is created."""
@@ -66,25 +64,26 @@ def test_blueprints_registered():
     app = create_app()
 
     expected = [
-        "pdf_bp",
-        "pdf_docx_bp",
-        "docx_pdf_bp",
-        "image_bp",
-        "remove_bp",
-        "rotate_flip_bp",
-        "dpi_bp",
-        "metadata_bp",
-        "merge_pdf_bp",
-        "watermark_bp",
-        "sign_bp",
-        "markdown_bp",
-        "markdown_docx_bp",
-        "pdf_info_bp",
-        "compress_pdf_bp",
-        "protect_pdf_bp",
-        "unlock_pdf_bp",
-        "searchable_pdf_ocr_bp",
-        "pptx_pdf_bp",
+        "pdf",
+        "pdf_docx",
+        "docx_pdf",
+        "image",
+        "removebg",
+        "rotate_flip",
+        "dpi_converter",
+        "metadata",
+        "merge_pdf",
+        "watermark",
+        "sign",
+        "markdown",
+        "markdown_docx",
+        "pdf_info",
+        "compress_pdf",
+        "protect_pdf",
+        "unlock_pdf",
+        "searchable_pdf_ocr",
+        "pptx_pdf",
+        "pdf_xlsx",
     ]
 
     for bp in expected:

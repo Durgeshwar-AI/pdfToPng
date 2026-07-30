@@ -2,6 +2,7 @@ from flask import Blueprint, request, send_file, jsonify
 import fitz  # PyMuPDF
 import io
 from utils.validators import validate_uploaded_file, validate_pdf_file
+from utils.helpers import error
 
 merge_pdf_bp = Blueprint("merge_pdf", __name__)
 
@@ -11,7 +12,7 @@ def merge_pdfs():
     files = request.files.getlist("files")
 
     if not files or len(files) < 2:
-        return error("Please upload at least 2 PDF files.",400),
+        return error("Please upload at least 2 PDF files.", 400)
 
     merged = fitz.open()
 

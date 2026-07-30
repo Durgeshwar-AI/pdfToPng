@@ -8,10 +8,32 @@ watermark_bp = Blueprint('watermark', __name__)
 
 @watermark_bp.route('/add-watermark', methods=['POST'])
 def add_watermark():
-    ...
-    opacity = int(request.form.get('opacity', 70))
+    if 'image' not in request.files:
+        return error('No image file provided', 400)
+
+    file = request.files['image']
+    if file.filename == '':
+        return error('No selected file', 400)
+
+    try:
+        img = Image.open(file).convert('RGBA')
+    except Exception:
+        return error('Invalid image file provided', 400)
+
+    img_width, img_height = img.size
+    watermark_type = request.form.get('watermark_type', 'text')
+
+    try:
+        opacity = int(request.form.get('opacity', 70))
+    except (ValueError, TypeError):
+        opacity = 70
+
     position = request.form.get('position', 'bottom-right')
-    size = int(request.form.get('size', 30))  
+
+    try:
+        size = int(request.form.get('size', 30))
+    except (ValueError, TypeError):
+        size = 30
 
     if watermark_type == 'text':
         watermark_text = request.form.get('watermark_text', 'Watermark')
@@ -24,14 +46,29 @@ def add_watermark():
         )
     else:
         if 'watermark_image' not in request.files:
-            return error('No watermark image provided', 400),
+            return error('No watermark image provided', 400)
 
         watermark_file = request.files['watermark_image']
 
         watermark_layer = create_image_watermark(
             watermark_file, size, img_width, img_height, opacity
         )
-    ...
+
+    if position == 'tiled':
+        result_img = apply_tiled_watermark(img, watermark_layer)
+    else:
+        result_img = apply_positioned_watermark(img, watermark_layer, position)
+
+    img_byte_arr = io.BytesIO()
+    result_img.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+
+    return send_file(
+        img_byte_arr,
+        mimetype='image/png',
+        as_attachment=True,
+        download_name='watermarked.png'
+    )
 
 
 def create_text_watermark(text, font_size, color, opacity):
