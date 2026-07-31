@@ -21,7 +21,14 @@ mock_modules = [
     'numpy',
     'skimage',
     'piexif',
+    'pytesseract',
+    'cv2',
 ]
 
 for mod in mock_modules:
-    sys.modules[mod] = MagicMock()
+    try:
+        __import__(mod)
+    except ImportError:
+        mock = MagicMock()
+        mock.__version__ = "2.0.0"
+        sys.modules[mod] = mock
