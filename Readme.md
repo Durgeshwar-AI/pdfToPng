@@ -94,7 +94,8 @@ pdfToPng/
 │   └── utils/
 │       ├── __init__.py
 │       ├── helpers.py
-│       └── decorators.py
+│       ├── decorators.py
+│       └── job_manager.py
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -193,6 +194,8 @@ pdfToPng/
 - `utils/` – Helper functions and utilities used across blueprints:
   - `helpers.py` – Common utility functions
   - `decorators.py` – Custom decorators for request handling
+  - `job_manager.py` – In-memory job store for tracking async task progress (status, stage, result) used by long-running endpoints like background removal
+
 
 **Frontend** (`frontend/`)
 
