@@ -73,7 +73,7 @@ const data = await response.json();
           </span>
         </Link>
         <div className="hidden lg:flex items-center space-x-6">
-          {navItems.map((item) => (
+          {(navItems ?? []).map((item) => (
             <Link
               key={item.name}
               to={item.path || `/#${item.hash}`}
