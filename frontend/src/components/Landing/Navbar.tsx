@@ -38,7 +38,8 @@ const Navbar = () => {
           },
         );
 
-        const data = await response.json();
+        if (!response.ok) throw new Error("Request failed");
+const data = await response.json();
 
         setStars(data.stargazers_count);
       } catch (error) {
@@ -72,7 +73,7 @@ const Navbar = () => {
           </span>
         </Link>
         <div className="hidden lg:flex items-center space-x-6">
-          {navItems.map((item) => (
+          {(navItems ?? []).map((item) => (
             <Link
               key={item.name}
               to={item.path || `/#${item.hash}`}
