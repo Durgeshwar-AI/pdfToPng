@@ -2,7 +2,7 @@ from utils.helpers import send_file_and_cleanup
 import io
 
 def test_normal_filename(app):
-    with app.app_context():
+    with app.test_request_context():
         response = send_file_and_cleanup(
             io.BytesIO(b"Hello"),
             mimetype="text/plain",
@@ -13,7 +13,7 @@ def test_normal_filename(app):
 import io
 
 def test_path_traversal_removed(app):
-    with app.app_context():
+    with app.test_request_context():
         response = send_file_and_cleanup(
             io.BytesIO(b"Hello"),
             mimetype="text/plain",
@@ -26,7 +26,7 @@ def test_path_traversal_removed(app):
 import io
 
 def test_windows_traversal_removed(app):
-    with app.app_context():
+    with app.test_request_context():
         response = send_file_and_cleanup(
             io.BytesIO(b"Hello"),
             mimetype="text/plain",
@@ -40,7 +40,7 @@ def test_windows_traversal_removed(app):
 import io
 
 def test_absolute_path_removed(app):
-    with app.app_context():
+    with app.test_request_context():
         response = send_file_and_cleanup(
             io.BytesIO(b"Hello"),
             mimetype="text/plain",

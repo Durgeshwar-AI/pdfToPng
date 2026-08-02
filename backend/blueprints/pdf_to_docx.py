@@ -22,8 +22,10 @@ def convert_pdf_to_docx():
         if pdf_file.filename == "":
             return error("No file selected")
 
-        pdf_bytes = pdf_file.read()
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        try:
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        except Exception:
+            return error("Invalid PDF file provided", 400)
 
         if doc.page_count == 0:
             return error("Empty PDF")

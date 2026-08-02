@@ -99,7 +99,13 @@ def test_send_file_from_path_and_cleanup(app):
 
         # Execute after_request callbacks
         app.process_response(response)
+        response.close()
 
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
     assert not os.path.exists(path)
 
 

@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   push:
@@ -48,3 +48,7 @@ jobs:
       - name: Syntax check
         working-directory: backend
         run: python -m py_compile main.py && find . -name "*.py" -exec python -m py_compile {} +
+
+      - name: Run backend tests
+        working-directory: backend
+        run: pytest -v

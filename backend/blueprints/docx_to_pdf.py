@@ -23,8 +23,10 @@ def convert_docx_to_pdf():
 
         docx_bytes = docx_file.read()
 
-        # Load docx from bytes
-        doc = Document(BytesIO(docx_bytes))
+        try:
+            doc = Document(BytesIO(docx_bytes))
+        except Exception:
+            return error("Invalid DOCX file provided", 400)
 
         # Build PDF in memory using ReportLab Platypus (import lazily)
         try:
