@@ -26,9 +26,6 @@ mock_modules = [
 ]
 
 for mod in mock_modules:
-    try:
-        __import__(mod)
-    except ImportError:
-        mock = MagicMock()
-        mock.__version__ = "2.0.0"
-        sys.modules[mod] = mock
+    mock = MagicMock()
+    mock.__version__ = "2.0.0"
+    sys.modules[mod] = mock

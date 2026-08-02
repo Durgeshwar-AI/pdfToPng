@@ -23,3 +23,19 @@ def test_access_control_allow_origin(client):
 
     assert response.status_code == 200
     assert response.headers["Access-Control-Allow-Origin"] == "*"
+
+
+def test_disallowed_origin_headers(monkeypatch):
+    from app import create_app
+    monkeypatch.setenv("ALLOWED_ORIGINS", "https://mysite.com,https://www.mysite.com")
+    app = create_app()
+    app.config["TESTING"] = True
+    with app.test_client() as c:
+        response = c.get("/health", headers={"Origin": "https://evil.com"})
+        assert response.status_code == 200
+        assert response.headers.get("Access-Control-Allow-Origin") != "https://mysite.com,https://www.mysite.com"
+        assert response.headers.get("Access-Control-Allow-Origin") is None
+
+        response_allowed = c.get("/health", headers={"Origin": "https://mysite.com"})
+        assert response_allowed.status_code == 200
+        assert response_allowed.headers.get("Access-Control-Allow-Origin") == "https://mysite.com"
