@@ -8,6 +8,10 @@ from utils.validators import validate_uploaded_file, validate_pdf_file
 
 pdf_bp = Blueprint("pdf", __name__)
 
+# Maximum number of pages that can be converted in a single request
+# to prevent resource exhaustion attacks
+MAX_PAGES_PER_REQUEST = 500
+
 @pdf_bp.route("/convertPng", methods=["POST"])
 def convert_pdf_to_png():
     doc = None
@@ -90,6 +94,14 @@ def convert_pdf_to_png():
             end_page = min(end_page, doc.page_count)
             if start_page > doc.page_count:
                 return error(f"PDF has only {doc.page_count} pages. start_page exceeds page count.")
+
+            # Enforce maximum page limit to prevent resource exhaustion
+            page_range = end_page - start_page + 1
+            if page_range > MAX_PAGES_PER_REQUEST:
+                return error(
+                    f"Page range exceeds maximum limit of {MAX_PAGES_PER_REQUEST} pages. "
+                    f"Requested: {page_range} pages. Please select a smaller range."
+                )
 
             mat = fitz.Matrix(zoom, zoom)
 

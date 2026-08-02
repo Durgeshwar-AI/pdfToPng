@@ -1,11 +1,38 @@
 import gc
 import logging
 import os
+import re
 
 from flask import after_this_request, jsonify, send_file
 from werkzeug.utils import secure_filename
 
 logger = logging.getLogger(__name__)
+
+
+def sanitize_error_message(message):
+    """
+    Sanitize error messages to remove sensitive file paths and system information.
+    Prevents information disclosure of internal directory structures and temporary file locations.
+    """
+    if not message or not isinstance(message, str):
+        return "An error occurred"
+
+    # Remove file path patterns that could leak internal directory structures
+    # Windows paths: C:\Users\..., D:\temp\...
+    message = re.sub(r"[A-Za-z]:[\\\/][^\s]*", "**file**", message)
+    # Unix absolute paths: /home/user/..., /var/...
+    message = re.sub(r"\/[^\s]*(?:\/[^\s]*){2,}", "**path**", message)
+    # Temp directory paths: /tmp/..., /var/tmp/...
+    message = re.sub(r"\/tmp\/[^\s]*|\/var\/tmp\/[^\s]*", "**temp**", message)
+
+    # Remove Python file extension patterns that might leak implementation details
+    message = re.sub(r"\.py\b|\.pyc\b|\.pyx\b", "**file**", message)
+
+    # Limit message length to prevent large error responses (DoS via error messages)
+    if len(message) > 500:
+        message = message[:497] + "..."
+
+    return message
 
 
 def safe_gc_collect():
@@ -18,7 +45,9 @@ def safe_gc_collect():
 
 
 def error(message, status_code=400):
-    return jsonify({"success": False, "message": message}), status_code
+    """Return error response with sanitized message to prevent information disclosure."""
+    sanitized_message = sanitize_error_message(message)
+    return jsonify({"success": False, "message": sanitized_message}), status_code
 
 
 def success(data=None, message="Success", status_code=200):
