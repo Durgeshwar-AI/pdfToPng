@@ -31,7 +31,7 @@ def merge_pdfs():
             try:
                 src = fitz.open(stream=data, filetype="pdf")
             except fitz.FileDataError:
-                return error("'{f.filename}' appears to be corrupted or is not a valid PDF.",400),
+                return error(f"'{f.filename}' appears to be corrupted or is not a valid PDF.", 400)
             merged.insert_pdf(src)
             src.close()
 
