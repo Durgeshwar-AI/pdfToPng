@@ -88,7 +88,7 @@ function ImageCompress() {
         />
 
         <div className="grid grid-cols-3 gap-3">
-          {presets.map((p) => (
+          {(presets ?? []).map((p) => (
             <button
               key={p.name}
               type="button"
