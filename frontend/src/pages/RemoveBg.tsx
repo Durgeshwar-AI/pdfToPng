@@ -1,7 +1,20 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { toastError, toastSuccess } from "../utils/toast";
+
+const stageLabels: Record<string, string> = {
+  queued: "Queued...",
+  loading_model: "Loading AI model...",
+  removing_background: "Removing background...",
+  refining_edges: "Refining edges...",
+  finalizing: "Finalizing image...",
+  complete: "Done!",
+};
 
 function RemoveBg() {
+  const [progress, setProgress] = useState(0);
+  const [stageLabel, setStageLabel] = useState("");
+
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return {
@@ -17,20 +30,106 @@ function RemoveBg() {
     };
   }, []);
 
+  const handleClear = () => {
+    setProgress(0);
+    setStageLabel("");
+  };
+
+  const handleCustomSubmit = async ({ file, setLoading, addToHistory }) => {
+    try {
+      setProgress(0);
+      setStageLabel(stageLabels.queued);
+
+      const form = new FormData();
+      form.append("image", file);
+
+      const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const startRes = await fetch(`${apiBaseUrl}/removeBg`, {
+        method: "POST",
+        body: form,
+      });
+
+      if (!startRes.ok) {
+        const errData = await startRes.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to start background removal");
+      }
+
+      const { job_id } = await startRes.json();
+
+      // Poll for progress until done or errored
+      const poll = async () => {
+        const statusRes = await fetch(`${apiBaseUrl}/removeBg/status/${job_id}`);
+        if (!statusRes.ok) {
+          throw new Error("Lost connection while checking job status");
+        }
+        const statusData = await statusRes.json();
+
+        setProgress(statusData.progress ?? 0);
+        setStageLabel(stageLabels[statusData.stage] || statusData.stage);
+
+        if (statusData.status === "done") {
+          const resultRes = await fetch(`${apiBaseUrl}/removeBg/result/${job_id}`);
+          if (!resultRes.ok) {
+            throw new Error("Failed to fetch final image");
+          }
+          const blob = await resultRes.blob();
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const downloadName = `${file.name.split(".")[0]}_no_bg.png`;
+
+          const a = document.createElement("a");
+          a.href = downloadUrl;
+          a.download = downloadName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          toastSuccess("Background removed successfully!");
+
+          if (addToHistory) {
+            addToHistory(downloadUrl, downloadName);
+          } else {
+            window.URL.revokeObjectURL(downloadUrl);
+          }
+
+          setLoading(false);
+        } else if (statusData.status === "error") {
+          toastError(statusData.error || "Processing failed");
+          setLoading(false);
+        } else {
+          setTimeout(poll, 500);
+        }
+      };
+
+      await poll();
+    } catch (err: any) {
+      console.error("RemoveBg error:", err);
+      toastError(err.message || "Failed to remove background.");
+      setLoading(false);
+    }
+  };
+
   return (
     <ToolPageTemplate
       title="Remove Background"
       accept="image/*"
       validateFile={validateFile}
-      apiEndpoint="/removeBg"
-      fileFieldName="image"
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.split(".")[0];
-        return `${originalName}_no_bg.png`;
-      }}
+      onSubmit={handleCustomSubmit}
+      onClear={handleClear}
       submitButtonText="Remove Background"
       loadingButtonText="Removing..."
-      onSuccessMessage="Background removed successfully!"
+      extraFields={() =>
+        progress > 0 && stageLabel && (
+          <div className="w-full mt-4 mb-8">
+            <div className="text-sm text-[#6b7280] mb-1">{stageLabel}</div>
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#4361ee] transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )
+      }
       defaultIcon={
         <svg
           width="64"
