@@ -339,6 +339,7 @@ npm run dev
 By default, Vite will start the frontend at `http://localhost:5173`.
 
 Make sure your frontend API calls target `http://localhost:5000` for the backend.
+For deployed environments, set `VITE_API_URL` to the public backend origin; PDF-to-PNG server fallback requests use this value.
 
 ## Running with Docker (Recommended)
 
