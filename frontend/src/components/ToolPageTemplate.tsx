@@ -36,6 +36,7 @@ interface ToolPageTemplateProps {
   defaultText?: string;
   supportText?: string;
   inputId?: string;
+  disableSubmit?: boolean;
 }
 
 // ==================== COMPONENT ====================
@@ -62,11 +63,12 @@ const ToolPageTemplate = ({
   defaultText,
   supportText,
   inputId = "file-input",
+  disableSubmit = false,
 }: ToolPageTemplateProps) => {
   const [statusType, setStatusType] = useState("info");
   const [inlineProgress, setInlineProgress] = useState("");
 
-const { addToHistory } = useHistory();
+  const { addToHistory } = useHistory();
   const internalValidate = useCallback(
     async (selectedFile: any) => {
       if (validateFile) {
@@ -151,7 +153,7 @@ const { addToHistory } = useHistory();
       loadingToastId = toastLoading(`Processing "${file.name}"…`);
 
       const response = await fetch(
-        `( {import.meta.env.VITE_API_URL} ){apiEndpoint}`,
+        `${import.meta.env.VITE_API_URL}${apiEndpoint}`,
         { method: "POST", body: formData }
       );
 
@@ -250,7 +252,7 @@ const { addToHistory } = useHistory();
         {extraFields && (typeof extraFields === "function" ? extraFields(context) : extraFields)}
 
         {showSubmitButton && (
-          <PrimaryButton type="submit" disabled={!file || loading}>
+          <PrimaryButton type="submit" disabled={!file || loading || disableSubmit}>
             {loading ? (
               <>
                 <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>

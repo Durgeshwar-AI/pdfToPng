@@ -99,6 +99,7 @@ function PdfSign() {
       apiEndpoint="/sign/signPdf"
       fileFieldName="file"
       modifyFormData={modifyFormData}
+      disableSubmit={signature.trim() === ""}
       getDownloadFilename={() => "signed.pdf"}
       submitButtonText="Sign PDF"
       loadingButtonText="Signing..."
