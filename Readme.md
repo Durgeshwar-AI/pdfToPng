@@ -11,7 +11,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **PDF Tools:**
 
 - Convert PDF pages to PNG (single page, range, or all pages)
-- Merge multiple PDF files into one document
+- Merge multiple PDF files into one document, including files with the same name
 - Split a PDF by extracting a page range into a new document
 - Convert PDF to DOCX
 - Convert DOCX to PDF

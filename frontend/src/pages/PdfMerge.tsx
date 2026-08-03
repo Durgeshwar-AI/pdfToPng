@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { getPdfFiles } from "../utils/fileSelection";
 
 declare global { interface Window { pdfjsLib: any; } }
 
@@ -103,18 +104,13 @@ export default function MergePdf() {
 
 
   const addFiles = useCallback((incoming: FileList | File[]) => {
-    const pdfs = Array.from(incoming).filter(
-      (f: any) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
-    );
+    const pdfs = getPdfFiles(incoming);
     if (!pdfs.length) {
       showStatus("Only PDF files are accepted.", "error");
       return;
     }
     setStatusMsg("");
-    setRawFiles((prev) => {
-      const names = new Set(prev.map((f) => f.name));
-      return [...prev, ...pdfs.filter((f) => !names.has(f.name))];
-    });
+    setRawFiles((prev) => [...prev, ...pdfs]);
   }, [showStatus]);
 
   const onDrop = useCallback((e) => {
@@ -384,7 +380,7 @@ export default function MergePdf() {
                 </div>
                 {rawFiles.map((f, i) => (
                   <div
-                    key={f.name}
+                    key={`${f.name}-${i}`}
                     className={`flex items-center gap-3 px-3 py-2 rounded-xl border text-sm ${fileColor(
                       i,
                     )}`}
