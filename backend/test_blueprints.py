@@ -89,6 +89,24 @@ def test_md2html_no_file(client):
     response = client.post("/convertMdToHtml")
     assert response.status_code == 400
 
+def test_md2html_text_input_success(client):
+    data = {'text': '# Heading\n\nSome **markdown** text.'}
+    response = client.post("/convertMdToHtml", data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/html'
+    assert 'document.html' in response.headers['Content-Disposition']
+
+def test_md2html_text_input_respects_output_filename(client):
+    data = {'text': '# Heading', 'output_filename': 'notes'}
+    response = client.post("/convertMdToHtml", data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    assert 'notes.html' in response.headers['Content-Disposition']
+
+def test_md2html_blank_text_input(client):
+    data = {'text': '   \n  '}
+    response = client.post("/convertMdToHtml", data=data, content_type='multipart/form-data')
+    assert response.status_code == 400
+
 def test_pdf_to_docx_no_file(client):
     response = client.post("/convertDocx")
     assert response.status_code == 400
