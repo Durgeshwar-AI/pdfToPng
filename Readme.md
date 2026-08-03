@@ -38,6 +38,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **MD tools**
 
 - Convert Markdown files to HTML with optional theme styling
+- Convert Markdown files to DOCX while preserving HTTP and HTTPS hyperlinks
 
 The backend is a Flask API and the frontend is a React app (Vite).
 
@@ -314,6 +315,7 @@ Available endpoints:
 **Mark Down Endpoints**
 
 - `POST /convertMdToHtml` – Converts MD to HTML
+- `POST /convertMdToDocx` – Converts MD to DOCX with clickable HTTP and HTTPS links
 
 **Health Check:**
 
