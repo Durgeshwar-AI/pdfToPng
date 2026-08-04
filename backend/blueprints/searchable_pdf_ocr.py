@@ -1,5 +1,6 @@
 from flask import Blueprint, request, send_file, jsonify
 import io
+import logging
 import fitz
 import pytesseract
 from PIL import Image
@@ -7,6 +8,8 @@ import cv2
 import numpy as np
 
 searchable_pdf_ocr_bp = Blueprint("searchable_pdf_ocr", __name__)
+
+logger = logging.getLogger(__name__)
 
 
 def preprocess_image(pil_image, mode="balanced"):
@@ -89,8 +92,17 @@ def searchable_pdf_ocr():
             download_name=f"{base_name}_searchable.pdf",
         )
 
-    except Exception as exc:
-        return jsonify({"error": f"Failed to create searchable PDF: {str(exc)}"}), 500
+    except Exception:
+        # This handler answers with jsonify rather than utils.helpers.error, so
+        # the exception text would reach the client unsanitized. Keep the detail
+        # in the server log and return a fixed message instead.
+        logger.exception("Searchable PDF OCR failed.")
+        return jsonify(
+            {
+                "error": "Failed to create searchable PDF. The file may be "
+                "corrupted or unsupported."
+            }
+        ), 500
     finally:
         if source_doc:
             source_doc.close()

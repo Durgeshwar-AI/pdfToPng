@@ -328,6 +328,7 @@ All endpoints:
 
 - Process the file in memory
 - Do **not** persist any data on the server
+- Return sanitized error messages — server file paths and third-party library internals are stripped before the response is sent, so a crafted upload cannot use an error to probe the filesystem
 
 Note: The PDF to PNG tool runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server‑side PDF conversion, but the UI uses client‑side rendering by default.
 
