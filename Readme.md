@@ -22,7 +22,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **Image Tools:**
 
 - Convert images to WebP, JPG, PNG, and SVG
-- Compress images with adjustable quality
+- Compress images with adjustable quality and a choice of output format (JPEG, WebP, PNG)
 - Resize images
 - Rotate or flip images
 - Remove the background from images
@@ -305,7 +305,7 @@ Available endpoints:
 - `POST /convertWebP` – Convert an image to WebP
 - `POST /convertJpeg` – Convert an image to JPG
 - `POST /imageToPdf` – Convert image to PDF
-- `POST /compress` – Compress an image with a quality setting
+- `POST /compress` – Compress an image with a quality setting (`quality`, 1–100) and an optional output format (`format`: `original`, `jpeg`, `webp`, or `png`; defaults to `original`)
 - `POST /rotateFlip` – Rotate or flip an image
 - `POST /convert-dpi` – Convert image DPI (JPEG, PNG, TIFF, BMP, WebP)
 - `POST /check-dpi` – Check current DPI of an image
