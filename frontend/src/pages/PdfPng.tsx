@@ -132,7 +132,7 @@ const PdfPng = () => {
         pagesToRender = Array.from({ length: totalPages }, (_, i) => i + 1);
       } else if (pageMode === "single") {
         const pageNum = parseInt(singlePage);
-        if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+        if (Number.isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
           toastError(`Invalid page number: ${singlePage}. Please enter a value between 1 and ${totalPages}.`);
           setStatusMessage("");
           setLoading(false);
