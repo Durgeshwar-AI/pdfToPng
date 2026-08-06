@@ -17,6 +17,7 @@ import {
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import PrimaryButton from "../components/UI/PrimaryButton";
+import { uniqueZipFolderName } from "../utils/uniqueZipFolderName";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -120,6 +121,7 @@ export default function PdfPngBatch() {
 
     const zip = new JSZip();
     let done = 0;
+    const usedFolderNames = new Set<string>();
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -129,7 +131,8 @@ export default function PdfPngBatch() {
           setFileProgress(Math.round((page / total) * 100));
         });
         // If a batch contains multiple files, namespace PNGs into a folder per file.
-        const folder = files.length > 1 ? zip.folder(result.name) : zip;
+        const folderName = uniqueZipFolderName(result.name, usedFolderNames);
+        const folder = files.length > 1 ? zip.folder(folderName) : zip;
         for (const p of result.pages) {
           folder.file(p.name, p.blob);
         }
