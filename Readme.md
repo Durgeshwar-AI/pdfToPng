@@ -13,6 +13,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 - Convert PDF pages to PNG (single page, range, or all pages)
 - Merge multiple PDF files into one document
 - Split a PDF by extracting a page range into a new document
+- Reorder PDF pages (files over 50 pages are rejected to avoid truncated exports)
 - Convert PDF to DOCX
 - Convert DOCX to PDF
 - Rotate or flip PDF pages

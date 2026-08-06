@@ -17,6 +17,11 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import {
+  MAX_REORDER_PAGES,
+  canExportReorderedPages,
+  isReorderPageLimitExceeded,
+} from "../utils/pdfReorderLimits";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -56,7 +61,7 @@ export default function PdfReorder() {
   // Render each page to a small canvas thumbnail
   const generateThumbnails = async (pdf) => {
     const thumbs = [];
-    const limit = Math.min(pdf.numPages, 50);
+    const limit = Math.min(pdf.numPages, MAX_REORDER_PAGES);
 
     for (let i = 1; i <= limit; i++) {
       const page = await pdf.getPage(i);
@@ -99,14 +104,22 @@ export default function PdfReorder() {
         data: bytes,
         verbosity: 0,
       }).promise;
+
+      if (isReorderPageLimitExceeded(pdf.numPages)) {
+        setPageLimitWarning(true);
+        setFile(null);
+        setTotalPages(pdf.numPages);
+        setPages([]);
+        pdfDocRef.current = null;
+        setError(
+          `This PDF has ${pdf.numPages} pages. Reorder supports up to ${MAX_REORDER_PAGES} pages so exports are never truncated.`,
+        );
+        return;
+      }
+
       pdfDocRef.current = pdf;
       console.log("pdfDocRef SET on upload:", pdfDocRef.current);
       setTotalPages(pdf.numPages);
-
-      if (pdf.numPages > 50) {
-        setPageLimitWarning(true);
-      }
-
       await generateThumbnails(pdf);
     } catch {
       setTotalPages(null);
@@ -226,8 +239,18 @@ const openPreview = async (item) => {
 
   const reorderAndDownload = async () => {
     if (!file || loading) return;
-    if (pages.length === 0) {
-      setError("No pages to process. Please upload a PDF.");
+    if (
+      !canExportReorderedPages({
+        pageCount: totalPages,
+        previewCount: pages.length,
+        pageLimitExceeded: pageLimitWarning,
+      })
+    ) {
+      setError(
+        pages.length === 0
+          ? "No pages to process. Please upload a PDF."
+          : `This PDF exceeds the ${MAX_REORDER_PAGES}-page reorder limit and cannot be exported.`,
+      );
       return;
     }
 
@@ -356,7 +379,8 @@ const openPreview = async (item) => {
           {pageLimitWarning && (
             <div className="mb-4 flex items-center gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded-xl text-sm font-medium">
               <AlertCircle size={16} />
-              This PDF contains more than 50 pages. Please upload a PDF with 50 pages or fewer.
+              This PDF contains more than {MAX_REORDER_PAGES} pages. Please
+              upload a PDF with {MAX_REORDER_PAGES} pages or fewer.
             </div>
           )}
 
@@ -462,7 +486,17 @@ const openPreview = async (item) => {
 
             <PrimaryButton
               onClick={reorderAndDownload}
-              disabled={!file || loading || pages.length === 0}
+              disabled={
+                !file ||
+                loading ||
+                pages.length === 0 ||
+                pageLimitWarning ||
+                !canExportReorderedPages({
+                  pageCount: totalPages,
+                  previewCount: pages.length,
+                  pageLimitExceeded: pageLimitWarning,
+                })
+              }
               className="mt-4 max-w-none"
             >
               {loading ? "Processing..." : "Reorder & Generate PDF"}
