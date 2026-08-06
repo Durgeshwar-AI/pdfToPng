@@ -47,6 +47,13 @@ async function renderPageThumb(pdfDoc, pageNum, width = 120) {
 
 const STAGE = { SELECT: "select", ARRANGE: "arrange", DONE: "done" };
 
+function createQueuedFileId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `pdf-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export default function MergePdf() {
   const [stage, setStage] = useState(STAGE.SELECT);
   const [rawFiles, setRawFiles] = useState([]);
@@ -81,7 +88,7 @@ export default function MergePdf() {
     setPreviewOpen(true);
     setPreviewLoading(true);
     try {
-      const file = rawFiles[fileIndex];
+      const file = rawFiles[fileIndex]?.file;
       const lib = await getPdfJs();
       const ab = await file.arrayBuffer();
       const pdfDoc = await lib.getDocument({ data: ab }).promise;
@@ -110,7 +117,10 @@ export default function MergePdf() {
       return;
     }
     setStatusMsg("");
-    setRawFiles((prev) => [...prev, ...pdfs]);
+    setRawFiles((prev) => [
+      ...prev,
+      ...pdfs.map((file) => ({ id: createQueuedFileId(), file })),
+    ]);
   }, [showStatus]);
 
   const onDrop = useCallback((e) => {
@@ -134,7 +144,7 @@ export default function MergePdf() {
       const lib = await getPdfJs();
       const allPages = [];
       for (let fi = 0; fi < rawFiles.length; fi++) {
-        const file = rawFiles[fi];
+        const file = rawFiles[fi].file;
         setLoadingMsg(
           `Reading "${file.name}"... (${fi + 1}/${rawFiles.length})`,
         );
@@ -221,7 +231,7 @@ export default function MergePdf() {
 
       const srcDocs = {};
       for (let fi = 0; fi < rawFiles.length; fi++) {
-        const ab = await rawFiles[fi].arrayBuffer();
+        const ab = await rawFiles[fi].file.arrayBuffer();
         srcDocs[fi] = await PDFDocument.load(ab);
       }
 
@@ -378,9 +388,9 @@ export default function MergePdf() {
                     Clear all
                   </button>
                 </div>
-                {rawFiles.map((f, i) => (
+                {rawFiles.map((entry, i) => (
                   <div
-                    key={`${f.name}-${i}`}
+                    key={entry.id}
                     className={`flex items-center gap-3 px-3 py-2 rounded-xl border text-sm ${fileColor(
                       i,
                     )}`}
@@ -408,12 +418,12 @@ export default function MergePdf() {
                     </svg>
                     <span
                       className="flex-1 truncate font-medium"
-                      title={f.name}
+                      title={entry.file.name}
                     >
-                      {f.name}
+                      {entry.file.name}
                     </span>
                     <span className="text-xs opacity-60 shrink-0">
-                      {(f.size / 1024).toFixed(0)} KB
+                      {(entry.file.size / 1024).toFixed(0)} KB
                     </span>
                     <button
                       onClick={() => openPreview(i)}
@@ -424,7 +434,9 @@ export default function MergePdf() {
                     </button>
                     <button
                       onClick={() =>
-                        setRawFiles((prev) => prev.filter((_, j) => j !== i))
+                        setRawFiles((prev) =>
+                          prev.filter((queued) => queued.id !== entry.id),
+                        )
                       }
                       className="opacity-50 hover:opacity-100 transition-opacity text-xs px-1"
                     >
@@ -474,7 +486,7 @@ export default function MergePdf() {
                   <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
                     <div className="min-w-0">
                       <h2 className="text-lg font-semibold text-[#1a1a2e] truncate">
-                        {rawFiles[previewFileIndex]?.name || "PDF Preview"}
+                        {rawFiles[previewFileIndex]?.file.name || "PDF Preview"}
                       </h2>
                       <p className="text-xs text-slate-500 mt-0.5">First page preview</p>
                     </div>
@@ -506,8 +518,8 @@ export default function MergePdf() {
 
                   <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
                     <p className="text-xs text-slate-500">
-                      {rawFiles[previewFileIndex]?.size
-                        ? `${(rawFiles[previewFileIndex].size / 1024).toFixed(0)} KB`
+                      {rawFiles[previewFileIndex]?.file.size
+                        ? `${(rawFiles[previewFileIndex].file.size / 1024).toFixed(0)} KB`
                         : ""}
                     </p>
                     <button
@@ -526,14 +538,16 @@ export default function MergePdf() {
         {stage === STAGE.ARRANGE && (
           <div className="fade-in">
             <div className="flex flex-wrap gap-2 mb-4">
-              {rawFiles.map((f, i) => (
+              {rawFiles.map((entry, i) => (
                 <span
-                  key={f.name}
+                  key={entry.id}
                   className={`text-xs px-2.5 py-1 rounded-full border font-medium ${fileColor(
                     i,
                   )}`}
                 >
-                  {f.name.length > 22 ? `${f.name.slice(0, 20)}...` : f.name}
+                  {entry.file.name.length > 22
+                    ? `${entry.file.name.slice(0, 20)}...`
+                    : entry.file.name}
                 </span>
               ))}
             </div>
