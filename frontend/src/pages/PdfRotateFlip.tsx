@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
-import { PDFDocument, degrees } from "pdf-lib";
 import { Toaster, toast } from "sonner";
+import { buildTransformedPdf } from "../utils/pdfPageTransforms";
 import { motion } from "framer-motion";
 import {
   RotateCcw,
@@ -196,35 +196,13 @@ const transformAndDownload = async () => {
   try {
     const arrayBuffer = await file.arrayBuffer();
 
-    const originalPdfDoc = await PDFDocument.load(arrayBuffer);
-    const newPdfDoc = await PDFDocument.create();
-
-    const total = previews.length;
-
-    for (let i = 0; i < previews.length; i++) {
-      const previewItem = previews[i];
-
-      const originalIndex = previewItem.originalPageNum - 1;
-
-      const [copiedPage] = await newPdfDoc.copyPages(
-        originalPdfDoc,
-        [originalIndex]
-      );
-
-      const shouldTransform =
-        scope === "all" ||
-        selectedPreviewPages.includes(previewItem.originalPageNum);
-
-      if (shouldTransform) {
-        copiedPage.setRotation(degrees(previewItem.currentRotation));
-      }
-
-      newPdfDoc.addPage(copiedPage);
-
-      setProgress(Math.round(((i + 1) / total) * 100));
-    }
-
-    const pdfBytes = await newPdfDoc.save();
+    const pdfBytes = await buildTransformedPdf(
+      arrayBuffer,
+      previews,
+      (originalPageNum) =>
+        scope === "all" || selectedPreviewPages.includes(originalPageNum),
+      setProgress,
+    );
 
     const blob = new Blob([new Uint8Array(pdfBytes)], {
       type: "application/pdf",
