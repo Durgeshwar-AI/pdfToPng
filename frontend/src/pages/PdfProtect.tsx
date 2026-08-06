@@ -1,11 +1,31 @@
 import { useState, useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
-import { FileText, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { FileText, Lock, Eye, EyeOff, AlertTriangle, Check, X } from "lucide-react";
 import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
 import { useHistory } from "../context/HistoryContext";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+function Rule({
+  ok,
+  text,
+}: {
+  ok: boolean;
+  text: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      {ok ? (
+        <Check className="w-4 h-4 text-green-400" />
+      ) : (
+        <X className="w-4 h-4 text-red-400" />
+      )}
+
+      <span>{text}</span>
+    </div>
+  );
+}
 
 function PdfProtect() {
   const { addToHistory } = useHistory();
@@ -13,6 +33,7 @@ function PdfProtect() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPasswordRules, setShowPasswordRules] = useState(false);
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
@@ -36,9 +57,36 @@ function PdfProtect() {
     setConfirmPassword("");
   };
 
+  const passwordChecks = {
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /\d/.test(password),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    length: password.length >= 8,
+  };
+
+  const isPasswordValid =
+    passwordChecks.uppercase &&
+    passwordChecks.lowercase &&
+    passwordChecks.number &&
+    passwordChecks.special &&
+    passwordChecks.length &&
+    password === confirmPassword;
+
+  const strength =
+    Object.values(passwordChecks).filter(Boolean).length;
+
+  const strengthColor =
+    strength <= 2
+      ? "bg-red-500"
+      : strength <= 4
+        ? "bg-yellow-500"
+        : "bg-green-500";
+
+  const strengthWidth = `${(strength / 5) * 100}%`;
+
   const validatePassword = () => {
     if (!password) return "Password is required.";
-    if (password.length < 4) return "Password must be at least 4 characters long.";
     if (password !== confirmPassword) return "Passwords do not match.";
     return null;
   };
@@ -155,6 +203,32 @@ function PdfProtect() {
                 </div>
               </label>
             </div>
+            <div
+              className="relative mt-4"
+              onMouseEnter={() => setShowPasswordRules(true)}
+              onMouseLeave={() => setShowPasswordRules(false)}
+            >
+
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden cursor-pointer">
+                <div
+                  className={`h-full transition-all duration-300 ${strengthColor}`}
+                  style={{ width: strengthWidth }}
+                />
+              </div>
+
+              {showPasswordRules && (
+                <div className="absolute bottom-full left-0 mb-3 z-20 w-72 rounded-lg bg-gray-800 text-white p-4 shadow-xl">
+
+                  <Rule ok={passwordChecks.uppercase} text="Uppercase Letter" />
+                  <Rule ok={passwordChecks.lowercase} text="Lowercase Letter" />
+                  <Rule ok={passwordChecks.number} text="Number (0-9)" />
+                  <Rule ok={passwordChecks.special} text="Special Character" />
+                  <Rule ok={passwordChecks.length} text="At least 8 characters" />
+
+                </div>
+              )}
+
+            </div>
             <div className="flex gap-2.5 items-start bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800 text-xs">
               <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <div>
@@ -164,7 +238,7 @@ function PdfProtect() {
           </div>
         )}
 
-        <button type="submit" disabled={!file || loading}
+        <button type="submit" disabled={!file || loading || !isPasswordValid}
           className="bg-gradient-to-r from-[#4361ee] to-[#3b82f6] text-white py-3.5 px-8 border-none rounded-lg cursor-pointer text-lg font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(59,130,246,0.25)] tracking-wide w-full max-w-[300px] mx-auto hover:enabled:-translate-y-0.5 disabled:from-[#cbd5e1] disabled:to-[#e2e8f0] disabled:text-[#94a3b8] disabled:cursor-not-allowed disabled:shadow-none">
           {loading ? (
             <>
