@@ -15,7 +15,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 - Split a PDF by extracting a page range into a new document
 - Convert PDF to DOCX
 - Convert DOCX to PDF
-- Rotate or flip PDF pages
+- Rotate or flip PDF pages while preserving all source pages
 - Add watermarks to PDFs
 - Sign PDFs
 
