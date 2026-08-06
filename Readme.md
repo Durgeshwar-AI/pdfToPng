@@ -11,6 +11,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **PDF Tools:**
 
 - Convert PDF pages to PNG (single page, range, or all pages)
+- Footer “Stay Updated” signup validates email and opens a local mailto compose (no server storage)
 - Merge multiple PDF files into one document
 - Split a PDF by extracting a page range into a new document
 - Convert PDF to DOCX
