@@ -1,5 +1,6 @@
 import traceback
 from io import BytesIO
+from urllib.parse import urlparse
 
 from flask import Blueprint, request
 from docx import Document
@@ -14,6 +15,35 @@ except ImportError:
     markdown2 = None
 
 markdown_docx_bp = Blueprint("markdown_docx", __name__)
+
+
+def _is_external_url(url):
+    parsed = urlparse(url)
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
+def _add_hyperlink(paragraph, text, url):
+    from docx.opc.constants import RELATIONSHIP_TYPE as RT
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+
+    relationship_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    hyperlink = OxmlElement("w:hyperlink")
+    hyperlink.set(qn("r:id"), relationship_id)
+
+    run = OxmlElement("w:r")
+    run_properties = OxmlElement("w:rPr")
+    color = OxmlElement("w:color")
+    color.set(qn("w:val"), "0066CC")
+    underline = OxmlElement("w:u")
+    underline.set(qn("w:val"), "single")
+    run_properties.extend((color, underline))
+
+    text_element = OxmlElement("w:t")
+    text_element.text = text
+    run.extend((run_properties, text_element))
+    hyperlink.append(run)
+    paragraph._p.append(hyperlink)
 
 
 def _add_inline(paragraph, element):
@@ -34,9 +64,14 @@ def _add_inline(paragraph, element):
             run.font.name = "Consolas"
             run.font.size = Pt(9)
         elif tag == "a":
-            run = paragraph.add_run(child.text or "")
-            run.font.color.rgb = RGBColor(0, 102, 204)
-            run.underline = True
+            text = child.text_content()
+            href = (child.get("href") or "").strip()
+            if text and _is_external_url(href):
+                _add_hyperlink(paragraph, text, href)
+            else:
+                run = paragraph.add_run(text)
+                run.font.color.rgb = RGBColor(0, 102, 204)
+                run.underline = True
         elif tag == "br":
             paragraph.add_run("\n")
         else:
