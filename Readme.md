@@ -38,7 +38,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **MD tools**
 
 - Convert Markdown to HTML with optional theme styling, from an uploaded `.md` file or Markdown text pasted straight into the page
-- Convert Markdown files to DOCX while preserving HTTP and HTTPS hyperlinks
+- Convert Markdown to a Word (`.docx`) document, from an uploaded `.md` file or Markdown text pasted straight into the page
 
 The backend is a Flask API and the frontend is a React app (Vite).
 
@@ -192,6 +192,7 @@ pdfToPng/
   - `watermark.py` – Add watermarks to PDFs and images endpoint
   - `md2html.py` – Standalone CLI script and shared library that defines `THEMES` and `convert_md_to_html()`; can be run directly from the command line to convert `.md` files to `.html`
   - `markdown.py` – Flask blueprint that registers the `/convertMdToHtml` endpoint; accepts either a `.md` upload (`file`) or raw Markdown (`text`) and delegates conversion logic and themes to `md2html.py`
+  - `markdown_docx.py` – Flask blueprint that registers the `/convertMdToDocx` endpoint; accepts either a `.md` upload (`file`) or raw Markdown (`text`) and renders it into a Word document
 - `utils/` – Helper functions and utilities used across blueprints:
   - `helpers.py` – Common utility functions
   - `decorators.py` – Custom decorators for request handling
