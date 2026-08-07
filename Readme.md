@@ -11,11 +11,11 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **PDF Tools:**
 
 - Convert PDF pages to PNG (single page, range, or all pages)
-- Merge multiple PDF files into one document
+- Merge multiple PDF files into one document, including files with the same name
 - Split a PDF by extracting a page range into a new document
 - Convert PDF to DOCX
 - Convert DOCX to PDF
-- Rotate or flip PDF pages
+- Rotate or flip PDF pages while preserving all source pages
 - Add watermarks to PDFs
 - Sign PDFs
 
@@ -95,7 +95,8 @@ pdfToPng/
 │   └── utils/
 │       ├── __init__.py
 │       ├── helpers.py
-│       └── decorators.py
+│       ├── decorators.py
+│       └── job_manager.py
 ├── frontend/
 │   ├── package.json
 │   ├── vite.config.js
@@ -196,6 +197,8 @@ pdfToPng/
   - `helpers.py` – Common utility functions
   - `decorators.py` – Custom decorators for request handling
   - `validators.py` – Shared input validation, including `resolve_markdown_input()` which reads Markdown from either an upload or pasted text
+  - `job_manager.py` – In-memory job store for tracking async task progress (status, stage, result) used by long-running endpoints like background removal
+
 
 **Frontend** (`frontend/`)
 
@@ -317,6 +320,7 @@ Available endpoints:
 **Mark Down Endpoints**
 
 - `POST /convertMdToHtml` – Converts MD to HTML
+- `POST /convertMdToDocx` – Converts MD to DOCX with clickable HTTP and HTTPS links
 
 **Health Check:**
 
@@ -342,6 +346,7 @@ npm run dev
 By default, Vite will start the frontend at `http://localhost:5173`.
 
 Make sure your frontend API calls target `http://localhost:5000` for the backend.
+For deployed environments, set `VITE_API_URL` to the public backend origin; PDF-to-PNG server fallback requests use this value.
 
 ## Running with Docker (Recommended)
 

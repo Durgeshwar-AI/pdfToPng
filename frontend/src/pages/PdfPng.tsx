@@ -12,6 +12,7 @@ import {
   toastDismiss,
   parseApiError,
 } from "../utils/toast";
+import { buildApiUrl } from "../utils/api";
 
 const PdfPng = () => {
   const [scale, setScale] = useState(2.0);
@@ -247,17 +248,10 @@ const PdfPng = () => {
         form.append("file", file);
         form.append("language", language);
 
-        const tryUrls = ["/convertPng", "http://localhost:5000/convertPng"];
-        let response = null;
-        for (const url of tryUrls) {
-          try {
-            response = await fetch(url, { method: "POST", body: form });
-            if (response && response.ok) break;
-          } catch (e) {
-            console.warn("Server convert attempt failed:", url, e);
-            response = null;
-          }
-        }
+        const response = await fetch(buildApiUrl("/convertPng"), {
+          method: "POST",
+          body: form,
+        });
 
         if (response && response.ok) {
           const blob = await response.blob();
