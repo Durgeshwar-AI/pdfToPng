@@ -39,6 +39,7 @@ function PdfXlsx() {
     handleDragLeave,
     handleDrop,
     handleAreaClick,
+    previewUrl,
   } = useFileUpload(validateFile);
 
   const handleSubmit = async (e) => {
@@ -121,6 +122,7 @@ function PdfXlsx() {
           defaultIcon={<FileSpreadsheet className="w-16 h-16" />}
           defaultText="Upload a PDF to convert"
           supportText="Extracts tables and text into .xlsx"
+          previewUrl={previewUrl}
         />
 
         <button
