@@ -1,0 +1,71 @@
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { MemoryRouter } from "react-router-dom";
+
+import MdToHtml from "../pages/MdToHtml";
+import { HistoryProvider } from "../context/HistoryContext";
+
+const renderPage = () =>
+  render(
+    <MemoryRouter>
+      <HistoryProvider>
+        <MdToHtml />
+      </HistoryProvider>
+    </MemoryRouter>
+  );
+
+const clickMode = (name) =>
+  fireEvent.click(screen.getByRole("button", { name }));
+
+describe("Markdown to HTML text input", () => {
+  it("starts in file mode with no Markdown textarea", async () => {
+    renderPage();
+
+    expect(
+      await screen.findByRole("button", { name: /upload \.md file/i })
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/markdown text/i)).not.toBeInTheDocument();
+  });
+
+  it("swaps the file upload area for a textarea in text mode", async () => {
+    renderPage();
+    await screen.findByRole("button", { name: /paste markdown/i });
+
+    clickMode(/paste markdown/i);
+
+    expect(await screen.findByLabelText(/markdown text/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.querySelector('input[type="file"]')).not.toBeInTheDocument()
+    );
+  });
+
+  it("keeps submit disabled until Markdown text is entered", async () => {
+    renderPage();
+    await screen.findByRole("button", { name: /paste markdown/i });
+
+    clickMode(/paste markdown/i);
+
+    const submit = screen.getByRole("button", { name: /convert to html/i });
+    expect(submit).toBeDisabled();
+
+    fireEvent.change(await screen.findByLabelText(/markdown text/i), {
+      target: { value: "# Heading" },
+    });
+    expect(submit).toBeEnabled();
+  });
+
+  it("discards typed Markdown when switching back to file mode", async () => {
+    renderPage();
+    await screen.findByRole("button", { name: /paste markdown/i });
+
+    clickMode(/paste markdown/i);
+    fireEvent.change(await screen.findByLabelText(/markdown text/i), {
+      target: { value: "# Heading" },
+    });
+
+    clickMode(/upload \.md file/i);
+    clickMode(/paste markdown/i);
+
+    expect(await screen.findByLabelText(/markdown text/i)).toHaveValue("");
+  });
+});

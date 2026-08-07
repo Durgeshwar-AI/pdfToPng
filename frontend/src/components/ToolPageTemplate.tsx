@@ -28,9 +28,12 @@ interface ToolPageTemplateProps {
   onSuccessMessage?: string;
   onSuccess?: (blob: Blob, fileName: string) => string | void;
   getDownloadFilename?: (fileName: string) => string;
+  headerFields?: React.ReactNode | ((context: any) => React.ReactNode);
   extraFields?: React.ReactNode | ((context: any) => React.ReactNode);
   extraContent?: React.ReactNode | ((context: any) => React.ReactNode);
   showSubmitButton?: boolean;
+  hideFileUpload?: boolean;
+  requireFile?: boolean;
   maxWidthClass?: string;
   defaultIcon?: React.ReactNode;
   defaultText?: string;
@@ -55,9 +58,12 @@ const ToolPageTemplate = ({
   onSuccessMessage,
   onSuccess,
   getDownloadFilename,
+  headerFields,
   extraFields,
   extraContent,
   showSubmitButton = true,
+  hideFileUpload = false,
+  requireFile = true,
   maxWidthClass = "max-w-[600px]",
   defaultIcon,
   defaultText,
@@ -107,7 +113,7 @@ const ToolPageTemplate = ({
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!file) {
+    if (requireFile && !file) {
       toastError("Please select a file first.");
       return;
     }
@@ -117,7 +123,7 @@ const ToolPageTemplate = ({
     setInlineProgress("");
 
     const formData = new FormData();
-    formData.append(fileFieldName, file);
+    if (file) formData.append(fileFieldName, file);
 
     if (modifyFormData) {
       modifyFormData(formData);
@@ -136,7 +142,9 @@ const ToolPageTemplate = ({
           previewUrl,
           addToHistory: (downloadUrl: string, downloadName: string) => {
             addToHistory({
-              fileName: file.name,
+              // Text-only submissions have no source file, so the generated
+              // download name is the most meaningful label for history.
+              fileName: file ? file.name : downloadName,
               conversionType: title,
               downloadUrl,
               downloadName,
@@ -150,7 +158,10 @@ const ToolPageTemplate = ({
         throw new Error("No API endpoint or custom onSubmit handler provided.");
       }
 
-      loadingToastId = toastLoading(`Processing "${file.name}"…`);
+      // Falls back to the tool name when the tool accepts input without a file.
+      const sourceName = file ? file.name : title;
+
+      loadingToastId = toastLoading(`Processing "${sourceName}"…`);
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}${apiEndpoint}`,
@@ -164,8 +175,8 @@ const ToolPageTemplate = ({
         a.href = url;
 
         const downloadName = getDownloadFilename
-          ? getDownloadFilename(file.name)
-          : file.name;
+          ? getDownloadFilename(sourceName)
+          : sourceName;
         a.download = downloadName;
 
         document.body.appendChild(a);
@@ -175,7 +186,7 @@ const ToolPageTemplate = ({
 
         const historyUrl = window.URL.createObjectURL(blob);
         addToHistory({
-          fileName: file.name,
+          fileName: sourceName,
           conversionType: title,
           downloadUrl: historyUrl,
           downloadName,
@@ -183,7 +194,7 @@ const ToolPageTemplate = ({
 
         let successMsg = onSuccessMessage || "Success! File downloaded.";
         if (onSuccess) {
-          const customMessage = onSuccess(blob, file.name);
+          const customMessage = onSuccess(blob, sourceName);
           if (customMessage) successMsg = customMessage;
         }
 
@@ -227,32 +238,36 @@ const ToolPageTemplate = ({
       {description && <p className="theme-muted mb-8">{description}</p>}
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
-        <Suspense fallback={<div>Loading upload...</div>}>
-          <FileUploadArea
-            file={file}
-            previewUrl={previewUrl}
-            isDragging={isDragging}
-            fileInputRef={fileInputRef}
-            dropAreaRef={dropAreaRef}
-            handleFileChange={handleFileChange}
-            handleClear={handleClearAll}
-            handleDragEnter={handleDragEnter}
-            handleDragOver={handleDragOver}
-            handleDragLeave={handleDragLeave}
-            handleDrop={handleDrop}
-            handleAreaClick={handleAreaClick}
-            accept={accept}
-            inputId={inputId}
-            defaultIcon={defaultIcon}
-            defaultText={defaultText}
-            supportText={supportText}
-          />
-        </Suspense>
+        {headerFields && (typeof headerFields === "function" ? headerFields(context) : headerFields)}
+
+        {!hideFileUpload && (
+          <Suspense fallback={<div>Loading upload...</div>}>
+            <FileUploadArea
+              file={file}
+              previewUrl={previewUrl}
+              isDragging={isDragging}
+              fileInputRef={fileInputRef}
+              dropAreaRef={dropAreaRef}
+              handleFileChange={handleFileChange}
+              handleClear={handleClearAll}
+              handleDragEnter={handleDragEnter}
+              handleDragOver={handleDragOver}
+              handleDragLeave={handleDragLeave}
+              handleDrop={handleDrop}
+              handleAreaClick={handleAreaClick}
+              accept={accept}
+              inputId={inputId}
+              defaultIcon={defaultIcon}
+              defaultText={defaultText}
+              supportText={supportText}
+            />
+          </Suspense>
+        )}
 
         {extraFields && (typeof extraFields === "function" ? extraFields(context) : extraFields)}
 
         {showSubmitButton && (
-          <PrimaryButton type="submit" disabled={!file || loading || disableSubmit}>
+          <PrimaryButton type="submit" disabled={(requireFile && !file) || loading || disableSubmit}>
             {loading ? (
               <>
                 <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
