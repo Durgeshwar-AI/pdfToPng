@@ -16,6 +16,10 @@ ALLOWED_PDF_EXTENSIONS = {".pdf"}
 ALLOWED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/webp"}
 ALLOWED_PDF_MIME_TYPES = {"application/pdf"}
 
+# Base name used when Markdown arrives as pasted text instead of an uploaded
+# file, so the generated download still gets a sensible filename.
+DEFAULT_MARKDOWN_BASENAME = "document"
+
 # Upload directory for temporary file storage (if needed in future)
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 
@@ -74,6 +78,43 @@ def validate_uploaded_file(request, field_name):
         return None, None, path_error
 
     return file, filename, None
+
+
+def resolve_markdown_input(request, file_field="file", text_field="text"):
+    """
+    Resolve Markdown content from either an uploaded .md file or pasted text.
+
+    Returns (md_content, base_name, error_response), where `base_name` is the
+    download name without its extension. On failure the first two values are
+    None and an error response is returned instead.
+    """
+    md_file = request.files.get(file_field)
+
+    if md_file is not None and md_file.filename != "":
+        if not md_file.filename.lower().endswith(".md"):
+            return None, None, error(
+                "Invalid file format. Please upload a Markdown (.md) file."
+            )
+
+        try:
+            md_content = md_file.read().decode("utf-8")
+        except UnicodeDecodeError:
+            return None, None, error(
+                "Could not decode the file as UTF-8. "
+                "Please ensure it is a valid Markdown file."
+            )
+
+        base_name = md_file.filename.rsplit(".", 1)[0] or DEFAULT_MARKDOWN_BASENAME
+        return md_content, base_name, None
+
+    md_text = request.form.get(text_field, "")
+
+    if md_text.strip() == "":
+        return None, None, error(
+            "No Markdown provided. Please upload a .md file or enter Markdown text."
+        )
+
+    return md_text, DEFAULT_MARKDOWN_BASENAME, None
 
 
 def validate_file_extension(

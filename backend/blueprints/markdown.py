@@ -3,6 +3,7 @@ from io import BytesIO
 from flask import Blueprint, request
 
 from utils.helpers import error, send_file_and_cleanup
+from utils.validators import resolve_markdown_input
 from .md2html import convert_md_to_html, THEMES, markdown2
 
 markdown_bp = Blueprint("markdown", __name__)
@@ -14,18 +15,9 @@ def convert_md_to_html_endpoint():
         return error("markdown2 dependency is not installed on the server", 500)
 
     try:
-        if "file" not in request.files:
-            return error("No file provided")
-
-        md_file = request.files["file"]
-
-        if md_file.filename == "":
-            return error("No file selected")
-
-        if not md_file.filename.lower().endswith(".md"):
-            return error("Invalid file format. Please upload a Markdown (.md) file.")
-
-        md_content = md_file.read().decode("utf-8")
+        md_content, base_name, input_error = resolve_markdown_input(request)
+        if input_error:
+            return input_error
 
         output_filename = request.form.get("output_filename", "")
         theme = request.form.get("theme", "light")
@@ -36,8 +28,7 @@ def convert_md_to_html_endpoint():
         html_output = convert_md_to_html(md_content, theme)
 
         if not output_filename:
-            base = md_file.filename.rsplit(".", 1)[0]
-            output_filename = base + ".html"
+            output_filename = base_name + ".html"
         elif not output_filename.lower().endswith(".html"):
             output_filename += ".html"
 

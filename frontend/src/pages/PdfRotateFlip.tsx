@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { Toaster, toast } from "sonner";
+import { buildExportPages } from "../utils/pdfPageSelection";
 import { buildTransformedPdf } from "../utils/pdfPageTransforms";
 import { motion } from "framer-motion";
 import {
@@ -43,6 +44,7 @@ export default function PdfRotateFlip() {
   const [scope, setScope] = useState("all");
   const [pages, setPages] = useState("");
   const [selectedPreviewPages, setSelectedPreviewPages] = useState([]);
+  const [removedPageNumbers, setRemovedPageNumbers] = useState([]);
   const [totalPages, setTotalPages] = useState(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -115,6 +117,7 @@ export default function PdfRotateFlip() {
     setScope("all");
     setPages("");
     setSelectedPreviewPages([]);
+    setRemovedPageNumbers([]);
     setPreviews([]);
 
     try {
@@ -196,9 +199,15 @@ const transformAndDownload = async () => {
   try {
     const arrayBuffer = await file.arrayBuffer();
 
+    const exportPages = buildExportPages(
+      previews,
+      totalPages ?? previews.length,
+      removedPageNumbers,
+    );
+
     const pdfBytes = await buildTransformedPdf(
       arrayBuffer,
-      previews,
+      exportPages,
       (originalPageNum) =>
         scope === "all" || selectedPreviewPages.includes(originalPageNum),
       setProgress,
@@ -234,6 +243,7 @@ const transformAndDownload = async () => {
     const deletedPageNum = previews[index].originalPageNum;
     const newPreviews = previews.filter((_, i) => i !== index);
     setPreviews(newPreviews);
+    setRemovedPageNumbers(prev => [...prev, deletedPageNum]);
     setSelectedPreviewPages(prev => prev.filter(p => p !== deletedPageNum));
   };
 
@@ -307,6 +317,7 @@ const transformAndDownload = async () => {
                     e.stopPropagation();
                     setFile(null);
                     setPreviews([]);
+                    setRemovedPageNumbers([]);
                     setSelectedPreviewPages([]);
                   }}
                   className="ml-4 p-2 text-red-500 hover:bg-red-100 rounded-full"

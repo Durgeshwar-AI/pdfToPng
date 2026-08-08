@@ -8,6 +8,7 @@ from docx.shared import Pt, Inches, RGBColor
 from lxml import html as lxml_html
 
 from utils.helpers import error, send_file_and_cleanup
+from utils.validators import resolve_markdown_input
 
 try:
     import markdown2
@@ -182,20 +183,13 @@ def convert_md_to_docx():
         return error("markdown2 dependency is not installed on the server", 500)
 
     try:
-        if "file" not in request.files:
-            return error("No file provided")
+        md_content, base_name, input_error = resolve_markdown_input(request)
+        if input_error:
+            return input_error
 
-        md_file = request.files["file"]
-        if md_file.filename == "":
-            return error("No file selected")
-        if not md_file.filename.lower().endswith(".md"):
-            return error("Invalid file format. Please upload a Markdown (.md) file.")
-
-        md_content = md_file.read().decode("utf-8")
         docx_buffer = _convert(md_content)
 
-        base = md_file.filename.rsplit(".", 1)[0]
-        download_name = base + ".docx"
+        download_name = base_name + ".docx"
 
         return send_file_and_cleanup(
             docx_buffer,
