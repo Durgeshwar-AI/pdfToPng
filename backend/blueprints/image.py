@@ -10,6 +10,16 @@ from utils.validators import validate_image_file, validate_uploaded_file
 
 image_bp = Blueprint("image", __name__)
 
+# Output formats the compressor can emit, keyed by the value accepted in the
+# request. "original" is handled separately: it keeps the uploaded format.
+COMPRESSION_FORMATS = {"jpeg": "JPEG", "webp": "WEBP", "png": "PNG"}
+COMPRESSION_EXTENSIONS = {"JPEG": ".jpg", "WEBP": ".webp", "PNG": ".png"}
+COMPRESSION_MIMETYPES = {
+    "JPEG": "image/jpeg",
+    "WEBP": "image/webp",
+    "PNG": "image/png",
+}
+
 
 def _parse_positive_int(value, field_name):
     try:
@@ -228,6 +238,7 @@ def convert_to_grayscale():
 @image_bp.route("/compress", methods=["POST"])
 def compress_image():
     img = None
+    output_img = None
     buf = None
 
     try:
@@ -248,28 +259,44 @@ def compress_image():
 
         quality = max(1, min(100, quality))
 
-        img_format = (
-            img.format
-            if img.format in ["JPEG", "WEBP", "PNG"]
-            else "JPEG"
-        )
+        requested_format = request.form.get("format", "original").lower()
 
-        if img_format == "JPEG" and img.mode != "RGB":
-            img = img.convert("RGB")
+        if requested_format == "original":
+            # Keep the uploaded format, falling back to JPEG for anything the
+            # compressor cannot re-encode.
+            img_format = (
+                img.format
+                if img.format in COMPRESSION_EXTENSIONS
+                else "JPEG"
+            )
+        elif requested_format in COMPRESSION_FORMATS:
+            img_format = COMPRESSION_FORMATS[requested_format]
+        else:
+            return error(
+                "Invalid format. Please choose one of: original, jpeg, webp, png.",
+                400,
+            )
 
-        extension_map = {"JPEG": ".jpg", "WEBP": ".webp", "PNG": ".png"}
-        mimetype_map = {"JPEG": "image/jpeg", "WEBP": "image/webp", "PNG": "image/png"}
+        # JPEG has no alpha channel, so transparency is flattened onto white
+        # instead of turning black. WebP only accepts RGB/RGBA input.
+        if img_format == "JPEG":
+            output_img = _convert_alpha_to_rgb(img)
+        elif img_format == "WEBP" and img.mode not in ("RGB", "RGBA"):
+            output_img = img.convert("RGBA")
+        else:
+            output_img = img
 
-        extension = extension_map[img_format]
-        mimetype = mimetype_map[img_format]
+        extension = COMPRESSION_EXTENSIONS[img_format]
+        mimetype = COMPRESSION_MIMETYPES[img_format]
 
         buf = BytesIO()
 
+        # PNG is lossless, so it is optimized rather than quality-scaled.
         save_kwargs = {"format": img_format, "optimize": True}
         if img_format != "PNG":
             save_kwargs["quality"] = quality
 
-        img.save(buf, **save_kwargs)
+        output_img.save(buf, **save_kwargs)
 
         buf.seek(0)
 
@@ -288,6 +315,11 @@ def compress_image():
         return error(str(e), 500)
 
     finally:
+        if output_img is not None and output_img is not img:
+            try:
+                output_img.close()
+            except Exception:
+                pass
         if img:
             try:
                 img.close()
