@@ -44,7 +44,7 @@ def compress_pdf():
         )
 
     except fitz.FileDataError:
-        return error("The uploaded file appears to be corrupted or is not a valid PDF.",400),
+        return error("The uploaded file appears to be corrupted or is not a valid PDF.",400)
 
     except Exception as e:
         return error("An error occurred while compressing the PDF: {str(e)}",500),

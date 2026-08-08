@@ -31,7 +31,7 @@ def protect_pdf():
     password = request.form.get("password")
 
     if not password:
-        return error("No password provided.",400),
+        return error("No password provided.",400)
 
     data = file.read()
     src = None
@@ -40,7 +40,7 @@ def protect_pdf():
         src = fitz.open(stream=data, filetype="pdf")
 
         if src.is_encrypted:
-            return error("The uploaded PDF is already password protected.",400),
+            return error("The uploaded PDF is already password protected.",400)
 
         # Create output stream
         buf = io.BytesIO()
@@ -67,7 +67,7 @@ def protect_pdf():
         )
 
     except fitz.FileDataError:
-        return error("The uploaded file appears to be corrupted or is not a valid PDF.",400),
+        return error("The uploaded file appears to be corrupted or is not a valid PDF.",400)
 
     except Exception as e:
         return error("An error occurred while protecting the PDF: {str(e)}",500),
