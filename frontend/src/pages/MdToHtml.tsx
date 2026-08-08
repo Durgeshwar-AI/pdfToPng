@@ -2,9 +2,18 @@ import React, { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { toastSuccess, toastError } from "../utils/toast";
 
+const INPUT_MODES = [
+  { id: "file", label: "Upload .md file" },
+  { id: "text", label: "Paste Markdown" },
+];
+
 const MdToHtml = () => {
+  const [inputMode, setInputMode] = useState("file");
+  const [markdownText, setMarkdownText] = useState("");
   const [outputFilename, setOutputFilename] = useState("");
   const [theme, setTheme] = useState("light");
+
+  const isTextMode = inputMode === "text";
 
   const validateFile = useCallback(async (selectedFile) => {
     if (selectedFile && selectedFile.name.toLowerCase().endsWith(".md")) {
@@ -23,13 +32,29 @@ const MdToHtml = () => {
 
   const handleClear = () => {
     setOutputFilename("");
-    setTheme("light");
+    setMarkdownText("");
+  };
+
+  // Only one input source may be active at a time, so switching modes drops
+  // whatever was entered in the mode being left behind.
+  const switchInputMode = (mode, clearFile) => {
+    if (mode === inputMode) return;
+    setInputMode(mode);
+    if (mode === "text") {
+      clearFile();
+    } else {
+      setMarkdownText("");
+    }
   };
 
   const handleCustomSubmit = async ({ file, setLoading, addToHistory }) => {
     try {
       const form = new FormData();
-      form.append("file", file);
+      if (isTextMode) {
+        form.append("text", markdownText);
+      } else {
+        form.append("file", file);
+      }
       if (outputFilename.trim() !== "") {
         form.append("output_filename", outputFilename.trim());
       }
@@ -47,7 +72,9 @@ const MdToHtml = () => {
 
         let downloadName = outputFilename.trim();
         if (!downloadName) {
-          downloadName = file.name.replace(/\.md$/i, ".html");
+          downloadName = isTextMode
+            ? "document.html"
+            : file.name.replace(/\.md$/i, ".html");
         }
         if (!downloadName.toLowerCase().endsWith(".html")) {
           downloadName += ".html";
@@ -80,22 +107,73 @@ const MdToHtml = () => {
     }
   };
 
+  const headerFields = ({ handleClear: clearFile }) => {
+    return (
+      <div className="w-full mb-8 flex flex-wrap gap-2 p-1.5 bg-white/50 rounded-xl border border-[#c7d2fe] shadow-sm">
+        {INPUT_MODES.map((mode) => (
+          <button
+            key={mode.id}
+            type="button"
+            aria-pressed={inputMode === mode.id}
+            onClick={() => switchInputMode(mode.id, clearFile)}
+            className={`flex-1 min-w-[140px] px-4 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+              inputMode === mode.id
+                ? "bg-[#4361ee] text-white shadow-sm"
+                : "text-[#1a1a2e] hover:bg-[#eef2ff]"
+            }`}
+          >
+            {mode.label}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   const extraFields = () => {
     return (
       <div className="w-full space-y-6 mb-8 text-left bg-white/50 p-6 rounded-xl border border-[#c7d2fe] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        {isTextMode && (
+          <div className="space-y-3">
+            <label
+              htmlFor="md-text-input"
+              className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider"
+            >
+              Markdown Text
+            </label>
+            <textarea
+              id="md-text-input"
+              rows={12}
+              placeholder={"# Hello World\n\nPaste or type your **Markdown** here."}
+              value={markdownText}
+              onChange={(e) => setMarkdownText(e.target.value)}
+              className="w-full p-3 border border-[#e2e8f0] rounded-xl font-mono text-sm resize-y focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-all bg-white text-[#1a1a2e]"
+            />
+            <p className="mt-2 text-[11px] text-[#6b7280]">
+              Nothing is stored on the server — the text is converted in memory and
+              returned as a downloadable HTML file
+            </p>
+          </div>
+        )}
+
         <div className="space-y-3">
           <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
             Output Filename (optional)
           </label>
           <input
             type="text"
-            placeholder="Leave empty to use input name with .html extension"
+            placeholder={
+              isTextMode
+                ? "Leave empty to use document.html"
+                : "Leave empty to use input name with .html extension"
+            }
             value={outputFilename}
             onChange={(e) => setOutputFilename(e.target.value)}
             className="w-full p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-all bg-white text-[#1a1a2e] font-medium"
           />
           <p className="mt-2 text-[11px] text-[#6b7280]">
-            If left blank, the output file will have the same name as the input file with .html extension
+            {isTextMode
+              ? "If left blank, the output file will be named document.html"
+              : "If left blank, the output file will have the same name as the input file with .html extension"}
           </p>
         </div>
 
@@ -128,14 +206,18 @@ const MdToHtml = () => {
   return (
     <ToolPageTemplate
       title="Markdown to HTML Converter"
-      description="Convert Markdown files to HTML with optional themes (light, dark, blue)"
+      description="Convert a Markdown file — or Markdown text you paste in — to HTML with optional themes (light, dark, blue)"
       accept=".md"
       validateFile={validateFile}
       onSubmit={handleCustomSubmit}
       onClear={handleClear}
       submitButtonText="Convert to HTML"
       loadingButtonText="Converting..."
+      headerFields={headerFields}
       extraFields={extraFields}
+      hideFileUpload={isTextMode}
+      requireFile={!isTextMode}
+      disableSubmit={isTextMode && markdownText.trim() === ""}
       maxWidthClass="max-w-[600px]"
       inputId="file-input"
       defaultIcon={

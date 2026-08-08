@@ -1,4 +1,4 @@
-from flask import Blueprint, request, send_file, jsonify
+from flask import Blueprint, request, send_file
 import fitz  # PyMuPDF
 import io
 from utils.validators import validate_uploaded_file, validate_pdf_file
@@ -21,10 +21,7 @@ def merge_pdfs():
             _, filename, upload_error = validate_uploaded_file(f, f.filename)
             if upload_error:
                 return upload_error
-            pdf_error = validate_pdf_file(filename)
-            if pdf_error:
-                return pdf_error
-
+            pdf_error = validate_pdf_file(f, filename)
             if pdf_error:
                 return pdf_error
             data = f.read()
