@@ -9,21 +9,53 @@ from werkzeug.utils import secure_filename
 logger = logging.getLogger(__name__)
 
 
+# A POSIX path segment: anything up to the next separator or whitespace.
+_PATH_SEGMENT = r"[^\s/\\]+"
+
+# Absolute POSIX paths of two segments or more: /etc/passwd, /app/config.env,
+# /root/.ssh/id_rsa. Two segments is the shortest form worth redacting — a
+# single segment such as "/health" is a route, not a filesystem location.
+# The lookbehind keeps the scheme-relative part of a URL ("https://host/a/b")
+# from being treated as a path.
+_POSIX_PATH_RE = re.compile(rf"(?<![\w/\\])(?:/{_PATH_SEGMENT}){{2,}}/?")
+
+# Home-relative paths: ~/.ssh/id_rsa, ~/config
+_HOME_PATH_RE = re.compile(rf"~(?:/{_PATH_SEGMENT})+/?")
+
+# Windows drive and UNC paths: C:\Users\..., D:/temp/..., \\server\share\...
+# The lookbehind stops a URL scheme ("https://...") from looking like a drive.
+_WINDOWS_PATH_RE = re.compile(rf"(?<![A-Za-z])[A-Za-z]:[\\/]\S*|\\\\{_PATH_SEGMENT}(?:[\\/]\S*)?")
+
+# Temp directories get their own label so operators can still tell at a glance
+# that a failure involved scratch space rather than an application path.
+_TEMP_PATH_RE = re.compile(r"(?<![\w/\\])(?:/private)?/(?:var/)?tmp(?:/\S*)?")
+
+
 def sanitize_error_message(message):
     """
     Sanitize error messages to remove sensitive file paths and system information.
     Prevents information disclosure of internal directory structures and temporary file locations.
+
+    Third-party libraries embed filesystem paths in their exception text, and a
+    crafted upload can steer which path ends up there (for example a PDF whose
+    font reference points at /etc/passwd). Every path shape is stripped before
+    the message is handed back to the client.
     """
     if not message or not isinstance(message, str):
         return "An error occurred"
 
-    # Remove file path patterns that could leak internal directory structures
-    # Windows paths: C:\Users\..., D:\temp\...
-    message = re.sub(r"[A-Za-z]:[\\\/][^\s]*", "**file**", message)
-    # Unix absolute paths: /home/user/..., /var/...
-    message = re.sub(r"\/[^\s]*(?:\/[^\s]*){2,}", "**path**", message)
-    # Temp directory paths: /tmp/..., /var/tmp/...
-    message = re.sub(r"\/tmp\/[^\s]*|\/var\/tmp\/[^\s]*", "**temp**", message)
+    # Temp paths first, so they keep their more specific label instead of being
+    # swallowed by the general POSIX rule below.
+    message = _TEMP_PATH_RE.sub("**temp**", message)
+
+    # Windows paths: C:\Users\..., \\server\share\...
+    message = _WINDOWS_PATH_RE.sub("**file**", message)
+
+    # Home-relative paths: ~/.ssh/id_rsa
+    message = _HOME_PATH_RE.sub("**path**", message)
+
+    # Absolute POSIX paths: /etc/passwd, /home/user/..., /var/...
+    message = _POSIX_PATH_RE.sub("**path**", message)
 
     # Remove Python file extension patterns that might leak implementation details
     message = re.sub(r"\.py\b|\.pyc\b|\.pyx\b", "**file**", message)
