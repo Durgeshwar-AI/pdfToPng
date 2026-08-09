@@ -167,7 +167,7 @@ export default function PdfReorder() {
   const undoDelete = () => {
     if (deletedPages.length === 0) return;
 
-    const lastDeleted = deletedPages[deletedPages.length - 1];
+    const lastDeleted = deletedPages.at(-1);
 
     setPages((prev) => {
       const next = [...prev];
