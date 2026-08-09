@@ -40,7 +40,7 @@ const UrlToQr = () => {
 
   useEffect(() => {
     if (qrRef.current) {
-      qrRef.current.innerHTML = "";
+      qrRef.current.textContent = "";
       qrCode.current.append(qrRef.current);
     }
   }, []);
