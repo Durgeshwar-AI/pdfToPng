@@ -58,6 +58,10 @@ def convert_pdf_to_docx():
             download_name="converted.docx",
         )
 
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
-        return error(str(e), 500)
+        return error(
+            "Failed to convert the PDF to DOCX. The file may be corrupted "
+            "or unsupported.",
+            500,
+        )

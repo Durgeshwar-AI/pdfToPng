@@ -1,3 +1,5 @@
+import logging
+
 import fitz  # PyMuPDF
 
 from flask import Blueprint, request
@@ -6,6 +8,8 @@ from utils.helpers import error, success
 from utils.validators import validate_pdf_file, validate_uploaded_file
 
 pdf_info_bp = Blueprint("pdf_info", __name__)
+
+logger = logging.getLogger(__name__)
 
 # Common paper sizes (width x height) in points, portrait orientation.
 # 1 pt = 1/72 inch
@@ -127,8 +131,15 @@ def get_pdf_info():
         return error(
             "The file appears to be corrupted or is not a valid PDF.", 400
         )
-    except Exception as e:
-        return error(f"Failed to read PDF info: {str(e)}", 500)
+    except Exception:
+        # PyMuPDF puts the resource it failed on into the exception text, and a
+        # crafted PDF chooses that resource, so the detail stays server-side.
+        logger.exception("Failed to read PDF info.")
+        return error(
+            "Failed to read PDF information. The file may be corrupted "
+            "or unsupported.",
+            500,
+        )
     finally:
         if doc:
             doc.close()
