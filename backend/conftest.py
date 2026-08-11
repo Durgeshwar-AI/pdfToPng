@@ -12,7 +12,6 @@ mock_modules = [
     'reportlab.lib.styles',
     'reportlab.platypus',
     'pdf2image',
-    'PIL',
     'pdf2docx',
     'markdown2',
     'bs4',

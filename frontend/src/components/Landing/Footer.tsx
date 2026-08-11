@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   FileText, 
@@ -13,9 +13,52 @@ import {
   Instagram
 } from "lucide-react";
 import { SiX } from "react-icons/si";
+import {
+  buildNewsletterMailto,
+  isValidEmail,
+} from "../../utils/newsletterSignup";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
+    "idle",
+  );
+  const [statusMessage, setStatusMessage] = useState("");
+
+  const handleSubscribe = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (status === "loading") return;
+
+    if (!isValidEmail(email)) {
+      setStatus("error");
+      setStatusMessage("Enter a valid email address.");
+      return;
+    }
+
+    const contactAddress = import.meta.env.VITE_EMAIL;
+    if (!contactAddress) {
+      setStatus("error");
+      setStatusMessage("Newsletter contact email is not configured.");
+      return;
+    }
+
+    setStatus("loading");
+    setStatusMessage("Preparing your subscription request...");
+
+    try {
+      // Privacy-first: no backend storage or third-party newsletter API.
+      // Open the local mail client so the visitor can confirm interest.
+      window.location.href = buildNewsletterMailto(email, contactAddress);
+      setStatus("success");
+      setStatusMessage("Thanks! Confirm the message in your email client.");
+      setEmail("");
+    } catch {
+      setStatus("error");
+      setStatusMessage("Could not open your email client. Try again.");
+    }
+  };
 
   return (
     <footer className="relative z-10 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 border-t border-slate-200 dark:border-gray-700">
@@ -135,16 +178,48 @@ const Footer = () => {
             {/* Newsletter Signup */}
             <div className="mt-6">
               <h4 className="text-sm font-semibold text-slate-900 mb-2">Stay Updated</h4>
-              <div className="flex gap-2">
-                <input 
-                  type="email" 
+              <form className="flex gap-2" onSubmit={handleSubscribe} noValidate>
+                <input
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (status !== "idle") {
+                      setStatus("idle");
+                      setStatusMessage("");
+                    }
+                  }}
                   placeholder="Enter your email"
-                  className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  autoComplete="email"
+                  aria-invalid={status === "error"}
+                  aria-describedby="footer-newsletter-status"
+                  disabled={status === "loading"}
+                  className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-60"
                 />
-                <button className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-all duration-300">
-                  Subscribe
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {status === "loading" ? "Sending..." : "Subscribe"}
                 </button>
-              </div>
+              </form>
+              {statusMessage && (
+                <p
+                  id="footer-newsletter-status"
+                  role="status"
+                  className={`mt-2 text-xs ${
+                    status === "error"
+                      ? "text-red-500"
+                      : status === "success"
+                        ? "text-green-600"
+                        : "text-slate-500"
+                  }`}
+                >
+                  {statusMessage}
+                </p>
+              )}
             </div>
           </div>
         </div>
