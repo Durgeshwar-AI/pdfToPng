@@ -6,6 +6,7 @@ from docx import Document
 from flask import Blueprint, request
 
 from utils.helpers import error, send_file_and_cleanup
+from utils.validators import validate_pdf_file, validate_uploaded_file
 
 pdf_docx_bp = Blueprint("pdf_docx", __name__)
 
@@ -14,14 +15,15 @@ pdf_docx_bp = Blueprint("pdf_docx", __name__)
 def convert_pdf_to_docx():
     doc = None
     try:
-        if "file" not in request.files:
-            return error("No file provided")
+        pdf_file, filename, upload_error = validate_uploaded_file(request, "file")
+        if upload_error:
+            return upload_error
 
-        pdf_file = request.files["file"]
+        pdf_error = validate_pdf_file(pdf_file, filename)
+        if pdf_error:
+            return pdf_error
 
-        if pdf_file.filename == "":
-            return error("No file selected")
-
+        pdf_bytes = pdf_file.read()
         try:
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         except Exception:

@@ -14,7 +14,6 @@ def test_removebg_path_traversal_filename(client):
 
     assert "../" not in header
     assert "..\\" not in header
-import io
 
 def test_removebg_nested_path(client):
     response = client.post(
@@ -31,7 +30,6 @@ def test_removebg_nested_path(client):
     header = response.headers.get("Content-Disposition", "")
 
     assert "../" not in header
-import io
 
 def test_removebg_windows_path(client):
     response = client.post(
@@ -48,7 +46,6 @@ def test_removebg_windows_path(client):
     header = response.headers.get("Content-Disposition", "")
 
     assert "..\\" not in header
-import io
 
 def test_removebg_absolute_path(client):
     response = client.post(

@@ -18,7 +18,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 - Reorder PDF pages (files over 50 pages are rejected to avoid truncated exports)
 - Convert PDF to DOCX
 - Convert DOCX to PDF
-- Rotate or flip PDF pages while preserving all source pages
+- Rotate or flip PDF pages (including mirrored export for horizontal/vertical flips) while preserving all source pages
 - Add watermarks to PDFs
 - Sign PDFs
 

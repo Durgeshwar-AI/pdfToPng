@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from PIL import Image, ImageFile
 from werkzeug.utils import secure_filename
 from utils.helpers import error, send_file_and_cleanup, success

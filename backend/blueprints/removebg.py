@@ -2,7 +2,7 @@ import io
 import threading
 
 import numpy as np
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, Response
 from PIL import Image, ImageFilter
 from rembg import remove
 from skimage import morphology
