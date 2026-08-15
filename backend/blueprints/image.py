@@ -250,6 +250,13 @@ def compress_image():
         if upload_error:
             return upload_error
 
+        requested_format = request.form.get("format", "original").lower()
+        if requested_format != "original" and requested_format not in COMPRESSION_FORMATS:
+            return error(
+                "Invalid format. Please choose one of: original, jpeg, webp, png.",
+                400,
+            )
+
         img, file_bytes, image_error = validate_image_file(file)
 
         if image_error:
@@ -259,8 +266,6 @@ def compress_image():
 
         quality = max(1, min(100, quality))
 
-        requested_format = request.form.get("format", "original").lower()
-
         if requested_format == "original":
             # Keep the uploaded format, falling back to JPEG for anything the
             # compressor cannot re-encode.
@@ -269,13 +274,8 @@ def compress_image():
                 if img.format in COMPRESSION_EXTENSIONS
                 else "JPEG"
             )
-        elif requested_format in COMPRESSION_FORMATS:
-            img_format = COMPRESSION_FORMATS[requested_format]
         else:
-            return error(
-                "Invalid format. Please choose one of: original, jpeg, webp, png.",
-                400,
-            )
+            img_format = COMPRESSION_FORMATS[requested_format]
 
         # JPEG has no alpha channel, so transparency is flattened onto white
         # instead of turning black. WebP only accepts RGB/RGBA input.

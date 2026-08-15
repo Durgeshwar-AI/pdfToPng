@@ -2,7 +2,6 @@ from flask import Blueprint, request, send_file
 from PIL import Image, ImageDraw, ImageFont
 from utils.helpers import error
 import io
-import os
 
 watermark_bp = Blueprint('watermark', __name__)
 
@@ -96,7 +95,7 @@ def create_text_watermark(text, font_size, color, opacity):
 
     try:
         color_rgb = tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-    except:
+    except (TypeError, ValueError):
         color_rgb = (255, 255, 255)
 
     alpha = int(255 * opacity / 100)

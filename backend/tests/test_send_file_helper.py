@@ -10,7 +10,6 @@ def test_normal_filename(app):
         )
 
         assert "hello.txt" in response.headers["Content-Disposition"]
-import io
 
 def test_path_traversal_removed(app):
     with app.test_request_context():
@@ -23,7 +22,6 @@ def test_path_traversal_removed(app):
         header = response.headers["Content-Disposition"]
 
         assert "../" not in header
-import io
 
 def test_windows_traversal_removed(app):
     with app.test_request_context():
@@ -37,7 +35,6 @@ def test_windows_traversal_removed(app):
 
         assert "..\\" not in header
 
-import io
 
 def test_absolute_path_removed(app):
     with app.test_request_context():

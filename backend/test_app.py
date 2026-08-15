@@ -1,4 +1,3 @@
-import os
 import io
 import pytest
 from flask import Flask

@@ -1,0 +1,5 @@
+[tool.ruff.lint]
+# Keep CI on Ruff's established correctness-focused default rules. Ruff is
+# installed unpinned by the workflow, so pinning the selection prevents future
+# releases from unexpectedly enabling repository-wide style rule families.
+select = ["E4", "E7", "E9", "F"]

@@ -36,8 +36,6 @@ def convert_pdf_to_png():
         # Read PDF into memory and open from bytes
         pdf_bytes = pdf_file.read()
 
-        target_lang = request.form.get("language", "eng")
-
         # Extract DPI/resolution settings. Default to 72 DPI (standard screen resolution).
         # DPI determines the scaling: zoom = requested_dpi / 72
         # For 150 DPI: zoom = 150/72 = 2.08
