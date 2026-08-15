@@ -11,8 +11,11 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **PDF Tools:**
 
 - Convert PDF pages to PNG (single page, range, or all pages)
+- Footer “Stay Updated” signup validates email and opens a local mailto compose (no server storage)
+- Batch-convert multiple PDFs to PNG with unique ZIP folders for same-named files
 - Merge multiple PDF files into one document, including files with the same name
 - Split a PDF by extracting a page range into a new document
+- Reorder PDF pages (files over 50 pages are rejected to avoid truncated exports)
 - Convert PDF to DOCX
 - Convert DOCX to PDF
 - Rotate or flip PDF pages (including mirrored export for horizontal/vertical flips) while preserving all source pages
@@ -22,7 +25,7 @@ This project is a comprehensive full‑stack web app for doing simple, local fil
 **Image Tools:**
 
 - Convert images to WebP, JPG, PNG, and SVG
-- Compress images with adjustable quality
+- Compress images with adjustable quality and a choice of output format (JPEG, WebP, PNG)
 - Resize images
 - Rotate or flip images
 - Remove the background from images
@@ -307,7 +310,7 @@ Available endpoints:
 - `POST /convertWebP` – Convert an image to WebP
 - `POST /convertJpeg` – Convert an image to JPG
 - `POST /imageToPdf` – Convert image to PDF
-- `POST /compress` – Compress an image with a quality setting
+- `POST /compress` – Compress an image with a quality setting (`quality`, 1–100) and an optional output format (`format`: `original`, `jpeg`, `webp`, or `png`; defaults to `original`)
 - `POST /rotateFlip` – Rotate or flip an image
 - `POST /convert-dpi` – Convert image DPI (JPEG, PNG, TIFF, BMP, WebP)
 - `POST /check-dpi` – Check current DPI of an image
@@ -330,6 +333,7 @@ All endpoints:
 
 - Process the file in memory
 - Do **not** persist any data on the server
+- Return sanitized error messages — server file paths and third-party library internals are stripped before the response is sent, so a crafted upload cannot use an error to probe the filesystem
 
 Note: The PDF to PNG tool runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server‑side PDF conversion, but the UI uses client‑side rendering by default.
 

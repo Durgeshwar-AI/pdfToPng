@@ -39,6 +39,7 @@ function PdfDocx() {
     handleDragLeave,
     handleDrop,
     handleAreaClick,
+    previewUrl,
   } = useFileUpload(validateFile);
 
   const handleSubmit = async (e) => {
@@ -121,6 +122,7 @@ function PdfDocx() {
           defaultIcon={<FileText className="w-16 h-16" />}
           defaultText="Upload a PDF to convert"
           supportText="Converts text-based PDFs to .docx"
+          previewUrl={previewUrl}
         />
 
         <button

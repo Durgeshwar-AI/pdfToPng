@@ -1,16 +1,31 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
-import { Sliders, Zap, ShieldCheck, Maximize } from "lucide-react";
+import { Sliders, Zap, ShieldCheck, Maximize, FileImage } from "lucide-react";
 import {
   formatFileSize,
   calculateSavedPercentage,
 } from "../utils/fileSizeFormatter";
 
+// Output formats the backend /compress endpoint accepts. "original" re-encodes
+// the image in the format it was uploaded in.
+const OUTPUT_FORMATS = [
+  { value: "original", label: "Original", extension: null },
+  { value: "jpeg", label: "JPEG", extension: "jpg" },
+  { value: "webp", label: "WebP", extension: "webp" },
+  { value: "png", label: "PNG", extension: "png" },
+] as const;
+
+type OutputFormat = (typeof OUTPUT_FORMATS)[number]["value"];
+
 function ImageCompress() {
   const [quality, setQuality] = useState(70);
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>("original");
   const [originalSize, setOriginalSize] = useState<number | null>(null);
   const [convertedSize, setConvertedSize] = useState<number | null>(null);
   const [, setUploadedFile] = useState<File | null>(null);
+
+  // PNG is lossless, so the backend ignores the quality value for it.
+  const isLossless = outputFormat === "png";
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
@@ -48,11 +63,22 @@ function ImageCompress() {
 
   const modifyFormData = (formData: FormData) => {
     formData.append("quality", String(quality));
+    formData.append("format", outputFormat);
   };
 
   const onSuccess = (responseBlob: Blob) => {
     setConvertedSize(responseBlob.size);
-    return `Success! Image compressed with ${quality}% quality.`;
+
+    if (isLossless) {
+      return "Success! Image optimized as lossless PNG.";
+    }
+
+    const formatLabel =
+      outputFormat === "original"
+        ? ""
+        : ` as ${OUTPUT_FORMATS.find((f) => f.value === outputFormat)?.label}`;
+
+    return `Success! Image compressed with ${quality}% quality${formatLabel}.`;
   };
 
   const extraFields = ({ file }: { file: File | null }) => {
@@ -60,6 +86,36 @@ function ImageCompress() {
 
     return (
       <div className="w-full max-w-[500px] mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100 text-left">
+        <fieldset className="mb-6">
+          <legend className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
+            <FileImage className="w-4 h-4 text-blue-500" />
+            Output Format
+          </legend>
+
+          <div className="grid grid-cols-4 gap-2">
+            {OUTPUT_FORMATS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                aria-pressed={outputFormat === f.value}
+                onClick={() => {
+                  setOutputFormat(f.value);
+                  // The previous result was produced in another format, so its
+                  // size comparison no longer applies.
+                  setConvertedSize(null);
+                }}
+                className={`p-2 rounded-lg text-[11px] font-bold transition-all border cursor-pointer ${
+                  outputFormat === f.value
+                    ? "bg-blue-50 border-blue-200 text-blue-600"
+                    : "bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
         <div className="flex justify-between items-center mb-4">
           <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Sliders className="w-4 h-4 text-blue-500" />
@@ -104,6 +160,13 @@ function ImageCompress() {
             </button>
           ))}
         </div>
+
+        {isLossless && (
+          <p className="mt-4 text-xs text-gray-500">
+            PNG is a lossless format, so the quality setting is ignored — the
+            image is re-encoded with optimized compression instead.
+          </p>
+        )}
 
         {/* File Size Comparison Display */}
         {convertedSize && originalSize && (
@@ -164,7 +227,7 @@ function ImageCompress() {
   return (
     <ToolPageTemplate
       title="Image Compressor"
-      description="Reduce image file size while maintaining quality"
+      description="Reduce image file size while maintaining quality, with an optional output format"
       accept="image/*"
       validateFile={validateFile}
       apiEndpoint="/compress"
@@ -172,8 +235,11 @@ function ImageCompress() {
       modifyFormData={modifyFormData}
       onSuccess={onSuccess}
       getDownloadFilename={(fileName) => {
-        let extension = fileName.split(".").pop().toLowerCase();
-        if (!["jpg", "jpeg", "webp", "png"].includes(extension)) {
+        const selected = OUTPUT_FORMATS.find((f) => f.value === outputFormat);
+
+        // An explicit format wins; "original" keeps the uploaded extension.
+        let extension = selected?.extension ?? fileName.split(".").pop()?.toLowerCase();
+        if (!extension || !["jpg", "jpeg", "webp", "png"].includes(extension)) {
           extension = "jpg";
         }
         return fileName.replace(/\.[^.]+$/, `_compressed.${extension}`);
@@ -184,7 +250,7 @@ function ImageCompress() {
       maxWidthClass="max-w-[700px]"
       defaultIcon={<Sliders className="w-16 h-16" />}
       defaultText="Upload image for compression"
-      supportText="Adjust quality and reduce file size"
+      supportText="Adjust quality, pick an output format, and reduce file size"
       inputId="compress-input"
     />
   );

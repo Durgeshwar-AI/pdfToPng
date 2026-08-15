@@ -127,7 +127,10 @@ def sign_pdf():
 
     except Exception as e:
         logger.error(f"PDF signing failed: {str(e)}", exc_info=True)
-        return error(f"Failed to sign PDF: {str(e)}", 500)
+        return error(
+            "Failed to sign the PDF. The file may be corrupted or unsupported.",
+            500,
+        )
     finally:
         if doc:
             doc.close()

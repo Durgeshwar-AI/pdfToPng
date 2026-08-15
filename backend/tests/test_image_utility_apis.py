@@ -55,3 +55,35 @@ def test_rotate_flip_unsupported_file(client):
     )
 
     assert response.status_code == 400
+
+def test_compress_missing_file(client):
+    response = client.post("/compress")
+
+    assert response.status_code == 400
+    assert response.is_json
+
+
+def test_compress_unsupported_file(client):
+    response = client.post(
+        "/compress",
+        data={
+            "image": (io.BytesIO(b"hello"), "sample.txt")
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+
+
+def test_compress_rejects_unknown_output_format(client):
+    response = client.post(
+        "/compress",
+        data={
+            "image": (io.BytesIO(b"hello"), "sample.png"),
+            "format": "gif",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert "format" in response.get_json()["message"].lower()
