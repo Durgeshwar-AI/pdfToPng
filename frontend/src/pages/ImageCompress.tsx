@@ -139,7 +139,7 @@ function ImageCompress() {
           min="1"
           max="100"
           value={quality}
-          onChange={(e) => setQuality(parseInt(e.target.value))}
+          onChange={(e) => setQuality(parseInt(e.target.value, 10))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mb-6"
         />
 

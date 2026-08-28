@@ -38,7 +38,8 @@ const Navbar = () => {
           },
         );
 
-        const data = await response.json();
+        if (!response.ok) throw new Error("Request failed");
+const data = await response.json();
 
         setStars(data.stargazers_count);
       } catch (error) {
