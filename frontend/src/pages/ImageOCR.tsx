@@ -175,7 +175,7 @@ function ImageOCR() {
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between text-sm text-gray-600">
             <span>OCR Progress</span>
-            <span>{Math.round(ocrProgress * 100)}%</span>
+            <span>{Math.round(ocrProgress * 100 + Number.EPSILON)}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-200">
             <div
