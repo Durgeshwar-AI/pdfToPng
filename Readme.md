@@ -384,6 +384,8 @@ The `docker-compose.yml` is configured for development:
 
 ## Contributing
 
+### Contributions are not being accepted for the time being
+
 Contributions are welcome! Before opening an issue or pull request, please read `CONTRIBUTING.md`.
 
 If this project helped you, please star the repo on GitHub.
