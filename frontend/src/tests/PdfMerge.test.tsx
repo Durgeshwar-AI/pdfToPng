@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { getPdfFiles } from "../utils/fileSelection";
-import MergePdf from "./PdfMerge";
+import MergePdf from "../pages/PdfMerge";
 
 function createFileList(files: File[]) {
   return {
