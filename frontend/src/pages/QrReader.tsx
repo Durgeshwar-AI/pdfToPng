@@ -86,7 +86,13 @@ export default function QrReader() {
     const loadingId = toastLoading("Reading QR Code…");
     const reader = new FileReader();
 
-    reader.onload = (e) => {
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        toastDismiss(loadingId);
+        toastError("Failed to read image file.");
+        return;
+      }
+
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
@@ -119,7 +125,7 @@ export default function QrReader() {
         toastError("Failed to load image file.");
       };
 
-      img.src = e.target.result;
+      img.src = reader.result;
     };
 
     reader.onerror = () => {
