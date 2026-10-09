@@ -1,6 +1,19 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-CV1EXBQLGG"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-CV1EXBQLGG");
+    </script>
     <meta charset="UTF-8" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -39,18 +52,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-CV1EXBQLGG"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-CV1EXBQLGG");
-    </script>
   </body>
 </html>
