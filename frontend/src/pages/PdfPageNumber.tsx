@@ -4,7 +4,7 @@ import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Hash, LayoutGrid, Eye } from "lucide-react";
 import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
-import { useHistory } from "../context/HistoryContext";
+import { useHistory } from "../context/history-context";
 import * as pdfjsLib from "pdfjs-dist";
 
 import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";

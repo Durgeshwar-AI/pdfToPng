@@ -4,7 +4,7 @@ import './index.css'
 import App from './App'
 import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
-import { HistoryProvider } from './context/HistoryContext.jsx'
+import { HistoryProvider } from './context/HistoryContext'
 import { Toaster } from 'sonner'
 
 createRoot(document.getElementById('root')).render(

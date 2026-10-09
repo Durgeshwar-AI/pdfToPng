@@ -3,7 +3,7 @@ import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileSpreadsheet } from "lucide-react";
 import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
-import { useHistory } from "../context/HistoryContext";
+import { useHistory } from "../context/history-context";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 

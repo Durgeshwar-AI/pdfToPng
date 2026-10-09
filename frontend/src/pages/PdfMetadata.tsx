@@ -4,7 +4,7 @@ import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Tags, Trash2, Download } from "lucide-react";
 import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
-import { useHistory } from "../context/HistoryContext";
+import { useHistory } from "../context/history-context";
 
 interface PdfMetadataType { title: string; author: string; subject: string; keywords: string; creator: string; producer: string; }
 

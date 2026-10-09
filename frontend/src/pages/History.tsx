@@ -1,4 +1,4 @@
-import { useHistory } from "../context/HistoryContext";
+import { useHistory } from "../context/history-context";
 import { Trash2, Clock, FileText } from "lucide-react";
  
 function HistoryItem({ entry }) {

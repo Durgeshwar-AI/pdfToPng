@@ -1,4 +1,4 @@
-import { useHistory } from "../context/HistoryContext";
+import { useHistory } from "../context/history-context";
 import React, { useState, useCallback, lazy, Suspense } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import PrimaryButton from "./UI/PrimaryButton";

@@ -5,7 +5,7 @@ import FileUploadArea from "../components/FileUploadArea";
 import PrimaryButton from "../components/UI/PrimaryButton";
 import { FileText } from "lucide-react";
 import { toastError, toastSuccess } from "../utils/toast";
-import { useHistory } from "../context/HistoryContext";
+import { useHistory } from "../context/history-context";
 
 function CsvToJson() {
   const [jsonOutput, setJsonOutput] = useState("");
