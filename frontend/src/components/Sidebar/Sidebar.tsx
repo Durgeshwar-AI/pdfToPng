@@ -24,6 +24,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
     icon: t.icon,
     description: t.description,
     category: t.category || "Utilities",
+    processingLocation: t.processingLocation,
   }));
 
   const groupedTools = menuItems.reduce((acc, tool) => {
@@ -153,7 +154,25 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                             </span>
                             {!isCollapsed && (
                               <div className="flex-1 text-left">
-                                <div className="font-medium">{item.label}</div>
+                                <div className="flex items-center gap-2 font-medium">
+                                  <span>{item.label}</span>
+                                  <span
+                                    className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
+                                      activeTab === item.id
+                                        ? "bg-white/20 text-white"
+                                        : item.processingLocation === "backend"
+                                        ? "bg-rose-100 text-rose-800 dark:bg-rose-900/70 dark:text-rose-200"
+                                        : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200"
+                                    }`}
+                                    title={
+                                      item.processingLocation === "backend"
+                                        ? "Requires file upload to the backend"
+                                        : "Runs entirely in your browser"
+                                    }
+                                  >
+                                    {item.processingLocation === "backend" ? "Upload" : "Browser"}
+                                  </span>
+                                </div>
                                 <div className="text-xs opacity-75 mt-0.5">
                                   {item.description}
                                 </div>

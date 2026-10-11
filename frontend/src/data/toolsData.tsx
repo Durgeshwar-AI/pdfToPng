@@ -481,4 +481,36 @@ const tools = [
 }
 ];
 
-export default tools;
+// Keep this list aligned with tools that send the selected file to the Flask API.
+const backendToolIds = new Set([
+"pdf-searchable-ocr",
+"pdf-to-png",
+"pdf-protect",
+"pptx-to-pdf",
+"pdf-compress",
+"pdf-unlock",
+"image-compress",
+"image-upscale",
+"image-to-jpg",
+"image-watermark",
+"image-to-grayscale",
+"image-resize",
+"image-dpi",
+"image-metadata",
+"docx-to-pdf",
+"md-to-html",
+"md-to-docx",
+"pdf-to-word",
+"pdf-to-excel",
+"pdf-info",
+"pdf-sign",
+"remove-bg",
+"rotate-flip",
+]);
+
+const toolsWithProcessingLocation = tools.map((tool) => ({
+...tool,
+processingLocation: backendToolIds.has(tool.id) ? "backend" : "frontend",
+}));
+
+export default toolsWithProcessingLocation;

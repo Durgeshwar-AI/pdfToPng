@@ -943,10 +943,29 @@ const toolAnimations = {
   ),
 };
 
-const ToolCard = ({ tool, index }) => (
+const processingStyles = {
+  frontend: {
+    card: "bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/70 hover:border-emerald-400 dark:hover:border-emerald-500",
+    badge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200",
+    label: "Runs in your browser",
+  },
+  backend: {
+    card: "bg-rose-50/35 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/70 hover:border-rose-400 dark:hover:border-rose-500",
+    badge: "bg-rose-100 text-rose-800 dark:bg-rose-900/70 dark:text-rose-200",
+    label: "Requires file upload",
+  },
+};
+
+const ToolCard = ({ tool, index }) => {
+  const processing =
+    tool.processingLocation === "backend"
+      ? processingStyles.backend
+      : processingStyles.frontend;
+
+  return (
   <Link
     to={tool.path}
-    className="group relative p-4 md:p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-slate-200 dark:border-gray-700 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:border-slate-300 animate-fade-in-up flex flex-col h-full min-h-50 md:min-h-60"
+    className={`group relative p-4 md:p-8 rounded-2xl shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl animate-fade-in-up flex flex-col h-full min-h-50 md:min-h-60 ${processing.card}`}
     style={{ animationDelay: `${1000 + index * 100}ms` }}
   >
     <div
@@ -957,9 +976,9 @@ const ToolCard = ({ tool, index }) => (
         <div
           className={`w-14 h-14 rounded-xl bg-linear-to-br ${tool.iconGradient} p-px tc-icon-float`}
         >
-          <div className="w-full h-full rounded-xl bg-white flex items-center justify-center">
+          <div className="w-full h-full rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center">
             {React.cloneElement(tool.icon, {
-              className: "w-7 h-7 text-slate-800",
+              className: "w-7 h-7 text-slate-800 dark:text-slate-100",
             })}
           </div>
         </div>
@@ -976,7 +995,13 @@ const ToolCard = ({ tool, index }) => (
     <div className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
       <ArrowRight className="w-6 h-6 text-blue-600" />
     </div>
+    <span
+      className={`self-center md:self-start mt-4 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${processing.badge}`}
+    >
+      {processing.label}
+    </span>
   </Link>
-);
+  );
+};
 
 export default ToolCard;
