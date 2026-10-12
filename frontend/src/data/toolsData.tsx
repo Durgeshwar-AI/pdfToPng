@@ -484,7 +484,6 @@ const tools = [
 // Keep this list aligned with tools that send the selected file to the Flask API.
 const backendToolIds = new Set([
 "pdf-searchable-ocr",
-"pdf-to-png",
 "pdf-protect",
 "pptx-to-pdf",
 "pdf-compress",

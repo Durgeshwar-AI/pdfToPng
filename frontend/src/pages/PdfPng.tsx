@@ -10,9 +10,7 @@ import {
   toastError,
   toastLoading,
   toastDismiss,
-  parseApiError,
 } from "../utils/toast";
-import { buildApiUrl } from "../utils/api";
 
 const PdfPng = () => {
   const [scale, setScale] = useState(2.0);
@@ -20,7 +18,6 @@ const PdfPng = () => {
   const [pageRange, setPageRange] = useState("");
   const [singlePage, setSinglePage] = useState("1");
   const [numPages, setNumPages] = useState(0);
-  const [language, setLanguage] = useState("eng");
   const [previewImage , setPreviewImage] = useState(null);
   const [cropEnabled , setCropEnabled] = useState(false);
   const [crop , setCrop] = useState<PercentCrop>({
@@ -209,6 +206,7 @@ const PdfPng = () => {
         a.href = url;
         a.download = file.name.replace(/\.pdf$/i, ".png");
         document.body.appendChild(a);
+        a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         toastDismiss(loadingToastId);
@@ -226,6 +224,7 @@ const PdfPng = () => {
         a.href = url;
         a.download = `${file.name.replace(/\.pdf$/i, "")}_pages.zip`;
         document.body.appendChild(a);
+        a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         setStatusMessage("");
@@ -239,52 +238,12 @@ const PdfPng = () => {
     } catch (error) {
       console.error("Client-side conversion error:", error);
       if (loadingToastId) toastDismiss(loadingToastId);
-
-      const serverLoadingId = toastLoading("Client conversion failed — trying server fallback...");
-      setStatusMessage("Trying server fallback...");
-
-      try {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("language", language);
-
-        const response = await fetch(buildApiUrl("/convertPng"), {
-          method: "POST",
-          body: form,
-        });
-
-        if (response && response.ok) {
-          const blob = await response.blob();
-          const name = file.name.replace(/\.pdf$/i, ".png");
-          setOutputFiles([{ name, blob }]);
-          const downloadUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = downloadUrl;
-          a.download = file.name.replace(/\.pdf$/i, ".png");
-          document.body.appendChild(a);
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(downloadUrl);
-          setStatusMessage("");
-          toastDismiss(serverLoadingId);
-
-          if (addToHistory) {
-            const historyUrl = window.URL.createObjectURL(blob);
-            addToHistory(historyUrl, file.name.replace(/\.pdf$/i, ".png"));
-          }
-        } else {
-          const msg = response
-            ? await parseApiError(null, response)
-            : "Server conversion unavailable. Please try again later.";
-          setStatusMessage("");
-          toastDismiss(serverLoadingId);
-          toastError(msg);
-        }
-      } catch (serverErr) {
-        console.error("Server fallback error:", serverErr);
-        setStatusMessage("");
-        toastDismiss(serverLoadingId);
-        toastError(await parseApiError(serverErr) || "Failed to convert file. Please try again.");
-      }
+      setStatusMessage("");
+      toastError(
+        error instanceof Error
+          ? error.message
+          : "Failed to convert PDF in the browser. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -332,23 +291,6 @@ const PdfPng = () => {
             />
             Enable Crop Tool
           </label>
-        </div>
-
-        <div className="space-y-3">
-          <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider block">
-            Document Language
-          </label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="w-full p-2.5 theme-field rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-app-focus)] transition-all font-medium cursor-pointer"
-          >
-            <option value="eng">GB English (Default)</option>
-            <option value="hin">IN Hindi</option>
-            <option value="spa">ES Spanish</option>
-            <option value="fra">FR French</option>
-            <option value="deu">DE German</option>
-          </select>
         </div>
 
         <div className="space-y-4">
