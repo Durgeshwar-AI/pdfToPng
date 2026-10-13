@@ -62,6 +62,44 @@ If you contribute to this repository, you must respect all the rules above.
 
 ---
 
+## Browser-based and server-based tools
+
+The tool cards and sidebar identify where each tool processes files:
+
+- **Runs in your browser**: The selected files stay in the browser. Processing is performed client-side with JavaScript libraries such as PDF.js, Canvas, or other frontend utilities. These tools do not require the Flask API to process the file.
+- **Requires file upload**: The selected files are sent to the Flask backend for in-memory processing and the result is returned to the browser. The backend does not persist uploaded files or metadata.
+
+### Server-based tools
+
+The following tools currently require a file upload to the backend:
+
+- Scanned PDF OCR
+- Protect PDF
+- PPTX to PDF
+- PDF Compressor
+- Unlock PDF
+- Image Compressor
+- AI Upscaler
+- Image to JPG
+- Image Watermark
+- Image to Grayscale
+- Image Resize
+- Image DPI
+- Image Metadata
+- DOCX to PDF
+- Markdown to HTML
+- Markdown to DOCX
+- PDF Info
+- PDF Sign
+- Remove Background
+- Rotate & Flip
+- PDF to Word
+- PDF to Excel
+
+All other tools currently run in the browser, including PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF watermark, image format conversions, image-to-PDF, and browser-only utilities. The badge shown on each tool card is the source of truth for the current processing location.
+
+---
+
 ## Tech Stack
 
 - **Backend:** `Python`, `Flask`, `Flask‑CORS`, `PyMuPDF (fitz)`, `Pillow`, `rembg`, `python-docx`, `pdf2docx`, `OpenCV`, `pytesseract`,`markdown2`
@@ -329,13 +367,13 @@ Available endpoints:
 
 - `GET /health` – Health check endpoint
 
-All endpoints:
+Server endpoints:
 
 - Process the file in memory
 - Do **not** persist any data on the server
 - Return sanitized error messages — server file paths and third-party library internals are stripped before the response is sent, so a crafted upload cannot use an error to probe the filesystem
 
-Note: The PDF to PNG tool runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server‑side PDF conversion, but the UI uses client‑side rendering by default.
+Browser-based tools do not send the selected file to the server. The PDF to PNG tool runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server-side PDF conversion, but the UI uses client-side rendering by default.
 
 ### 3. Frontend setup
 
