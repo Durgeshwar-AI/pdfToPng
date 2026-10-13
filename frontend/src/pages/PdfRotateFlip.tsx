@@ -225,6 +225,17 @@ const transformAndDownload = async () => {
 
       if (shouldTransform) {
         copiedPage.setRotation(degrees(previewItem.currentRotation));
+
+        const pageWidth = copiedPage.getWidth();
+        const pageHeight = copiedPage.getHeight();
+        if (previewItem.currentFlippedH) {
+          copiedPage.scaleContent(-1, 1);
+          copiedPage.translateContent(pageWidth, 0);
+        }
+        if (previewItem.currentFlippedV) {
+          copiedPage.scaleContent(1, -1);
+          copiedPage.translateContent(0, pageHeight);
+        }
       }
 
       newPdfDoc.addPage(copiedPage);
@@ -289,7 +300,7 @@ const transformAndDownload = async () => {
       </motion.h1>
 
       <p className="theme-muted mb-10 max-w-xl text-base leading-relaxed">
-        Easily adjust the orientation of your PDF documents. Reorder pages, rotate or flip specific ranges.
+        Easily adjust the orientation of your PDF documents in your browser. Reorder pages, rotate or flip specific ranges.
       </p>
 
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

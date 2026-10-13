@@ -504,7 +504,6 @@ const backendToolIds = new Set([
 "pdf-info",
 "pdf-sign",
 "remove-bg",
-"rotate-flip",
 ]);
 
 const toolsWithProcessingLocation = tools.map((tool) => ({

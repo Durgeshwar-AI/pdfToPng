@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
-import { toastSuccess, toastError, parseApiError } from "../utils/toast";
+import { toastSuccess, toastError } from "../utils/toast";
 
 const ACTIONS = [
   { id: "rotate_left",  label: "Rotate Left",     icon: "↺" },
@@ -11,15 +11,19 @@ const ACTIONS = [
 
 const FORMATS = ["PNG", "JPEG", "WEBP"];
 
-const API = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
-
 export default function RotateFlip() {
   const [format, setFormat] = useState("PNG");
   const [resultUrl, setResultUrl] = useState(null);
   const [resultExt, setResultExt] = useState("png");
 
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    };
+  }, [resultUrl]);
+
   const validateFile = useCallback(async (selectedFile: any) => {
-    setResultUrl(null); // Clear result when new file is selected
+    setResultUrl(null);
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };
     }
@@ -27,31 +31,59 @@ export default function RotateFlip() {
   }, []);
 
   const handleClear = useCallback(() => {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
     setResultUrl(null);
-  }, []);
+  }, [resultUrl]);
 
   const transform = async (action, file, setLoading) => {
     if (!file) return;
     setLoading(true);
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
     setResultUrl(null);
 
-    const fd = new FormData();
-    fd.append("image", file);
-    fd.append("action", action);
-    fd.append("format", format);
-
     try {
-      const res = await fetch(`${API}/rotateFlip`, { method: "POST", body: fd });
-      if (!res.ok) {
-        const errorMsg = await parseApiError(null, res);
-        throw new Error(errorMsg);
+      const bitmap = await createImageBitmap(file);
+      const rotation = action === "rotate_left" ? -90 : action === "rotate_right" ? 90 : 0;
+      const canvasWidth = rotation ? bitmap.height : bitmap.width;
+      const canvasHeight = rotation ? bitmap.width : bitmap.height;
+      const canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        bitmap.close();
+        throw new Error("Your browser could not create a canvas for this image.");
       }
-      const blob = await res.blob();
+
+      if (format === "JPEG") {
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+      }
+
+      context.translate(canvasWidth / 2, canvasHeight / 2);
+      context.rotate((rotation * Math.PI) / 180);
+      context.scale(
+        action === "flip_h" ? -1 : 1,
+        action === "flip_v" ? -1 : 1,
+      );
+      context.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+      bitmap.close();
+
+      const mimeType = format === "JPEG" ? "image/jpeg" : `image/${format.toLowerCase()}`;
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (output) => output ? resolve(output) : reject(new Error("The browser could not encode the transformed image.")),
+          mimeType,
+          format === "JPEG" || format === "WEBP" ? 0.92 : undefined,
+        );
+      });
+
       setResultUrl(URL.createObjectURL(blob));
       setResultExt(format === "JPEG" ? "jpg" : format.toLowerCase());
       toastSuccess("Transformation applied successfully!");
     } catch (e) {
-      toastError(e.message || "Transformation failed. Please try again.");
+      toastError(e instanceof Error ? e.message : "Transformation failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -123,7 +155,7 @@ export default function RotateFlip() {
   return (
     <ToolPageTemplate
       title="Rotate & Flip"
-      description="All processing is done in memory — no data is stored on the server."
+      description="All processing happens in your browser — your image never leaves your device."
       accept="image/png,image/jpeg,image/webp"
       validateFile={validateFile}
       onClear={handleClear}

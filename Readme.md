@@ -92,11 +92,10 @@ The following tools currently require a file upload to the backend:
 - PDF Info
 - PDF Sign
 - Remove Background
-- Rotate & Flip
 - PDF to Word
 - PDF to Excel
 
-All other tools currently run in the browser, including PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF watermark, image format conversions, image-to-PDF, and browser-only utilities. The badge shown on each tool card is the source of truth for the current processing location.
+All other tools currently run in the browser, including PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF rotate & flip, image format conversions, image rotate & flip, image-to-PDF, and browser-only utilities. The badge shown on each tool card is the source of truth for the current processing location.
 
 ---
 
@@ -349,7 +348,7 @@ Available endpoints:
 - `POST /convertJpeg` – Convert an image to JPG
 - `POST /imageToPdf` – Convert image to PDF
 - `POST /compress` – Compress an image with a quality setting (`quality`, 1–100) and an optional output format (`format`: `original`, `jpeg`, `webp`, or `png`; defaults to `original`)
-- `POST /rotateFlip` – Rotate or flip an image
+- `POST /rotateFlip` – Rotate or flip an image for API consumers (the UI processes this locally in the browser)
 - `POST /convert-dpi` – Convert image DPI (JPEG, PNG, TIFF, BMP, WebP)
 - `POST /check-dpi` – Check current DPI of an image
 - `POST /view-metadata` – View image metadata
@@ -373,7 +372,7 @@ Server endpoints:
 - Do **not** persist any data on the server
 - Return sanitized error messages — server file paths and third-party library internals are stripped before the response is sent, so a crafted upload cannot use an error to probe the filesystem
 
-Browser-based tools do not send the selected file to the server. The PDF to PNG tool runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server-side PDF conversion, but the UI uses client-side rendering by default.
+Browser-based tools do not send the selected file to the server. PDF and image rotate/flip use PDF.js, pdf-lib, and Canvas in the browser; the backend endpoints remain available for API consumers but are not used by the UI. The PDF to PNG tool also runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server-side PDF conversion, but the UI uses client-side rendering by default.
 
 ### 3. Frontend setup
 
