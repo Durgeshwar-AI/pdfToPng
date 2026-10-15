@@ -73,7 +73,6 @@ The tool cards and sidebar identify where each tool processes files:
 
 The following tools currently require a file upload to the backend:
 
-- Scanned PDF OCR
 - Protect PDF
 - PPTX to PDF
 - PDF Compressor
@@ -95,7 +94,7 @@ The following tools currently require a file upload to the backend:
 - PDF to Word
 - PDF to Excel
 
-All other tools currently run in the browser, including PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF rotate & flip, image format conversions, image rotate & flip, image-to-PDF, and browser-only utilities. The badge shown on each tool card is the source of truth for the current processing location.
+All other tools currently run in the browser, including Scanned PDF OCR, PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF rotate & flip, image format conversions, image rotate & flip, image-to-PDF, and browser-only utilities. The badge shown on each tool card is the source of truth for the current processing location.
 
 ---
 
@@ -372,7 +371,7 @@ Server endpoints:
 - Do **not** persist any data on the server
 - Return sanitized error messages — server file paths and third-party library internals are stripped before the response is sent, so a crafted upload cannot use an error to probe the filesystem
 
-Browser-based tools do not send the selected file to the server. PDF and image rotate/flip use PDF.js, pdf-lib, and Canvas in the browser; the backend endpoints remain available for API consumers but are not used by the UI. The PDF to PNG tool also runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server-side PDF conversion, but the UI uses client-side rendering by default.
+Browser-based tools do not send the selected file to the server. Scanned PDF OCR uses PDF.js, Tesseract.js, Canvas, and pdf-lib in the browser to add searchable text. PDF and image rotate/flip also use PDF.js, pdf-lib, and Canvas in the browser; their backend endpoints remain available for API consumers but are not used by the UI. The PDF to PNG tool also runs in the browser using PDF.js and supports single page, range, or all pages (ZIP for multi‑page output). The backend still includes `/convertPng` for server-side PDF conversion, but the UI uses client-side rendering by default.
 
 ### 3. Frontend setup
 
