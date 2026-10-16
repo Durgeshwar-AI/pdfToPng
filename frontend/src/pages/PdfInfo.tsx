@@ -1,7 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, type FormEvent } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { toastError, toastLoading, toastDismiss } from "../utils/toast";
+import * as pdfjsLib from "pdfjs-dist";
+import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
   FileText,
   Copy,
@@ -15,13 +17,60 @@ import {
   LayoutGrid,
 } from "lucide-react";
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
+
+type PdfPageInfo = {
+  page: number;
+  width_pt: number;
+  height_pt: number;
+  width_mm: number;
+  height_mm: number;
+  size_name: string;
+  orientation: "portrait" | "landscape";
+};
+
+type PdfInfoData = {
+  file_name: string;
+  page_count: number;
+  file_size_bytes: number;
+  pdf_version: string;
+  is_encrypted: boolean;
+  pages: PdfPageInfo[];
+};
 
 // ── helpers ────────────────────────────────────────────────────────────────
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+const PAPER_SIZES: Record<string, string> = {
+  "595x842": "A4",
+  "612x792": "Letter",
+  "842x1191": "A3",
+  "420x595": "A5",
+  "612x1008": "Legal",
+  "396x612": "Statement",
+  "720x1008": "Executive",
+  "522x756": "Folio",
+};
+
+function getPaperSizeName(widthPt: number, heightPt: number) {
+  const width = Math.round(widthPt);
+  const height = Math.round(heightPt);
+  return PAPER_SIZES[`${width}x${height}`] ||
+    PAPER_SIZES[`${height}x${width}`] ||
+    "Custom";
+}
+
+function isEncryptedError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    error.name === "PasswordException"
+  );
 }
 
 function InfoCard({ icon, label, value, highlight = false }) {
@@ -50,7 +99,7 @@ function InfoCard({ icon, label, value, highlight = false }) {
 
 // ── main component ──────────────────────────────────────────────────────────
 function PdfInfo() {
-  const [info, setInfo] = useState(null);
+  const [info, setInfo] = useState<PdfInfoData | null>(null);
   const [copied, setCopied] = useState(false);
 
   const validateFile = useCallback(async (selectedFile: any) => {
@@ -92,7 +141,7 @@ function PdfInfo() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) {
       toastError("Please select a PDF file first.");
@@ -103,27 +152,70 @@ function PdfInfo() {
     setInfo(null);
     const loadingId = toastLoading(`Analysing "${file.name}"…`);
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const response = await fetch(`${BACKEND_URL}/pdf-info`, {
-        method: "POST",
-        body: formData,
+      const loadingTask = pdfjsLib.getDocument({
+        data: await file.arrayBuffer(),
+        verbosity: 0,
       });
+      let isEncrypted = false;
 
-      const data = await response.json();
+      loadingTask.onPassword = (callback) => {
+        isEncrypted = true;
+        callback("");
+      };
 
-      if (response.ok && data.success) {
-        setInfo(data.data);
-        toastDismiss(loadingId);
-      } else {
-        toastDismiss(loadingId);
-        toastError(data.error || "Failed to read PDF info.");
+      const pdf = await loadingTask.promise;
+      const metadata = await pdf.getMetadata().catch(() => ({ info: {} }));
+      const pdfVersion =
+        typeof metadata.info.PDFFormatVersion === "string"
+          ? metadata.info.PDFFormatVersion
+          : "Unknown";
+      const pages = [];
+
+      // Keep the same response-size safeguard as the former server endpoint.
+      for (let pageNumber = 1; pageNumber <= Math.min(pdf.numPages, 200); pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
+        const viewport = page.getViewport({ scale: 1 });
+        const widthPt = viewport.width;
+        const heightPt = viewport.height;
+        const widthMm = Math.round((widthPt * 25.4 / 72) * 10) / 10;
+        const heightMm = Math.round((heightPt * 25.4 / 72) * 10) / 10;
+
+        pages.push({
+          page: pageNumber,
+          width_pt: Math.round(widthPt * 100) / 100,
+          height_pt: Math.round(heightPt * 100) / 100,
+          width_mm: widthMm,
+          height_mm: heightMm,
+          size_name: getPaperSizeName(widthPt, heightPt),
+          orientation: heightPt >= widthPt ? "portrait" : "landscape",
+        });
+        page.cleanup();
       }
+
+      if (pages.length === 0) {
+        throw new Error("The uploaded PDF has no pages.");
+      }
+
+      setInfo({
+        file_name: file.name,
+        page_count: pdf.numPages,
+        file_size_bytes: file.size,
+        pdf_version: pdfVersion,
+        is_encrypted: isEncrypted,
+        pages,
+      });
+      await pdf.destroy();
+      toastDismiss(loadingId);
     } catch (err) {
       toastDismiss(loadingId);
-      toastError(err.message || "Could not reach server.");
+      toastError(
+        isEncryptedError(err)
+          ? "This PDF is password-protected and cannot be inspected in the browser."
+          : err instanceof Error
+            ? err.message
+            : "Failed to read PDF information. The file may be corrupted or unsupported."
+      );
     } finally {
       setLoading(false);
     }

@@ -88,13 +88,12 @@ The following tools currently require a file upload to the backend:
 - DOCX to PDF
 - Markdown to HTML
 - Markdown to DOCX
-- PDF Info
 - PDF Sign
 - Remove Background
 - PDF to Word
 - PDF to Excel
 
-All other tools currently run in the browser, including Scanned PDF OCR, PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF rotate & flip, image format conversions, image rotate & flip, image-to-PDF, and browser-only utilities. The badge shown on each tool card is the source of truth for the current processing location.
+PDF Info and all other tools currently run in the browser, including Scanned PDF OCR, PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF rotate & flip, image format conversions, image rotate & flip, image-to-PDF, and browser-only utilities. PDF Info reads the selected file locally with PDF.js and does not upload it to the Flask API. The badge shown on each tool card is the source of truth for the current processing location.
 
 ---
 

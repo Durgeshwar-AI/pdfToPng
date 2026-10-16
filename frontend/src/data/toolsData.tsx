@@ -189,7 +189,7 @@ const tools = [
     category: "PDF Tools",
     icon: <BookOpen />,
     description:
-      "Instantly check page count, file size, dimensions, PDF version and encryption status.",
+      "Instantly check page count, file size, dimensions, PDF version and encryption status in your browser.",
     path: "/pdf-info",
     gradient: "from-violet-500/10 to-indigo-500/10",
     iconGradient: "from-violet-500 to-indigo-500",
@@ -500,7 +500,6 @@ const backendToolIds = new Set([
 "md-to-docx",
 "pdf-to-word",
 "pdf-to-excel",
-"pdf-info",
 "pdf-sign",
 "remove-bg",
 ]);
