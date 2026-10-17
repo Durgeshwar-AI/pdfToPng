@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /history
+
+Sitemap: https://pdftopng.vercel.app/sitemap.xml

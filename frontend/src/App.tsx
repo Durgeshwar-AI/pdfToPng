@@ -4,6 +4,7 @@ import "./App.css";
 import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
+import Seo from "./components/Seo";
 
 const UrlToQr = lazy(() => import("./pages/UrlToQr"));
 const PdfMerge = lazy(() => import("./pages/PdfMerge"));
@@ -63,6 +64,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ScrollToTop />
+      <Seo />
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/" element={<LandingPage />} />

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">pdfToPng free PDF and image tools</title>
+  <desc id="desc">Private online tools for converting, compressing, and editing PDF and image files.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2ff"/>
+      <stop offset="1" stop-color="#fdf4ff"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4361ee"/>
+      <stop offset="1" stop-color="#7209b7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <circle cx="1030" cy="90" r="230" fill="#c4b5fd" opacity=".25"/>
+  <circle cx="120" cy="590" r="250" fill="#93c5fd" opacity=".22"/>
+  <rect x="90" y="105" width="1020" height="420" rx="36" fill="#fff" opacity=".88"/>
+  <rect x="145" y="165" width="86" height="86" rx="20" fill="url(#accent)"/>
+  <path d="M170 180h30l15 15v42h-45zM200 180v17h15" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+  <text x="265" y="235" font-family="Arial, sans-serif" font-size="76" font-weight="700" fill="#172554">pdfToPng</text>
+  <text x="145" y="350" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#334155">Free PDF &amp; image tools</text>
+  <text x="145" y="414" font-family="Arial, sans-serif" font-size="28" fill="#64748b">Convert, compress, merge, resize, and edit files privately.</text>
+  <text x="145" y="478" font-family="Arial, sans-serif" font-size="24" font-weight="600" fill="#4361ee">No signup • Browser-first • Privacy-focused</text>
+</svg>
