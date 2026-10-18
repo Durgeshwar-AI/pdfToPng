@@ -29,6 +29,14 @@ const Navbar = () => {
   }, [location]);
 
   useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  useEffect(() => {
     const fetchGithubStars = async () => {
       try {
         const response = await fetch(
@@ -59,7 +67,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 z-9999 w-full bg-white/70 dark:bg-slate-950/70 backdrop-blur shadow-sm border-b border-transparent dark:border-slate-800">
+    <nav aria-label="Primary navigation" className="fixed top-0 left-0 z-9999 w-full bg-white/70 dark:bg-slate-950/70 backdrop-blur shadow-sm border-b border-transparent dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-6 h-19 flex justify-between items-center">
         <Link to="/#home" className="group flex items-center gap-2">
           {/* Logo */}
@@ -77,6 +85,9 @@ const Navbar = () => {
               key={item.name}
               to={item.path || `/#${item.hash}`}
               onClick={() => handleDesktopNavClick(item.name)}
+              aria-current={
+                activeSection === item.name.toLowerCase() ? "page" : undefined
+              }
             className={`relative font-semibold py-2 px-4 rounded-xl text-lg transition-all duration-300 hover:scale-105 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-950 ${
               activeSection === item.name.toLowerCase()
                 ? "text-purple-600 dark:text-purple-300"
@@ -125,8 +136,11 @@ const Navbar = () => {
             )}
           </button>
           <button
+            type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-navigation"
             className="text-slate-700 dark:text-slate-200"
           >
             {isMenuOpen ? <X /> : <Menu />}
@@ -134,6 +148,9 @@ const Navbar = () => {
         </div>
 
         <div
+          id="mobile-navigation"
+          aria-label="Mobile navigation"
+          aria-hidden={!isMenuOpen}
           className={`fixed inset-x-4 top-20 z-50 lg:hidden rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl p-4 flex flex-col gap-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] transform ${isMenuOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-6 scale-95 pointer-events-none"}`}
         >
           {navItems.map((item) => (

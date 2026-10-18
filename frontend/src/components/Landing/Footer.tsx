@@ -179,7 +179,11 @@ const Footer = () => {
             <div className="mt-6">
               <h4 className="text-sm font-semibold text-slate-900 mb-2">Stay Updated</h4>
               <form className="flex gap-2" onSubmit={handleSubscribe} noValidate>
+                <label htmlFor="footer-newsletter-email" className="sr-only">
+                  Email address for newsletter
+                </label>
                 <input
+                  id="footer-newsletter-email"
                   type="email"
                   name="email"
                   value={email}

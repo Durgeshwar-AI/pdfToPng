@@ -89,10 +89,7 @@ const FileUploadArea = ({
         aria-label={resolvedLabel}
         tabIndex={-1}
       />
-      <label
-        htmlFor={inputId}
-        className="flex flex-col items-center text-xl theme-muted cursor-pointer font-medium transition-colors duration-200 hover:text-[var(--color-app-text)] w-full"
-      >
+      <div className="flex flex-col items-center text-xl theme-muted font-medium transition-colors duration-200 w-full">
         {file ? (
           <div className="relative group w-full flex flex-col items-center">
             <div className="relative">
@@ -101,13 +98,14 @@ const FileUploadArea = ({
                   <embed
                     src={previewUrl}
                     type="application/pdf"
+                    title={`Preview of ${file.name}`}
                     className="w-full h-96 rounded-lg shadow-md object-contain"
                     style={{ maxHeight: "560px" }}
                   />
                 ) : (
                   <img
                     src={previewUrl}
-                    alt="Preview"
+                    alt={`Preview of ${file.name}`}
                     className="w-full h-96 rounded-lg shadow-md object-contain transition-transform duration-300 group-hover:scale-[1.02]"
                     style={{ maxHeight: "560px" }}
                   />
@@ -153,6 +151,7 @@ const FileUploadArea = ({
                 </div>
               )}
               <button
+                type="button"
                 onClick={handleClear}
                 className="absolute -top-3 -right-3 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-colors duration-200 hover:scale-[1.02] z-10"
                 aria-label="Remove file"
@@ -194,7 +193,7 @@ const FileUploadArea = ({
             </div>
           </>
         )}
-      </label>
+      </div>
     </div>
   );
 };

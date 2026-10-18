@@ -61,6 +61,8 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       )}
 
       <aside
+        aria-label="File conversion tools"
+        aria-hidden={isMobile && !isMobileMenuOpen}
         className={`
           ${isMobile ? "fixed" : "sticky"}
           top-0 left-0 h-screen bg-white dark:bg-gray-900
@@ -108,7 +110,11 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
         <nav className="flex-1 p-4 overflow-y-auto flex flex-col">
           {!isCollapsed && (
             <div className="mb-4">
+              <label htmlFor="sidebar-tool-search" className="sr-only">
+                Search tools
+              </label>
               <input
+                id="sidebar-tool-search"
                 type="text"
                 placeholder="Search tools..."
                 value={searchQuery}
@@ -134,6 +140,8 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                         <li key={item.id}>
                           <button
                             onClick={() => handleNavigation(item.id)}
+                            type="button"
+                            aria-current={activeTab === item.id ? "page" : undefined}
                             className={`
                               w-full flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-3 p-3 rounded-lg transition-colors
                               ${

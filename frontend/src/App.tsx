@@ -63,6 +63,9 @@ const Gdpr = lazy(() => import("./pages/Gdpr"));
 function App() {
   return (
     <ErrorBoundary>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <ScrollToTop />
       <Seo />
       <Suspense fallback={<div>Loading...</div>}>

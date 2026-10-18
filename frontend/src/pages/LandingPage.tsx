@@ -37,7 +37,7 @@ const LandingPage = () => {
       {/* Navbar */}
       <Navbar />
 
-      <main className="relative z-10">
+      <main id="main-content" tabIndex={-1} className="relative z-10">
         {/* Hero Section */}
         <HeroSection />
         {/* Features Row */}

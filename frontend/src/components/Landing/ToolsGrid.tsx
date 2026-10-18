@@ -48,7 +48,11 @@ const filteredTools = tools.filter((tool) => {
  
 
 <div className="max-w-md mx-auto mb-10">
+  <label htmlFor="tools-search" className="sr-only">
+    Search converters and tools
+  </label>
   <input
+    id="tools-search"
     type="text"
     aria-label="Search converters and tools"
     placeholder="Search converters and tools..."

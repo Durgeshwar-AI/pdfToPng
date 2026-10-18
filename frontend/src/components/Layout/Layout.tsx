@@ -35,7 +35,7 @@ const Layout = () => {
         isMobile={isMobile}
         onClose={closeMobileMenu}
       />
-      <main className="flex-1 overflow-y-auto relative">
+      <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto relative">
         {/* Floating Theme Toggle - Desktop only. Moved mobile toggle into header */}
         {!isMobile && (
           <button

@@ -267,10 +267,17 @@ const ToolPageTemplate = ({
         {extraFields && (typeof extraFields === "function" ? extraFields(context) : extraFields)}
 
         {showSubmitButton && (
-          <PrimaryButton type="submit" disabled={(requireFile && !file) || loading || disableSubmit}>
+          <PrimaryButton
+            type="submit"
+            disabled={(requireFile && !file) || loading || disableSubmit}
+            aria-busy={loading}
+          >
             {loading ? (
               <>
-                <span className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"></span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block w-5 h-5 border-[3px] border-[rgba(255,255,255,0.3)] rounded-full border-t-white animate-spin mr-2.5"
+                ></span>
                 {loadingButtonText}
               </>
             ) : (
@@ -280,7 +287,11 @@ const ToolPageTemplate = ({
         )}
 
         {inlineProgress && (
-          <p className="mt-4 text-[0.9rem] theme-muted animate-pulse">
+          <p
+            className="mt-4 text-[0.9rem] theme-muted animate-pulse"
+            role="status"
+            aria-live="polite"
+          >
             {inlineProgress}
           </p>
         )}

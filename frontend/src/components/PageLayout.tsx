@@ -17,7 +17,7 @@ const PageLayout = ({ title, subtitle, children }) => {
       <Navbar />
 
       {/* pt clears the fixed Navbar (h-19) */}
-      <main className="relative z-10 pt-28 pb-20">
+      <main id="main-content" tabIndex={-1} className="relative z-10 pt-28 pb-20">
         <div className="max-w-4xl mx-auto px-6">
           <header className="mb-10">
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight py-1 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
