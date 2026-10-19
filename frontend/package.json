@@ -37,7 +37,7 @@
     "react-router-dom": "^7.9.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.0.1",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.3.3",
     "tesseract.js": "^4.1.4"
   },
   "devDependencies": {
