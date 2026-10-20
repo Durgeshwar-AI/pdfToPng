@@ -2,10 +2,10 @@ import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
 import ScrollToTop from "./components/ScrollToTop";
-import Layout from "./components/Layout/Layout";
 import ErrorBoundary from "./ErrorBoundary";
 import Seo from "./components/Seo";
 
+const Layout = lazy(() => import("./components/Layout/Layout"));
 const UrlToQr = lazy(() => import("./pages/UrlToQr"));
 const PdfMerge = lazy(() => import("./pages/PdfMerge"));
 const PdfSign = lazy(() => import("./pages/PdfSign"));

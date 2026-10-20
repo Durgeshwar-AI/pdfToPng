@@ -61,8 +61,9 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
       )}
 
       <aside
+        id="tools-sidebar"
         aria-label="File conversion tools"
-        aria-hidden={isMobile && !isMobileMenuOpen}
+        inert={isMobile && !isMobileMenuOpen ? true : undefined}
         className={`
           ${isMobile ? "fixed" : "sticky"}
           top-0 left-0 h-screen bg-white dark:bg-gray-900

@@ -68,7 +68,11 @@ const Layout = () => {
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={toggleMobileMenu}
+                  aria-label={isMobileMenuOpen ? "Close tools menu" : "Open tools menu"}
+                  aria-expanded={isMobileMenuOpen}
+                  aria-controls="tools-sidebar"
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <Menu className="w-6 h-6 text-slate-700 dark:text-slate-300" />

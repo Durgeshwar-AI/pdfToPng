@@ -1,27 +1,9 @@
 
 
-// import {FaBars, FaTimes} from 'react-icons/fa'
-import React from "react";
-import { lazy, Suspense } from "react";
-
+import DeferredSection from "../components/Landing/DeferredSection";
 
 import Navbar from "../components/Landing/Navbar";
 import HeroSection from "../components/Landing/HeroSection";
-const FeatureSection = lazy(() =>
-  import("../components/Landing/FeatureSection")
-);
-
-const ToolsGrid = lazy(() =>
-  import("../components/Landing/ToolsGrid")
-);
-
-const TrustBanner = lazy(() =>
-  import("../components/Landing/TrustBanner")
-);
-
-const Footer = lazy(() =>
-  import("../components/Landing/Footer")
-);
 
 const LandingPage = () => {
  
@@ -40,22 +22,24 @@ const LandingPage = () => {
       <main id="main-content" tabIndex={-1} className="relative z-10">
         {/* Hero Section */}
         <HeroSection />
-        {/* Features Row */}
-        <Suspense fallback={null}>
-        <FeatureSection />
-        {/* Tools Grid Section */}
-        <ToolsGrid />
-        {/* Trust Banner */}
-        <TrustBanner />
-        </Suspense>
+        <DeferredSection
+          load={() => import("../components/Landing/FeatureSection")}
+          placeholderClassName="min-h-32"
+        />
+        <DeferredSection
+          load={() => import("../components/Landing/ToolsGrid")}
+          placeholderClassName="min-h-96"
+        />
+        <DeferredSection
+          load={() => import("../components/Landing/TrustBanner")}
+          placeholderClassName="min-h-32"
+        />
       </main>
 
-      {/* Footer */}
-      <Suspense fallback={null}>
-      <Footer />
-      </Suspense>
-
-     
+      <DeferredSection
+        load={() => import("../components/Landing/Footer")}
+        placeholderClassName="min-h-32"
+      />
     </div>
   );
 };

@@ -1,0 +1,37 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "pdfToPng",
+    "url": "https://pdftopng.vercel.app/"
+  },
+  "entries": [
+    {
+      "identifier": "urn:ard:pdftopng:pdf-to-png",
+      "displayName": "PDF to PNG",
+      "type": "text/html",
+      "url": "https://pdftopng.vercel.app/pdf-to-png",
+      "description": "Convert PDF pages to PNG images in the browser."
+    },
+    {
+      "identifier": "urn:ard:pdftopng:pdf-merge",
+      "displayName": "PDF Merge",
+      "type": "text/html",
+      "url": "https://pdftopng.vercel.app/pdf-merge",
+      "description": "Merge multiple PDF files into one document."
+    },
+    {
+      "identifier": "urn:ard:pdftopng:image-compress",
+      "displayName": "Image Compressor",
+      "type": "text/html",
+      "url": "https://pdftopng.vercel.app/image-compress",
+      "description": "Reduce image file size with adjustable quality."
+    },
+    {
+      "identifier": "urn:ard:pdftopng:image-to-webp",
+      "displayName": "Image to WebP",
+      "type": "text/html",
+      "url": "https://pdftopng.vercel.app/image-to-webp",
+      "description": "Convert images to the WebP format for the web."
+    }
+  ]
+}

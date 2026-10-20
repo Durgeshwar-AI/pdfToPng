@@ -53,18 +53,10 @@ const FileUploadArea = ({
       ? defaultText
       : "Upload file, drag and drop or click to browse");
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      fileInputRef.current?.click();
-    }
-  };
-
   return (
     <div
       ref={dropAreaRef}
-      role="button"
-      tabIndex={0}
+      role="group"
       aria-label={resolvedLabel}
       className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none focus-within:ring-2 focus-within:ring-[var(--color-app-primary)] ${
         isDragging
@@ -76,7 +68,6 @@ const FileUploadArea = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={handleAreaClick}
-      onKeyDown={handleKeyDown}
     >
       <input
         type="file"
@@ -87,7 +78,7 @@ const FileUploadArea = ({
         ref={fileInputRef}
         className="sr-only"
         aria-label={resolvedLabel}
-        tabIndex={-1}
+        tabIndex={0}
       />
       <div className="flex flex-col items-center text-xl theme-muted font-medium transition-colors duration-200 w-full">
         {file ? (

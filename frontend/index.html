@@ -1,18 +1,26 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-CV1EXBQLGG"
-    ></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-CV1EXBQLGG");
+      window.addEventListener("load", function () {
+        var loadAnalytics = function () {
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = window.gtag || function () {
+            window.dataLayer.push(arguments);
+          };
+          window.gtag("js", new Date());
+          window.gtag("config", "G-CV1EXBQLGG");
+          var script = document.createElement("script");
+          script.async = true;
+          script.src = "https://www.googletagmanager.com/gtag/js?id=G-CV1EXBQLGG";
+          document.head.appendChild(script);
+        };
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(loadAnalytics, { timeout: 4000 });
+        } else {
+          window.setTimeout(loadAnalytics, 2000);
+        }
+      });
     </script>
     <meta charset="UTF-8" />
     <meta name="theme-color" content="#4361ee" />

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import tools from "../data/toolsData";
 
 const SITE_URL = "https://pdftopng.vercel.app";
 const SITE_NAME = "pdfToPng";
@@ -67,96 +66,129 @@ const Seo = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const tool = tools.find((item) => item.path === pathname);
-    const metadata = pageMetadata[pathname] ??
-      (tool
-        ? {
-            title: `${tool.name} | Free Online Tool | pdfToPng`,
-            description: `${tool.description} Free to use, privacy-focused, and designed for fast browser-based file processing.`,
-          }
-        : {
+    let isActive = true;
+    const applyMetadata = (
+      metadata: { title: string; description: string; noindex?: boolean },
+      tool?: { name: string },
+    ) => {
+      const canonicalUrl = pathname === "/" ? SITE_URL : `${SITE_URL}${pathname}`;
+
+      document.title = metadata.title;
+      setMeta("name", "description", metadata.description);
+      setMeta("name", "robots", metadata.noindex ? "noindex, nofollow" : "index, follow");
+      setMeta("property", "og:title", metadata.title);
+      setMeta("property", "og:description", metadata.description);
+      setMeta("property", "og:type", pathname === "/" ? "website" : "article");
+      setMeta("property", "og:url", canonicalUrl);
+      setMeta("property", "og:site_name", SITE_NAME);
+      setMeta("property", "og:image", SOCIAL_IMAGE);
+      setMeta("property", "og:image:alt", "pdfToPng free PDF and image tools");
+      setMeta("name", "twitter:card", "summary_large_image");
+      setMeta("name", "twitter:title", metadata.title);
+      setMeta("name", "twitter:description", metadata.description);
+      setMeta("name", "twitter:image", SOCIAL_IMAGE);
+
+      let canonical = document.head.querySelector<HTMLLinkElement>(
+        'link[rel="canonical"]',
+      );
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.rel = "canonical";
+        document.head.appendChild(canonical);
+      }
+      canonical.href = canonicalUrl;
+
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": `${SITE_URL}/#website`,
+            url: SITE_URL,
+            name: SITE_NAME,
+            description: DEFAULT_DESCRIPTION,
+            inLanguage: "en",
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": `${SITE_URL}/#application`,
+            name: SITE_NAME,
+            url: SITE_URL,
+            applicationCategory: "UtilitiesApplication",
+            operatingSystem: "Web",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+          },
+          ...(tool
+            ? [
+                {
+                  "@type": "WebApplication",
+                  name: tool.name,
+                  url: canonicalUrl,
+                  description: metadata.description,
+                  applicationCategory: "UtilitiesApplication",
+                  operatingSystem: "Web",
+                  isPartOf: { "@id": `${SITE_URL}/#website` },
+                },
+              ]
+            : []),
+        ],
+      };
+
+      let jsonLd = document.head.querySelector<HTMLScriptElement>(
+        'script[data-seo="structured-data"]',
+      );
+      if (!jsonLd) {
+        jsonLd = document.createElement("script");
+        jsonLd.type = "application/ld+json";
+        jsonLd.dataset.seo = "structured-data";
+        document.head.appendChild(jsonLd);
+      }
+      jsonLd.textContent = JSON.stringify(structuredData);
+    };
+
+    const staticMetadata = pageMetadata[pathname];
+    if (staticMetadata) {
+      applyMetadata(staticMetadata);
+    } else if (pathname === "/") {
+      applyMetadata(pageMetadata["/"]);
+    } else {
+      const fallback = {
+        title: "Free Online File Tool | pdfToPng",
+        description:
+          "Use a free, privacy-focused PDF and image tool from pdfToPng. Files are processed without persistent storage.",
+        noindex: pathname === "/history",
+      };
+      applyMetadata(fallback);
+
+      import("../data/toolsData").then(({ default: tools }) => {
+        if (!isActive) return;
+        const tool = tools.find((item) => item.path === pathname);
+        if (tool) {
+          applyMetadata(
+            {
+              title: `${tool.name} | Free Online Tool | pdfToPng`,
+              description: `${tool.description} Free to use, privacy-focused, and designed for fast browser-based file processing.`,
+            },
+            tool,
+          );
+        } else {
+          applyMetadata({
             title: "Page Not Found | pdfToPng",
             description:
               "The page you requested could not be found. Explore free PDF and image tools from pdfToPng.",
             noindex: true,
           });
-    const canonicalUrl = pathname === "/" ? SITE_URL : `${SITE_URL}${pathname}`;
-
-    document.title = metadata.title;
-    setMeta("name", "description", metadata.description);
-    setMeta("name", "robots", metadata.noindex ? "noindex, nofollow" : "index, follow");
-    setMeta("property", "og:title", metadata.title);
-    setMeta("property", "og:description", metadata.description);
-    setMeta("property", "og:type", pathname === "/" ? "website" : "article");
-    setMeta("property", "og:url", canonicalUrl);
-    setMeta("property", "og:site_name", SITE_NAME);
-    setMeta("property", "og:image", SOCIAL_IMAGE);
-    setMeta("property", "og:image:alt", "pdfToPng free PDF and image tools");
-    setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", metadata.title);
-    setMeta("name", "twitter:description", metadata.description);
-    setMeta("name", "twitter:image", SOCIAL_IMAGE);
-
-    let canonical = document.head.querySelector<HTMLLinkElement>(
-      'link[rel="canonical"]',
-    );
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.rel = "canonical";
-      document.head.appendChild(canonical);
+        }
+      });
     }
-    canonical.href = canonicalUrl;
 
-    const structuredData = {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": `${SITE_URL}/#website`,
-          url: SITE_URL,
-          name: SITE_NAME,
-          description: DEFAULT_DESCRIPTION,
-          inLanguage: "en",
-        },
-        {
-          "@type": "SoftwareApplication",
-          "@id": `${SITE_URL}/#application`,
-          name: SITE_NAME,
-          url: SITE_URL,
-          applicationCategory: "UtilitiesApplication",
-          operatingSystem: "Web",
-          offers: {
-            "@type": "Offer",
-            price: "0",
-            priceCurrency: "USD",
-          },
-        },
-        ...(tool
-          ? [
-              {
-                "@type": "WebApplication",
-                name: tool.name,
-                url: canonicalUrl,
-                description: metadata.description,
-                applicationCategory: "UtilitiesApplication",
-                operatingSystem: "Web",
-                isPartOf: { "@id": `${SITE_URL}/#website` },
-              },
-            ]
-          : []),
-      ],
+    return () => {
+      isActive = false;
     };
-
-    let jsonLd = document.head.querySelector<HTMLScriptElement>(
-      'script[data-seo="structured-data"]',
-    );
-    if (!jsonLd) {
-      jsonLd = document.createElement("script");
-      jsonLd.type = "application/ld+json";
-      jsonLd.dataset.seo = "structured-data";
-      document.head.appendChild(jsonLd);
-    }
-    jsonLd.textContent = JSON.stringify(structuredData);
   }, [pathname]);
 
   return null;

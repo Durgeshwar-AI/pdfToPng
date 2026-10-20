@@ -1,0 +1,21 @@
+# pdfToPng
+
+pdfToPng is a free, privacy-focused collection of browser-first PDF and image
+tools. Visitors can convert, compress, merge, resize, edit, and inspect files
+without creating an account. Browser tools process files locally; server tools
+process uploads transiently and do not persist them.
+
+## Important pages
+
+- [Home](https://pdftopng.vercel.app/)
+- [PDF to PNG](https://pdftopng.vercel.app/pdf-to-png)
+- [PDF tools](https://pdftopng.vercel.app/pdf-merge)
+- [Image tools](https://pdftopng.vercel.app/image-compress)
+- [About pdfToPng](https://pdftopng.vercel.app/about)
+- [Privacy policy](https://pdftopng.vercel.app/privacy)
+
+## Site resources
+
+- [XML sitemap](https://pdftopng.vercel.app/sitemap.xml)
+- [Robots policy](https://pdftopng.vercel.app/robots.txt)
+

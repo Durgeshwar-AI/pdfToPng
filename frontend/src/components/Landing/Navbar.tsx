@@ -8,7 +8,6 @@ const Navbar = () => {
   const { isDark, toggleTheme } = theme;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
-  const [stars, setStars] = useState(null);
   const location = useLocation();
   const navItems = [
     { name: "Home", hash: "home" },
@@ -34,27 +33,6 @@ const Navbar = () => {
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, []);
-
-  useEffect(() => {
-    const fetchGithubStars = async () => {
-      try {
-        const response = await fetch(
-          "https://api.github.com/repos/Durgeshwar-AI/pdfToPng",
-          {
-            cache: "no-store",
-          },
-        );
-
-        const data = await response.json();
-
-        setStars(data.stargazers_count);
-      } catch (error) {
-        console.error("Error fetching GitHub stars:", error);
-      }
-    };
-
-    fetchGithubStars();
   }, []);
 
   const handleMobileNavClick = (itemName) => {
@@ -106,7 +84,7 @@ const Navbar = () => {
           >
             <Github className="w-5 h-5 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
             <span className="text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white font-medium transition-colors hidden sm:inline">
-              ⭐ Star on GitHub {stars !== null && `• ${stars}`}
+              ⭐ Star on GitHub
             </span>
           </a>
           <button
@@ -150,7 +128,7 @@ const Navbar = () => {
         <div
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          aria-hidden={!isMenuOpen}
+          inert={!isMenuOpen ? true : undefined}
           className={`fixed inset-x-4 top-20 z-50 lg:hidden rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl p-4 flex flex-col gap-2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] transform ${isMenuOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-6 scale-95 pointer-events-none"}`}
         >
           {navItems.map((item) => (
@@ -177,7 +155,7 @@ const Navbar = () => {
           >
             <Github className="w-5 h-5 text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
             <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors">
-              ⭐ {stars === null ? "..." : stars}
+              ⭐ Star on GitHub
             </span>
           </a>
         </div>

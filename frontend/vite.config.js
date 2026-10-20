@@ -3,17 +3,23 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+const enableBundleAnalysis = process.env.ANALYZE === "true";
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-  react(),
-  tailwindcss(),
-  visualizer({
-    open: true,
-    gzipSize: true,
-    brotliSize: true,
-  }),
-],
+    react(),
+    tailwindcss(),
+    ...(enableBundleAnalysis
+      ? [
+          visualizer({
+            open: false,
+            gzipSize: true,
+            brotliSize: true,
+          }),
+        ]
+      : []),
+  ],
 
   server: {
     host: "0.0.0.0",

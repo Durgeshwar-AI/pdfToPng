@@ -194,6 +194,11 @@ body {
   min-width: 320px;
 }
 
+.deferred-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 500px;
+}
+
 :focus-visible {
   outline: 3px solid var(--color-app-primary);
   outline-offset: 3px;
