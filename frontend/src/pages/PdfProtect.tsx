@@ -2,10 +2,9 @@ import { useState, useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Lock, Eye, EyeOff, AlertTriangle, Check, X } from "lucide-react";
-import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
+import { toastError, toastSuccess } from "../utils/toast";
 import { useHistory } from "../context/history-context";
-
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { downloadBlob, encryptPdf } from "../utils/browserPdf";
 
 function Rule({
   ok,
@@ -98,46 +97,18 @@ function PdfProtect() {
     if (passwordError) { toastError(passwordError); return; }
 
     setLoading(true);
-    const loadingId = toastLoading(`Protecting "${file.name}"...`);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("password", password);
-
     try {
-      const response = await fetch(`${BACKEND_URL}/protect-pdf`, { method: "POST", body: formData });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const baseName = file.name.replace(/\.pdf$/i, "");
-        const downloadName = `${baseName}_protected.pdf`;
-        a.download = downloadName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        toastDismiss(loadingId);
-        toastSuccess("Your protected PDF has been downloaded!");
-        setPassword("");
-        setConfirmPassword("");
-
-        const historyUrl = window.URL.createObjectURL(blob);
-        addToHistory({
-          fileName: file.name,
-          conversionType: "Protect PDF",
-          downloadUrl: historyUrl,
-          downloadName: downloadName,
-        });
-      } else {
-        const errorMsg = await parseApiError(null, response);
-        toastDismiss(loadingId);
-        toastError(`Failed to protect PDF: ${errorMsg}`);
-      }
+      const blob = await encryptPdf(file, password);
+      const baseName = file.name.replace(/\.pdf$/i, "");
+      const downloadName = `${baseName}_protected.pdf`;
+      downloadBlob(blob, downloadName);
+      const historyUrl = URL.createObjectURL(blob);
+      addToHistory({ fileName: file.name, conversionType: "Protect PDF", downloadUrl: historyUrl, downloadName });
+      toastSuccess("Your protected PDF has been downloaded!");
+      setPassword("");
+      setConfirmPassword("");
     } catch (error) {
-      toastDismiss(loadingId);
-      toastError(await parseApiError(error));
+      toastError(error instanceof Error ? error.message : "Could not protect the PDF in your browser.");
     } finally {
       setLoading(false);
     }
@@ -160,7 +131,7 @@ function PdfProtect() {
           accept=".pdf,application/pdf" inputId="pdf-protect-input"
           defaultIcon={<FileText className="w-16 h-16" />}
           defaultText="Upload a PDF to protect"
-          supportText="Protects and encrypts your PDF document"
+          supportText="Protects and encrypts your PDF document in your browser"
         />
 
         {file && (

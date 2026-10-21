@@ -73,10 +73,6 @@ The tool cards and sidebar identify where each tool processes files:
 
 The following tools currently require a file upload to the backend:
 
-- Protect PDF
-- PPTX to PDF
-- PDF Compressor
-- Unlock PDF
 - Image Compressor
 - AI Upscaler
 - Image to JPG
@@ -88,6 +84,15 @@ The following tools currently require a file upload to the backend:
 - DOCX to PDF
 - Markdown to HTML
 - Markdown to DOCX
+
+### Browser-based PDF and presentation tools
+
+The following tools process files entirely on the user's device and do not call the Flask API:
+
+- Protect PDF
+- PPTX to PDF
+- PDF Compressor
+- Unlock PDF
 - PDF Sign
 - Remove Background
 - PDF to Word

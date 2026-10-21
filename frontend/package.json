@@ -12,6 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cantoo/pdf-lib": "^2.11.1",
+    "@s8fy/pptx-converter": "^1.6.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.16.1",
     "clsx": "^2.1.1",

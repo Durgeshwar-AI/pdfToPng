@@ -2,11 +2,15 @@ import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { FileText, Zap, Maximize, ShieldCheck } from "lucide-react";
 import { formatFileSize, calculateSavedPercentage } from "../utils/fileSizeFormatter";
+import { compressPdf, downloadBlob } from "../utils/browserPdf";
+import { useHistory } from "../context/history-context";
+import { toastSuccess } from "../utils/toast";
 
 function PdfCompress() {
   const [level, setLevel] = useState("medium");
   const [originalSize, setOriginalSize] = useState(null);
   const [convertedSize, setConvertedSize] = useState(null);
+  const { addToHistory } = useHistory();
 
   const presets = [
     { name: "Low", value: "low", icon: <Maximize className="w-4 h-4" />, desc: "Faster, mild reduction" },
@@ -26,13 +30,21 @@ function PdfCompress() {
     return { isValid: false, message: "Error: Please select a PDF file" };
   }, []);
 
-  const modifyFormData = (formData) => {
-    formData.append("level", level);
-  };
-
-  const onSuccess = (responseBlob) => {
-    setConvertedSize(responseBlob.size);
-    return `Success! PDF compressed at ${level} level.`;
+  const onSubmit = async ({ file, setStatusMessage }) => {
+    if (!file) throw new Error("Please select a PDF file first.");
+    setStatusMessage("Compressing PDF in your browser...");
+    const blob = await compressPdf(file, level);
+    setConvertedSize(blob.size);
+    const downloadName = file.name.replace(/\.pdf$/i, "_compressed.pdf");
+    const historyUrl = URL.createObjectURL(blob);
+    downloadBlob(blob, downloadName);
+    addToHistory({
+      fileName: file.name,
+      conversionType: "PDF Compressor",
+      downloadUrl: historyUrl,
+      downloadName,
+    });
+    toastSuccess(`Success! PDF compressed at ${level} level.`);
   };
 
   const extraFields = ({ file }) => {
@@ -101,13 +113,10 @@ function PdfCompress() {
       title="PDF Compressor"
       accept=".pdf,application/pdf"
       validateFile={validateFile}
-      apiEndpoint="/compress-pdf"
-      fileFieldName="file"
-      modifyFormData={modifyFormData}
+      onSubmit={onSubmit}
       getDownloadFilename={(fileName) => fileName.replace(/\.pdf$/i, "_compressed.pdf")}
       submitButtonText="Compress PDF"
       loadingButtonText="Compressing..."
-      onSuccess={onSuccess}
       extraFields={extraFields}
       maxWidthClass="max-w-[700px]"
       defaultIcon={<FileText className="w-16 h-16" />}

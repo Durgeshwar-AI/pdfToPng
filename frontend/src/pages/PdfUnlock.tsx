@@ -2,10 +2,9 @@ import { useState, useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText, Unlock, Eye, EyeOff } from "lucide-react";
-import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
+import { toastError, toastSuccess } from "../utils/toast";
 import { useHistory } from "../context/history-context";
-
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { decryptPdf, downloadBlob } from "../utils/browserPdf";
 
 function PdfUnlock() {
   const { addToHistory } = useHistory();
@@ -39,45 +38,17 @@ function PdfUnlock() {
     if (!password) { toastError("Please enter the PDF password."); return; }
 
     setLoading(true);
-    const loadingId = toastLoading(`Unlocking "${file.name}"...`);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("password", password);
-
     try {
-      const response = await fetch(`${BACKEND_URL}/unlock-pdf`, { method: "POST", body: formData });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const baseName = file.name.replace(/\.pdf$/i, "");
-        const downloadName = `${baseName}_unlocked.pdf`;
-        a.download = downloadName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        toastDismiss(loadingId);
-        toastSuccess("Your unlocked PDF has been downloaded!");
-        setPassword("");
-
-        const historyUrl = window.URL.createObjectURL(blob);
-        addToHistory({
-          fileName: file.name,
-          conversionType: "Unlock PDF",
-          downloadUrl: historyUrl,
-          downloadName: downloadName,
-        });
-      } else {
-        const errorMsg = await parseApiError(null, response);
-        toastDismiss(loadingId);
-        toastError(`Failed to unlock PDF: ${errorMsg}`);
-      }
+      const blob = await decryptPdf(file, password);
+      const baseName = file.name.replace(/\.pdf$/i, "");
+      const downloadName = `${baseName}_unlocked.pdf`;
+      downloadBlob(blob, downloadName);
+      const historyUrl = URL.createObjectURL(blob);
+      addToHistory({ fileName: file.name, conversionType: "Unlock PDF", downloadUrl: historyUrl, downloadName });
+      toastSuccess("Your unlocked PDF has been downloaded!");
+      setPassword("");
     } catch (error) {
-      toastDismiss(loadingId);
-      toastError(await parseApiError(error));
+      toastError(error instanceof Error ? error.message : "Could not unlock the PDF in your browser.");
     } finally {
       setLoading(false);
     }
@@ -100,7 +71,7 @@ function PdfUnlock() {
           accept=".pdf,application/pdf" inputId="pdf-unlock-input"
           defaultIcon={<FileText className="w-16 h-16" />}
           defaultText="Upload a password-protected PDF"
-          supportText="Removes password protection from your PDF"
+          supportText="Removes password protection from your PDF in your browser"
         />
 
         {file && (

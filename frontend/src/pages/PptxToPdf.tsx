@@ -2,10 +2,10 @@ import { useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText } from "lucide-react";
-import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
+import { toastError, toastSuccess } from "../utils/toast";
 import { useHistory } from "../context/history-context";
-
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { pptxToPdf } from "@s8fy/pptx-converter";
+import { downloadBlob } from "../utils/browserPdf";
 
 function PptxToPdf() {
 
@@ -35,42 +35,20 @@ function PptxToPdf() {
     if (!file) { toastError("Please select a PPTX file first."); return; }
 
     setLoading(true);
-    const loadingId = toastLoading(`Converting "${file.name}" to PDF...`);
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const response = await fetch(`${BACKEND_URL}/convertPptxToPdf`, { method: "POST", body: formData });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const downloadName = file.name.replace(/\.pptx$/i, ".pdf");
-        a.download = downloadName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        toastDismiss(loadingId);
-        toastSuccess("Your PDF has been downloaded!");
-
-        const historyUrl = window.URL.createObjectURL(blob);
-        addToHistory({
-          fileName: file.name,
-          conversionType: "PPTX to PDF",
-          downloadUrl: historyUrl,
-          downloadName: downloadName,
-        });
-      } else {
-        const errorMsg = await parseApiError(null, response);
-        toastDismiss(loadingId);
-        toastError(`Conversion failed: ${errorMsg}`);
-      }
+      const result = await pptxToPdf(file);
+      const blob = new Blob([result.data], { type: "application/pdf" });
+      const downloadName = file.name.replace(/\.pptx$/i, ".pdf");
+      downloadBlob(blob, downloadName);
+      const historyUrl = URL.createObjectURL(blob);
+      addToHistory({ fileName: file.name, conversionType: "PPTX to PDF", downloadUrl: historyUrl, downloadName });
+      toastSuccess(
+        result.authorization.outputDisposition === "watermark"
+          ? "Your PDF was downloaded with the converter watermark."
+          : "Your PDF has been downloaded!",
+      );
     } catch (error) {
-      toastDismiss(loadingId);
-      toastError(await parseApiError(error));
+      toastError(error instanceof Error ? error.message : "Could not convert the presentation in your browser.");
     } finally {
       setLoading(false);
     }
@@ -81,7 +59,7 @@ function PptxToPdf() {
       <h1 className="mb-10 text-[var(--color-app-text)] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         PPTX to PDF
       </h1>
-      <p className="text-gray-500 text-sm mb-8 -mt-6">Upload a .pptx file to convert it to PDF.</p>
+      <p className="text-gray-500 text-sm mb-8 -mt-6">Convert your presentation locally in your browser.</p>
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
         <FileUploadArea
@@ -94,7 +72,7 @@ function PptxToPdf() {
           inputId="pptx-pdf-input"
           defaultIcon={<FileText className="w-16 h-16" />}
           defaultText="Upload a PPTX to convert"
-          supportText="Converts PowerPoint to PDF on the server"
+          supportText="Converts PowerPoint to PDF in your browser"
         />
 
         <button type="submit" disabled={!file || loading}
