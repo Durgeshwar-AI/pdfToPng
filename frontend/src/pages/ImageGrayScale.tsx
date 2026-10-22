@@ -1,7 +1,11 @@
 import React, { useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { downloadImage, getImageDimensions, renderImage } from "../utils/browserImage";
+import { useHistory } from "../context/history-context";
+import { toastSuccess } from "../utils/toast";
 
 const ImageGrayScale = () => {
+  const { addToHistory } = useHistory();
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       return { isValid: true, message: `Image selected: ${selectedFile.name}` };
@@ -9,13 +13,27 @@ const ImageGrayScale = () => {
     return { isValid: false, message: "Please select an image file" };
   }, []);
 
+  const onSubmit = async ({ file, setStatusMessage }) => {
+    if (!file) throw new Error("Please select an image file first.");
+    setStatusMessage("Converting image in your browser...");
+    const { width, height } = await getImageDimensions(file);
+    const blob = await renderImage(file, width, height, (context, image) => {
+      context.filter = "grayscale(1)";
+      context.drawImage(image, 0, 0, width, height);
+    });
+    const downloadName = `${file.name.replace(/\.[^/.]+$/, "")}_grayscale.png`;
+    const historyUrl = downloadImage(blob, downloadName);
+    addToHistory({ fileName: file.name, conversionType: "Image to Grayscale", downloadUrl: historyUrl, downloadName });
+    toastSuccess("Your grayscale image has been downloaded.");
+  };
+
   return (
     <ToolPageTemplate
       title="Image to Grayscale"
       description="Upload an image and convert it to grayscale."
       accept="image/*"
       validateFile={validateFile}
-      apiEndpoint="/convertGrayscale"
+      onSubmit={onSubmit}
       fileFieldName="image"
       getDownloadFilename={(fileName) => {
         const originalName = fileName.replace(/\.[^/.]+$/, "");
@@ -47,7 +65,7 @@ const ImageGrayScale = () => {
         </svg>
       }
       defaultText="Choose image file or drag & drop here"
-      supportText="Supports PNG, JPG, JPEG, and more"
+      supportText="Supports PNG, JPG, JPEG, and more; processed in your browser"
       inputId="grayscale-input"
     />
   );

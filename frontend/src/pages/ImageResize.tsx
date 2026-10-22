@@ -1,12 +1,15 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { Expand, Image as ImageIcon } from "lucide-react";
-import { toastSuccess, toastError, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
+import { toastSuccess, toastError } from "../utils/toast";
+import { downloadImage, loadImage, renderImage } from "../utils/browserImage";
+import { useHistory } from "../context/history-context";
 
 function ImageResize() {
   const [dimensions, setDimensions] = useState({ width: "1280", height: "720" });
   const [unit, setUnit] = useState("px");
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(false);
+  const { addToHistory } = useHistory();
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
@@ -39,14 +42,6 @@ function ImageResize() {
     setDimensions({ width: String(width), height: String(height) });
   };
 
-  const modifyFormData = (formData) => {
-    formData.append("width", dimensions.width);
-    formData.append("height", dimensions.height);
-    formData.append("unit", unit);
-    formData.append("maintainAspectRatio", String(maintainAspectRatio));
-  };
-
- 
 const getValidationError = (dimensions, maintainAspectRatio, unit) => {
   const width = Number(dimensions.width);
   const height = Number(dimensions.height);
@@ -185,57 +180,27 @@ const handleBeforeSubmit = () => {
       description="Resize images to custom dimensions"
       accept="image/*"
       validateFile={validateFile}
-      apiEndpoint="/resizeImage"
-      fileFieldName="image"
-      modifyFormData={modifyFormData}
       onSubmit={async (context) => {
-        const { file, formData, setLoading } = context;
+        const { file, setLoading } = context;
         if (!handleBeforeSubmit()) {
           setLoading(false);
           return;
         }
 
-        const loadingId = toastLoading(`Resizing "${file.name}"…`);
-
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/resizeImage`, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            const extension = file.name.includes(".")
-              ? file.name.slice(file.name.lastIndexOf("."))
-              : ".png";
-            const baseName = file.name.includes(".")
-              ? file.name.replace(/\.[^.]+$/, "")
-              : file.name;
-
-            a.href = url;
-            a.download = `${baseName}_resized${extension}`;
-
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-
-            toastDismiss(loadingId);
-            toastSuccess(
-              maintainAspectRatio
-                ? `Image resized using width ${dimensions.width} ${unit} with aspect ratio preserved!`
-                : `Image resized to ${dimensions.width} × ${dimensions.height} ${unit}!`,
-            );
-          } else {
-            const errorMsg = await parseApiError(null, response);
-            toastDismiss(loadingId);
-            toastError(`Resize failed: ${errorMsg}`);
-          }
+          const image = await loadImage(file);
+          const pixelsPerUnit = unit === "mm" ? 96 / 25.4 : unit === "cm" ? 96 / 2.54 : 1;
+          const width = Math.max(1, Math.round(Number(dimensions.width) * pixelsPerUnit));
+          const height = maintainAspectRatio
+            ? Math.round((width / image.naturalWidth) * image.naturalHeight)
+            : Math.max(1, Math.round(Number(dimensions.height) * pixelsPerUnit));
+          const blob = await renderImage(file, width, height);
+          const downloadName = `${file.name.replace(/\.[^.]+$/, "")}_resized.png`;
+          const historyUrl = downloadImage(blob, downloadName);
+          addToHistory({ fileName: file.name, conversionType: "Image Resize", downloadUrl: historyUrl, downloadName });
+          toastSuccess(`Image resized to ${width} × ${height} px in your browser!`);
         } catch (error) {
-          toastDismiss(loadingId);
-          toastError(await parseApiError(error));
+          toastError(error instanceof Error ? error.message : "Resize failed.");
         } finally {
           setLoading(false);
         }

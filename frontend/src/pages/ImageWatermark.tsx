@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { toastError, toastSuccess, toastLoading, toastDismiss } from "../utils/toast";
+import { downloadImage, loadImage } from "../utils/browserImage";
+import { useHistory } from "../context/history-context";
 
 interface FileWithType extends File { type: string; }
 
@@ -26,6 +28,7 @@ function getWatermarkXY(canvasW: number, canvasH: number, wmW: number, wmH: numb
 }
 
 function ImageWatermark() {
+  const { addToHistory } = useHistory();
   const [file, setFile] = useState(null);
   const [, setPreview] = useState(null);
   const [imageEl, setImageEl] = useState<HTMLImageElement | null>(null);
@@ -203,35 +206,49 @@ function ImageWatermark() {
     const loadingId = toastLoading("Applying watermark…");
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-      formData.append("watermark_type", watermarkType);
-      formData.append("position", position);
-      formData.append("opacity", opacity.toString());
-      formData.append("size", size.toString());
+      const source = await loadImage(file);
+      const watermark = watermarkType === "image" ? await loadImage(watermarkImage) : null;
+      const canvas = document.createElement("canvas");
+      canvas.width = source.naturalWidth;
+      canvas.height = source.naturalHeight;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Your browser does not support image processing.");
+      context.drawImage(source, 0, 0);
+      context.save();
+      context.globalAlpha = opacity / 100;
 
-      if (watermarkType === "text") {
-        formData.append("watermark_text", watermarkText);
-      } else {
-        formData.append("watermark_image", watermarkImage);
+      if (watermarkType === "text" && watermarkText) {
+        const fontSize = Math.max(10, canvas.height * (size / 500));
+        context.font = `bold ${fontSize}px sans-serif`;
+        context.fillStyle = "#2563eb";
+        const textWidth = context.measureText(watermarkText).width;
+        const coordinates = getWatermarkXY(canvas.width, canvas.height, textWidth, fontSize, position);
+        if (coordinates.diagonal) {
+          context.translate(coordinates.x + textWidth / 2, coordinates.y + fontSize / 2);
+          context.rotate((-45 * Math.PI) / 180);
+          context.fillText(watermarkText, -textWidth / 2, -fontSize / 2);
+        } else {
+          context.fillText(watermarkText, coordinates.x, coordinates.y);
+        }
+      } else if (watermark) {
+        const maxSize = Math.min(canvas.width, canvas.height) * (size / 100);
+        const ratio = watermark.naturalWidth / watermark.naturalHeight;
+        const watermarkWidth = ratio >= 1 ? maxSize : maxSize * ratio;
+        const watermarkHeight = ratio >= 1 ? maxSize / ratio : maxSize;
+        const coordinates = getWatermarkXY(canvas.width, canvas.height, watermarkWidth, watermarkHeight, position);
+        if (coordinates.diagonal) {
+          context.translate(coordinates.x + watermarkWidth / 2, coordinates.y + watermarkHeight / 2);
+          context.rotate((-45 * Math.PI) / 180);
+          context.drawImage(watermark, -watermarkWidth / 2, -watermarkHeight / 2, watermarkWidth, watermarkHeight);
+        } else {
+          context.drawImage(watermark, coordinates.x, coordinates.y, watermarkWidth, watermarkHeight);
+        }
       }
-
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/add-watermark`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Processing failed");
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "watermarked.png";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      context.restore();
+      const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Could not create the watermarked image.")), "image/png"));
+      const downloadName = `${file.name.replace(/\.[^.]+$/, "")}_watermarked.png`;
+      const historyUrl = downloadImage(blob, downloadName);
+      addToHistory({ fileName: file.name, conversionType: "Image Watermark", downloadUrl: historyUrl, downloadName });
 
       toastDismiss(loadingId);
       toastSuccess("Image watermarked and downloaded!");

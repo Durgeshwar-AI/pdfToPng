@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { toastSuccess, toastError } from "../utils/toast";
+import { addPngDpi, downloadImage, getImageDimensions, renderImage } from "../utils/browserImage";
 
 const PRESET_DPIS = [72, 96, 150, 300, 600];
 
@@ -42,19 +43,11 @@ export default function ImageDpi() {
     setLoading(true);
     setDpiResults([]);
 
-    const form = new FormData();
-    form.append("images", file);
-
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/check-dpi`, {
-        method: "POST",
-        body: form,
-      });
-      if (!res.ok) throw new Error("Failed to check DPI");
-      const data = await res.json();
-      setDpiResults(data);
-    } catch {
-      toastError("Failed to check DPI. Please try again.");
+      const { width, height } = await getImageDimensions(file);
+      setDpiResults([{ filename: file.name, dpi: [72, 72], width_px: width, height_px: height, format: file.type || "image" }]);
+    } catch (error) {
+      toastError(error instanceof Error ? error.message : "Failed to check DPI.");
     } finally {
       setLoading(false);
     }
@@ -65,32 +58,16 @@ export default function ImageDpi() {
     setLoading(true);
     setDpiResults([]);
 
-    const form = new FormData();
-    form.append("images", file);
-    form.append("dpi", dpi.toString());
-    form.append("resample", resample.toString());
-
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/convert-dpi`, {
-        method: "POST",
-        body: form,
-      });
-      if (!res.ok) throw new Error("Conversion failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      
-      const fileExt = file.name.match(/\.[^.]+$/)?.[0] || ".jpg";
+      const dimensions = await getImageDimensions(file);
+      const scale = resample ? dpi / 72 : 1;
+      const rendered = await renderImage(file, Math.max(1, Math.round(dimensions.width * scale)), Math.max(1, Math.round(dimensions.height * scale)));
+      const blob = await addPngDpi(rendered, dpi);
       const baseName = file.name.replace(/\.[^.]+$/, "");
-      a.download = `${baseName}_${dpi}dpi${fileExt}`;
+      const downloadName = `${baseName}_${dpi}dpi.png`;
+      downloadImage(blob, downloadName);
 
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toastSuccess(`Image converted to ${dpi} DPI and downloaded!`);
+      toastSuccess(`Image converted locally to ${dpi} DPI and downloaded!`);
     } catch (err) {
       toastError(err.message || "DPI conversion failed. Please try again.");
     } finally {

@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { Info, Copy, Check, Download } from "lucide-react";
-import { toastSuccess, toastError, toastInfo, toastLoading, toastDismiss } from "../utils/toast";
+import { toastSuccess, toastError, toastLoading, toastDismiss } from "../utils/toast";
+import { getImageDimensions } from "../utils/browserImage";
 
 function stripJpegMetadataLossless(arrayBuffer) {
   const data = new Uint8Array(arrayBuffer);
@@ -83,17 +84,24 @@ export default function ImageMetadata() {
     setCopiedKey(null);
   };
 
-  const handleViewMetadata = async ({ formData, setLoading, addToHistory, file }) => {
+  const handleViewMetadata = async ({ setLoading, addToHistory, file }) => {
     setMetadata(null);
     const loadingId = toastLoading("Reading image metadata...");
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/view-metadata`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok) { toastDismiss(loadingId); toastError(data.error || "Failed to read metadata."); return; }
-      if (data.message) { toastDismiss(loadingId); toastInfo(data.message); return; }
+      if (!file) throw new Error("Please select an image file first.");
+      const dimensions = await getImageDimensions(file);
+      const data = {
+        metadata: {
+          FileName: file.name,
+          FileType: file.type || "Unknown",
+          FileSize: `${(file.size / 1024).toFixed(1)} KB`,
+          Width: `${dimensions.width} px`,
+          Height: `${dimensions.height} px`,
+          LastModified: new Date(file.lastModified).toISOString(),
+          Processing: "Read locally in your browser",
+        },
+        security_report: null,
+      };
       setMetadata(data.metadata);
       setSecurityReport(data.security_report);
       toastDismiss(loadingId);

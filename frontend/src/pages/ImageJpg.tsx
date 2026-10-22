@@ -1,10 +1,14 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { formatFileSize, calculateSavedPercentage } from "../utils/fileSizeFormatter";
+import { downloadImage, getImageDimensions, renderImage } from "../utils/browserImage";
+import { useHistory } from "../context/history-context";
+import { toastSuccess } from "../utils/toast";
 
 function ImageJpg() {
   const [originalSize, setOriginalSize] = useState(null);
   const [convertedSize, setConvertedSize] = useState(null);
+  const { addToHistory } = useHistory();
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
@@ -24,9 +28,16 @@ function ImageJpg() {
     };
   }, []);
 
-  const onSuccess = (responseBlob) => {
-    setConvertedSize(responseBlob.size);
-    return "Success! Your JPEG file has been downloaded.";
+  const onSubmit = async ({ file, setStatusMessage }) => {
+    if (!file) throw new Error("Please select an image file first.");
+    setStatusMessage("Converting image in your browser...");
+    const { width, height } = await getImageDimensions(file);
+    const blob = await renderImage(file, width, height, undefined, "image/jpeg");
+    setConvertedSize(blob.size);
+    const downloadName = file.name.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg|webp)$/i, ".jpg");
+    const historyUrl = downloadImage(blob, downloadName);
+    addToHistory({ fileName: file.name, conversionType: "Image to JPG", downloadUrl: historyUrl, downloadName });
+    toastSuccess("Your JPG file has been downloaded.");
   };
 
   const extraFields = ({ file }) => {
@@ -73,14 +84,13 @@ function ImageJpg() {
       description="..."
       accept="image/*"
       validateFile={validateFile}
-      apiEndpoint="/convertJpeg"
+      onSubmit={onSubmit}
       fileFieldName="image"
       getDownloadFilename={(fileName) =>
         fileName.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg|webp)$/i, ".jpg")
       }
       submitButtonText="Convert to JPG"
       loadingButtonText="Converting..."
-      onSuccess={onSuccess}
       extraFields={extraFields}
       defaultIcon={
         <svg
