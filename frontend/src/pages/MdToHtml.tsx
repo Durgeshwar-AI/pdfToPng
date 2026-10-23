@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { toastSuccess, toastError } from "../utils/toast";
+import { downloadDocument, markdownToHtml } from "../utils/browserDocuments";
 
 const INPUT_MODES = [
   { id: "file", label: "Upload .md file" },
@@ -49,25 +50,8 @@ const MdToHtml = () => {
 
   const handleCustomSubmit = async ({ file, setLoading, addToHistory }) => {
     try {
-      const form = new FormData();
-      if (isTextMode) {
-        form.append("text", markdownText);
-      } else {
-        form.append("file", file);
-      }
-      if (outputFilename.trim() !== "") {
-        form.append("output_filename", outputFilename.trim());
-      }
-      form.append("theme", theme);
-
-      const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const response = await fetch(`${apiBaseUrl}/convertMdToHtml`, {
-        method: "POST",
-        body: form,
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
+      const markdown = isTextMode ? markdownText : await file.text();
+      const blob = await markdownToHtml(markdown, theme);
         const downloadUrl = window.URL.createObjectURL(blob);
 
         let downloadName = outputFilename.trim();
@@ -80,13 +64,7 @@ const MdToHtml = () => {
           downloadName += ".html";
         }
 
-        const a = document.createElement("a");
-        a.href = downloadUrl;
-        a.download = downloadName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(downloadUrl);
+        downloadDocument(blob, downloadName);
 
         toastSuccess("HTML file has been downloaded!");
 
@@ -95,10 +73,7 @@ const MdToHtml = () => {
           const historyUrl = window.URL.createObjectURL(blob);
           addToHistory(historyUrl, downloadName);
         }
-      } else {
-        const msg = response ? await response.text() : "Server conversion unavailable";
-        toastError(msg || "Conversion failed. Please try again.");
-      }
+        URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error("Conversion error:", error);
       toastError(error.message || "Failed to convert file.");

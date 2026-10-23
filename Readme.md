@@ -75,9 +75,6 @@ The following tools currently require a file upload to the backend:
 
 - Image Compressor
 - AI Upscaler
-- DOCX to PDF
-- Markdown to HTML
-- Markdown to DOCX
 
 ### Browser-based PDF and presentation tools
 
@@ -97,6 +94,9 @@ The following tools process files entirely on the user's device and do not call 
 - Image Resize
 - Image DPI
 - Image Metadata
+- DOCX to PDF
+- Markdown to HTML
+- Markdown to DOCX
 
 PDF Info and all other tools currently run in the browser, including Scanned PDF OCR, PDF to PNG, batch PDF to PNG, PDF merge, PDF split, PDF reorder, PDF rotate & flip, image format conversions, image rotate & flip, image-to-PDF, and browser-only utilities. PDF Info reads the selected file locally with PDF.js and does not upload it to the Flask API. The badge shown on each tool card is the source of truth for the current processing location.
 

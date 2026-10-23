@@ -485,9 +485,6 @@ const tools = [
 const backendToolIds = new Set([
 "image-compress",
 "image-upscale",
-"docx-to-pdf",
-"md-to-html",
-"md-to-docx",
 "pdf-to-word",
 "pdf-to-excel",
 "pdf-sign",

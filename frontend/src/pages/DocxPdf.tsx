@@ -2,10 +2,9 @@ import { useCallback } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import FileUploadArea from "../components/FileUploadArea";
 import { FileText } from "lucide-react";
-import { toastError, toastSuccess, toastLoading, toastDismiss, parseApiError } from "../utils/toast";
+import { toastError, toastSuccess } from "../utils/toast";
 import { useHistory } from "../context/history-context";
-
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { docxToPdf, downloadDocument } from "../utils/browserDocuments";
 
 function DocxPdf() {
 
@@ -54,28 +53,10 @@ function DocxPdf() {
     }
 
     setLoading(true);
-    const loadingId = toastLoading(`Converting "${file.name}" to PDF...`);
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const response = await fetch(`${BACKEND_URL}/convertDocxToPdf`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
+      const blob = await docxToPdf(file);
         const downloadName = file.name.replace(/\.(docx|doc)$/i, ".pdf");
-        a.download = downloadName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        toastDismiss(loadingId);
+        downloadDocument(blob, downloadName);
         toastSuccess("Your PDF has been downloaded!");
 
         const historyUrl = window.URL.createObjectURL(blob);
@@ -85,14 +66,8 @@ function DocxPdf() {
           downloadUrl: historyUrl,
           downloadName: downloadName,
         });
-      } else {
-        const errorMsg = await parseApiError(null, response);
-        toastDismiss(loadingId);
-        toastError(`Conversion failed: ${errorMsg}`);
-      }
     } catch (error) {
-      toastDismiss(loadingId);
-      toastError(await parseApiError(error));
+      toastError(error instanceof Error ? error.message : "Failed to convert DOCX.");
     } finally {
       setLoading(false);
     }
@@ -123,7 +98,7 @@ function DocxPdf() {
           inputId="docx-pdf-input"
           defaultIcon={<FileText className="w-16 h-16" />}
           defaultText="Upload a DOCX to convert"
-          supportText="Converts DOCX to PDF on the server"
+          supportText="Converts DOCX to PDF in your browser"
         />
 
         <button

@@ -2,8 +2,7 @@ import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { FileText } from "lucide-react";
 import { toastSuccess, toastError } from "../utils/toast";
-
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { downloadDocument, markdownToDocx } from "../utils/browserDocuments";
 
 const INPUT_MODES = [
   { id: "file", label: "Upload .md file" },
@@ -44,40 +43,13 @@ function MdToDocx() {
 
   const handleSubmit = async ({ file, setLoading }) => {
     try {
-      const formData = new FormData();
-      if (isTextMode) {
-        formData.append("text", markdownText);
-      } else {
-        formData.append("file", file);
-      }
-
-      const response = await fetch(`${BACKEND_URL}/convertMdToDocx`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = isTextMode
+      const markdown = isTextMode ? markdownText : await file.text();
+      const blob = await markdownToDocx(markdown);
+        const downloadName = isTextMode
           ? "document.docx"
           : file.name.replace(/\.md$/i, ".docx");
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        toastSuccess("DOCX file has been downloaded!");
-      } else {
-        const msg = await response.text();
-        try {
-          const parsed = JSON.parse(msg);
-          toastError(parsed.message || parsed.error || "Conversion failed");
-        } catch {
-          toastError(msg || "Conversion failed. Please try again.");
-        }
-      }
+        downloadDocument(blob, downloadName);
+      toastSuccess("DOCX file has been downloaded!");
     } catch (error) {
       toastError(error.message || "Failed to convert file.");
     } finally {
