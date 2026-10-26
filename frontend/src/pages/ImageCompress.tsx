@@ -5,9 +5,11 @@ import {
   formatFileSize,
   calculateSavedPercentage,
 } from "../utils/fileSizeFormatter";
+import { downloadImage, getImageDimensions, renderImage } from "../utils/browserImage";
+import { useHistory } from "../context/history-context";
+import { toastSuccess } from "../utils/toast";
 
-// Output formats the backend /compress endpoint accepts. "original" re-encodes
-// the image in the format it was uploaded in.
+// "Original" keeps the uploaded format when the browser supports it.
 const OUTPUT_FORMATS = [
   { value: "original", label: "Original", extension: null },
   { value: "jpeg", label: "JPEG", extension: "jpg" },
@@ -23,6 +25,7 @@ function ImageCompress() {
   const [originalSize, setOriginalSize] = useState<number | null>(null);
   const [convertedSize, setConvertedSize] = useState<number | null>(null);
   const [, setUploadedFile] = useState<File | null>(null);
+  const { addToHistory } = useHistory();
 
   // PNG is lossless, so the backend ignores the quality value for it.
   const isLossless = outputFormat === "png";
@@ -61,24 +64,22 @@ function ImageCompress() {
     },
   ];
 
-  const modifyFormData = (formData: FormData) => {
-    formData.append("quality", String(quality));
-    formData.append("format", outputFormat);
-  };
-
-  const onSuccess = (responseBlob: Blob) => {
-    setConvertedSize(responseBlob.size);
-
-    if (isLossless) {
-      return "Success! Image optimized as lossless PNG.";
-    }
-
-    const formatLabel =
-      outputFormat === "original"
-        ? ""
-        : ` as ${OUTPUT_FORMATS.find((f) => f.value === outputFormat)?.label}`;
-
-    return `Success! Image compressed with ${quality}% quality${formatLabel}.`;
+  const onSubmit = async ({ file, setStatusMessage }) => {
+    if (!file) throw new Error("Please select an image file first.");
+    setStatusMessage("Compressing image in your browser...");
+    const { width, height } = await getImageDimensions(file);
+    const mimeType = outputFormat === "original"
+      ? (file.type === "image/webp" || file.type === "image/png" ? file.type : "image/jpeg")
+      : `image/${outputFormat}`;
+    const blob = await renderImage(file, width, height, undefined, mimeType, quality / 100);
+    setConvertedSize(blob.size);
+    const extension = outputFormat === "original"
+      ? (mimeType === "image/webp" ? "webp" : mimeType === "image/png" ? "png" : "jpg")
+      : OUTPUT_FORMATS.find((format) => format.value === outputFormat)?.extension || "jpg";
+    const downloadName = file.name.replace(/\.[^.]+$/, `_compressed.${extension}`);
+    const historyUrl = downloadImage(blob, downloadName);
+    addToHistory({ fileName: file.name, conversionType: "Image Compressor", downloadUrl: historyUrl, downloadName });
+    toastSuccess(isLossless ? "Image optimized as PNG." : `Image compressed with ${quality}% quality.`);
   };
 
   const extraFields = ({ file }: { file: File | null }) => {
@@ -230,27 +231,14 @@ function ImageCompress() {
       description="Reduce image file size while maintaining quality, with an optional output format"
       accept="image/*"
       validateFile={validateFile}
-      apiEndpoint="/compress"
-      fileFieldName="image"
-      modifyFormData={modifyFormData}
-      onSuccess={onSuccess}
-      getDownloadFilename={(fileName) => {
-        const selected = OUTPUT_FORMATS.find((f) => f.value === outputFormat);
-
-        // An explicit format wins; "original" keeps the uploaded extension.
-        let extension = selected?.extension ?? fileName.split(".").pop()?.toLowerCase();
-        if (!extension || !["jpg", "jpeg", "webp", "png"].includes(extension)) {
-          extension = "jpg";
-        }
-        return fileName.replace(/\.[^.]+$/, `_compressed.${extension}`);
-      }}
+      onSubmit={onSubmit}
       submitButtonText="Compress Image"
       loadingButtonText="Compressing..."
       extraFields={extraFields}
       maxWidthClass="max-w-[700px]"
       defaultIcon={<Sliders className="w-16 h-16" />}
       defaultText="Upload image for compression"
-      supportText="Adjust quality, pick an output format, and reduce file size"
+      supportText="Adjust quality, pick an output format, and reduce file size in your browser"
       inputId="compress-input"
     />
   );

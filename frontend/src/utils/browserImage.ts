@@ -35,6 +35,7 @@ export async function renderImage(
     context.drawImage(image, 0, 0, width, height);
   },
   type = "image/png",
+  quality = 0.92,
 ): Promise<Blob> {
   const image = await loadImage(file);
   const canvas = document.createElement("canvas");
@@ -43,7 +44,7 @@ export async function renderImage(
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Your browser does not support image processing.");
   draw(context, image);
-  return canvasToBlob(canvas, type);
+  return canvasToBlob(canvas, type, quality);
 }
 
 export async function getImageDimensions(file: File) {

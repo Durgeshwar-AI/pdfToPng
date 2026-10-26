@@ -483,12 +483,7 @@ const tools = [
 
 // Keep this list aligned with tools that send the selected file to the Flask API.
 const backendToolIds = new Set([
-"image-compress",
-"image-upscale",
-"pdf-to-word",
-"pdf-to-excel",
-"pdf-sign",
-"remove-bg",
+"image-upscale"
 ]);
 
 const toolsWithProcessingLocation = tools.map((tool) => ({
