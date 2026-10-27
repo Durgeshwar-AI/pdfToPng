@@ -216,10 +216,10 @@ const tools = [
   },
   {
     id: "image-upscale",
-    name: "AI Upscaler",
-    category: "AI Tools",
+    name: "Image Upscaling",
+    category: "Image Tools",
     icon: <Sparkles />,
-    description: "Increase image resolution using AI-powered upscaling.",
+    description: "Increase image resolution locally in your browser.",
     path: "/image-upscale",
     gradient: "from-purple-500/10 to-pink-500/10",
     iconGradient: "from-purple-500 to-pink-500",
@@ -483,7 +483,6 @@ const tools = [
 
 // Keep this list aligned with tools that send the selected file to the Flask API.
 const backendToolIds = new Set([
-"image-upscale"
 ]);
 
 const toolsWithProcessingLocation = tools.map((tool) => ({

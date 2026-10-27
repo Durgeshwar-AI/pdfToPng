@@ -1,8 +1,12 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import { downloadImage, getImageDimensions, renderImage } from "../utils/browserImage";
+import { useHistory } from "../context/history-context";
+import { toastSuccess } from "../utils/toast";
 
 function ImageUpscale() {
   const [scaleFactor, setScaleFactor] = useState(2);
+  const { addToHistory } = useHistory();
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
@@ -11,8 +15,20 @@ function ImageUpscale() {
     return { isValid: false, message: "Please select an image file" };
   }, []);
 
-  const modifyFormData = (formData) => {
-    formData.append("scale", scaleFactor);
+  const onSubmit = async ({ file, setStatusMessage }) => {
+    if (!file) throw new Error("Please select an image file first.");
+    setStatusMessage("Upscaling image in your browser...");
+    const { width, height } = await getImageDimensions(file);
+    const blob = await renderImage(file, width * scaleFactor, height * scaleFactor);
+    const downloadName = `${file.name.replace(/\.[^.]+$/, "")}_${scaleFactor}x.png`;
+    const historyUrl = downloadImage(blob, downloadName);
+    addToHistory({
+      fileName: file.name,
+      conversionType: "Image Upscaling",
+      downloadUrl: historyUrl,
+      downloadName,
+    });
+    toastSuccess("Image upscaled successfully.");
   };
 
   const extraFields = ({ file }) => {
@@ -42,20 +58,13 @@ function ImageUpscale() {
 
   return (
     <ToolPageTemplate
-      title="AI Image Upscaler"
-      description="Increase image resolution while maintaining quality."
+      title="Image Upscaling"
+      description="Increase image resolution locally in your browser."
       accept="image/*"
       validateFile={validateFile}
-      apiEndpoint="/upscale"
-      fileFieldName="image"
-      modifyFormData={modifyFormData}
-      getDownloadFilename={(fileName) => {
-        const originalName = fileName.split(".")[0];
-        return `${originalName}_${scaleFactor}x.png`;
-      }}
+      onSubmit={onSubmit}
       submitButtonText="Upscale Image"
       loadingButtonText="Upscaling..."
-      onSuccessMessage="Image upscaled successfully!"
       extraFields={extraFields}
       maxWidthClass="max-w-[600px]"
       defaultIcon={
@@ -83,7 +92,7 @@ function ImageUpscale() {
         </svg>
       }
       defaultText="Choose image file or drag & drop here"
-      supportText="Supports PNG, JPG, JPEG, and more"
+      supportText="Supports PNG, JPG, JPEG, and more; processed in your browser"
       inputId="upscale-input"
     />
   );
