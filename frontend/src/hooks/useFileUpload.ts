@@ -2,8 +2,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { toastError, toastInfo } from "../utils/toast";
 
 interface UseFileUploadOptions {
-  maxSize?: number;
-  maxFiles?: number;
   multiple?: boolean;
 }
 
@@ -20,8 +18,6 @@ export const useFileUpload = (
   options: UseFileUploadOptions = {}
 ) => {
   const {
-    maxSize = 10 * 1024 * 1024,
-    maxFiles = 1,
     multiple = false,
   } = options;
 
@@ -65,18 +61,8 @@ export const useFileUpload = (
 
       const newFiles = multiple ? Array.from(selectedFilesArray) : [selectedFilesArray[0]];
 
-      if (multiple && files.length + newFiles.length > maxFiles) {
-        toastError(`You can only upload up to ${maxFiles} files.`);
-        return;
-      }
-
       const validFiles: { file: File; message: string }[] = [];
       for (const f of newFiles) {
-        if (f.size > maxSize) {
-          toastError(`File "${f.name}" exceeds the limit. Please choose a smaller file.`);
-          continue;
-        }
-
         const validation = await validateFile(f);
         if (validation.isValid) {
           validFiles.push({ file: f, message: validation.message });
@@ -105,7 +91,7 @@ export const useFileUpload = (
         }
       }
     },
-    [validateFile, previewUrl, multiple, maxSize, maxFiles, files]
+    [validateFile, previewUrl, multiple]
   );
 
   const processFile = useCallback(

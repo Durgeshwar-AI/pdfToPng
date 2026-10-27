@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PDFDocument } from "pdf-lib";
 import { toastSuccess, toastError } from "../utils/toast";
 
-const MAX_SIZE = 10 * 1024 * 1024;
-
 const createId = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -130,11 +128,6 @@ function ImagePdf() {
     selectedFiles.forEach((file) => {
       if (!file.type.startsWith("image/")) {
         rejected.push(`${file.name} (not an image)`);
-        return;
-      }
-
-      if (file.size > MAX_SIZE) {
-        rejected.push(`${file.name} (over 10MB)`);
         return;
       }
 
@@ -383,7 +376,7 @@ function ImagePdf() {
             </div>
             Choose images or drag &amp; drop here
             <div className="text-[0.95rem] text-[#6b7280] mt-3">
-              Supports PNG, JPG, GIF, WEBP and more. Up to 10MB each.
+              Supports PNG, JPG, GIF, WEBP and more.
             </div>
           </label>
         </div>

@@ -53,7 +53,12 @@ describe("useFileUpload", () => {
     expect(result.current.files).toHaveLength(1);
   });
 
-  it("rejects files larger than maxSize", async () => {
+  it("accepts files larger than the previous upload limit", async () => {
+    validateFile.mockResolvedValue({
+      isValid: true,
+      message: "Valid PDF",
+    });
+
     const file = new File(
       [new ArrayBuffer(20)],
       "large.pdf",
@@ -64,17 +69,13 @@ describe("useFileUpload", () => {
       value: 20,
     });
 
-    const { result } = renderHook(() =>
-      useFileUpload(validateFile, {
-        maxSize: 10,
-      })
-    );
+    const { result } = renderHook(() => useFileUpload(validateFile));
 
     await act(async () => {
       await result.current.processFile(file);
     });
 
-    expect(result.current.file).toBeNull();
+    expect(result.current.file).toEqual(file);
   });
 
   it("creates preview URL for image files", async () => {
@@ -165,7 +166,6 @@ describe("useFileUpload", () => {
     const { result } = renderHook(() =>
       useFileUpload(validateFile, {
         multiple: true,
-        maxFiles: 5,
       })
     );
 
