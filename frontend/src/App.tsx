@@ -1,6 +1,5 @@
 import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import "./App.css";
 import ScrollToTop from "./components/ScrollToTop";
 import ErrorBoundary from "./ErrorBoundary";
 import Seo from "./components/Seo";

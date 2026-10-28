@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Image } from "lucide-react";
-import "./ToolCard.css";
+import "../../styles/ToolCard.css";
 
 const pdfWatermarkAnimation = (
   <div className="tc-scene tc-pdf-watermark-scene flex items-center justify-center">

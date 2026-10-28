@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildApiUrl } from "./api";
+import { buildApiUrl } from "../utils/api";
 
 describe("buildApiUrl", () => {
   it("uses the configured cross-origin backend URL", () => {
