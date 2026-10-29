@@ -1,10 +1,13 @@
 import { useCallback, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { formatFileSize, calculateSavedPercentage } from "../utils/fileSizeFormatter";
+import { downloadImage, getImageDimensions, renderImage } from "../utils/browserImage";
+import { useHistory } from "../context/history-context";
 
 function ImageWbp() {
   const [originalSize, setOriginalSize] = useState(null);
   const [convertedSize, setConvertedSize] = useState(null);
+  const { addToHistory } = useHistory();
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
@@ -27,6 +30,22 @@ function ImageWbp() {
   const onSuccess = (responseBlob) => {
     setConvertedSize(responseBlob.size);
     return "Success! Your WebP file has been downloaded.";
+  };
+
+  const onSubmit = async ({ file, setStatusMessage }) => {
+    if (!file) throw new Error("Please select an image file first.");
+    setStatusMessage("Converting image to WebP in your browser...");
+    const { width, height } = await getImageDimensions(file);
+    const blob = await renderImage(file, width, height, undefined, "image/webp");
+    const downloadName = file.name.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg)$/i, ".webp");
+    const downloadUrl = downloadImage(blob, downloadName);
+    addToHistory({
+      fileName: file.name,
+      conversionType: "Image to WebP",
+      downloadUrl,
+      downloadName,
+    });
+    return blob;
   };
 
   const extraFields = ({ file }) => {
@@ -70,7 +89,7 @@ function ImageWbp() {
       title="Image to WebP Converter"
       accept="image/*"
       validateFile={validateFile}
-      apiEndpoint="/convertWebP"
+      onSubmit={onSubmit}
       fileFieldName="image"
       getDownloadFilename={(fileName) =>
         fileName.replace(/\.(png|jpg|jpeg|gif|bmp|tiff|svg)$/i, ".webp")

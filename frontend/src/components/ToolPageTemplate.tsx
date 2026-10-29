@@ -3,8 +3,8 @@ import React, { useState, useCallback, lazy, Suspense } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import PrimaryButton from "./UI/PrimaryButton";
 import {
-  toastSuccess,
   toastError,
+  toastSuccess,
   toastLoading,
   toastDismiss,
   parseApiError,
@@ -21,7 +21,7 @@ interface ToolPageTemplateProps {
   apiEndpoint?: string;
   fileFieldName?: string;
   modifyFormData?: (formData: FormData) => void;
-  onSubmit?: (data: any) => Promise<void>;
+  onSubmit?: (data: any) => Promise<Blob | void>;
   onClear?: () => void;
   submitButtonText?: string;
   loadingButtonText?: string;
@@ -48,7 +48,6 @@ const ToolPageTemplate = ({
   description,
   accept = "image/*",
   validateFile,
-  apiEndpoint,
   fileFieldName = "image",
   modifyFormData,
   onSubmit,
@@ -57,7 +56,6 @@ const ToolPageTemplate = ({
   loadingButtonText = "Processing...",
   onSuccessMessage,
   onSuccess,
-  getDownloadFilename,
   headerFields,
   extraFields,
   extraContent,
@@ -129,90 +127,45 @@ const ToolPageTemplate = ({
       modifyFormData(formData);
     }
 
-    let loadingToastId = null;
+    const loadingToastId = toastLoading(`Processing "${file?.name || title}"…`);
 
     try {
-      if (onSubmit) {
-        await onSubmit({
-          file,
-          formData,
-          setStatusMessage: setInlineProgress,
-          setLoading,
-          setStatusType,
-          previewUrl,
-          addToHistory: (downloadUrl: string, downloadName: string) => {
-            addToHistory({
-              // Text-only submissions have no source file, so the generated
-              // download name is the most meaningful label for history.
-              fileName: file ? file.name : downloadName,
-              conversionType: title,
-              downloadUrl,
-              downloadName,
-            });
-          },
-        });
-        return;
+      if (!onSubmit) {
+        throw new Error("This tool does not have a browser processing handler.");
       }
 
-      if (!apiEndpoint) {
-        throw new Error("No API endpoint or custom onSubmit handler provided.");
-      }
-
-      // Falls back to the tool name when the tool accepts input without a file.
-      const sourceName = file ? file.name : title;
-
-      loadingToastId = toastLoading(`Processing "${sourceName}"…`);
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}${apiEndpoint}`,
-        { method: "POST", body: formData }
-      );
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-
-        const downloadName = getDownloadFilename
-          ? getDownloadFilename(sourceName)
-          : sourceName;
-        a.download = downloadName;
-
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-
-        const historyUrl = window.URL.createObjectURL(blob);
-        addToHistory({
-          fileName: sourceName,
-          conversionType: title,
-          downloadUrl: historyUrl,
-          downloadName,
-        });
-
-        let successMsg = onSuccessMessage || "Success! File downloaded.";
-        if (onSuccess) {
-          const customMessage = onSuccess(blob, sourceName);
-          if (customMessage) successMsg = customMessage;
-        }
-
-        toastDismiss(loadingToastId);
-        toastSuccess(successMsg);
+      const result = await onSubmit({
+        file,
+        formData,
+        setStatusMessage: setInlineProgress,
+        setLoading,
+        setStatusType,
+        previewUrl,
+        addToHistory: (downloadUrl: string, downloadName: string) => {
+          // Text-only submissions have no source file, so the generated
+          // download name is the most meaningful label for history.
+          addToHistory({
+            fileName: file ? file.name : downloadName,
+            conversionType: title,
+            downloadUrl,
+            downloadName,
+          });
+        },
+      });
+      const callbackMessage =
+        result instanceof Blob && onSuccess
+          ? onSuccess(result, file?.name || title)
+          : undefined;
+      const message = callbackMessage || onSuccessMessage;
+      if (message) {
+        toastSuccess(message);
         setStatusType("success");
-      } else {
-        const errorMsg = await parseApiError(null, response);
-        toastDismiss(loadingToastId);
-        toastError(`Operation failed: ${errorMsg}`);
-        setStatusType("error");
       }
     } catch (error) {
-      if (loadingToastId) toastDismiss(loadingToastId);
-      const errorMsg = await parseApiError(error);
-      toastError(errorMsg);
+      toastError(await parseApiError(error));
       setStatusType("error");
     } finally {
+      toastDismiss(loadingToastId);
       setLoading(false);
     }
   };
