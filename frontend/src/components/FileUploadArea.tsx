@@ -58,10 +58,10 @@ const FileUploadArea = ({
       ref={dropAreaRef}
       role="group"
       aria-label={resolvedLabel}
-      className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none focus-within:ring-2 focus-within:ring-[var(--color-app-primary)] ${
+      className={`w-full border-2 border-dashed rounded-2xl p-8 mb-8 cursor-pointer transition-transform duration-300 flex flex-col items-center select-none focus-within:ring-2 focus-within:ring-(--color-app-primary) ${
         isDragging
-          ? "border-[var(--color-app-primary)] bg-[var(--color-app-surface-soft)] scale-[1.02]"
-          : "border-[var(--color-app-border-strong)] bg-[var(--color-app-surface)] hover:border-[var(--color-app-primary)] hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-[var(--color-app-surface-soft)] active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)]"
+          ? "border-(--color-app-primary) bg-(--color-app-surface-soft) scale-[1.02]"
+          : "border-(--color-app-border-strong) bg-(--color-app-surface) hover:border-(--color-app-primary) hover:-translate-y-1 hover:shadow-[0_8px_15px_rgba(67,97,238,0.1)] hover:bg-(--color-app-surface-soft) active:translate-y-0 active:shadow-[0_4px_8px_rgba(67,97,238,0.08)]"
       }`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -163,7 +163,7 @@ const FileUploadArea = ({
               </button>
             </div>
             <div
-              className="bg-[var(--color-app-surface-soft)] px-4 py-2 rounded-lg mt-4 text-[#0369a1] dark:text-sky-300 font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] dark:border-sky-500 max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+              className="bg-(--color-app-surface-soft) px-4 py-2 rounded-lg mt-4 text-[#0369a1] dark:text-sky-300 font-semibold shadow-[0_2px_5px_rgba(0,0,0,0.05)] border-l-[3px] border-[#0ea5e9] dark:border-sky-500 max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
               title={files && files.length > 1 ? `${files.length} files selected` : file.name}
             >
               {files && files.length > 1

@@ -55,7 +55,7 @@ const Layout = () => {
         {!isLandingPage && !isMobile && (
           <button
             onClick={() => navigate("/")}
-            className="fixed top-4 right-16 z-40 flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#4361ee] to-[#3b82f6] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(59,130,246,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(59,130,246,0.35)]"
+            className="fixed top-4 right-16 z-40 flex items-center gap-2 rounded-lg bg-linear-to-r from-[#4361ee] to-[#3b82f6] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(59,130,246,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(59,130,246,0.35)]"
           >
             <Home className="h-4 w-4" />
             <span>Home</span>
@@ -77,7 +77,7 @@ const Layout = () => {
                 >
                   <Menu className="w-6 h-6 text-slate-700 dark:text-slate-300" />
                 </button>
-                <h1 className="text-lg font-bold text-blue-600 truncate max-w-[120px] sm:max-w-none">pdfToPng</h1>
+                <h1 className="text-lg font-bold text-blue-600 truncate max-w-30 sm:max-w-none">pdfToPng</h1>
               </div>
 
               {/* Action Buttons grouped together to prevent overlap */}

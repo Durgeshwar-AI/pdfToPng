@@ -54,7 +54,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
     <>
       {isMobile && isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9998]"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-9998"
           onClick={onClose}
           aria-label="Close sidebar overlay"
         />
@@ -67,7 +67,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
         className={`
           ${isMobile ? "fixed" : "sticky"}
           top-0 left-0 h-screen bg-white dark:bg-gray-900
-          text-blue-500 dark:text-gray-200 transition-all duration-300 ease-in-out z-[10000]
+          text-blue-500 dark:text-gray-200 transition-all duration-300 ease-in-out z-10000
           ${isMobile && !isMobileMenuOpen ? "-translate-x-full" : "translate-x-0"}
           ${!isMobile && isCollapsed ? "w-20" : "w-80"}
           flex flex-col shadow-2xl
@@ -154,7 +154,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
                             `}
                             title={isCollapsed ? item.label : ""}
                           >
-                            <span className="flex-shrink-0">
+                            <span className="shrink-0">
                               {typeof item.icon === "function" ? (
                                 <item.icon className="w-5 h-5" />
                               ) : React.isValidElement(item.icon) ? (
@@ -216,7 +216,7 @@ const Sidebar = ({ activeTab, isMobileMenuOpen, isMobile, onClose }) => {
     `}
     title={isCollapsed ? "History" : ""}
   >
-    <Clock className="w-5 h-5 flex-shrink-0" />
+    <Clock className="w-5 h-5 shrink-0" />
     {!isCollapsed && (
       <div className="flex-1 text-left">
         <div className="font-semibold">🕐 History</div>

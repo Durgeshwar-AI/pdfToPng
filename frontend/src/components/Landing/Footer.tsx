@@ -61,10 +61,10 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative z-10 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 border-t border-slate-200 dark:border-gray-700">
+    <footer className="relative z-10 bg-linear-to-br from-slate-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 border-t border-slate-200 dark:border-gray-700">
       
       {/* Decorative Top Border */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-purple-600 via-pink-500 to-orange-500" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         
@@ -74,10 +74,10 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl group-hover:shadow-lg transition-all duration-300">
+              <div className="p-2 bg-linear-to-br from-purple-100 to-purple-50 rounded-xl group-hover:shadow-lg transition-all duration-300">
                 <FileText className="w-6 h-6 text-purple-600" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-linear-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
                 pdfToPng
               </span>
             </Link>

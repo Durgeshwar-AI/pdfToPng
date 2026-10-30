@@ -26,7 +26,7 @@ const FeatureCard = ({ icon, title, description, gradient, index }) => (
         absolute
         inset-0
         rounded-2xl
-        bg-gradient-to-br
+        bg-linear-to-br
         opacity-0
         group-hover:opacity-10
         transition-opacity
@@ -39,7 +39,7 @@ const FeatureCard = ({ icon, title, description, gradient, index }) => (
     />
 
     <div
-      className={`w-14 h-14 rounded-xl bg-gradient-to-br ${gradient} p-[1px] mb-6`}
+      className={`w-14 h-14 rounded-xl bg-linear-to-br ${gradient} p-px mb-6`}
     >
       <div className="w-full h-full rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center">
         {icon}

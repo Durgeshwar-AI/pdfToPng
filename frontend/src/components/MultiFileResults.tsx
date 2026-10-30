@@ -55,7 +55,7 @@ export default function MultiFileResults({ files }) {
 
   return (
     <div className="w-full mt-8 text-left animate-in fade-in slide-in-from-top-4 duration-500">
-      <h3 className="text-lg font-semibold text-[var(--color-app-text)] mb-4">
+      <h3 className="text-lg font-semibold text-(--color-app-text) mb-4">
         {files.length} file{files.length !== 1 ? "s" : ""} ready
       </h3>
 
@@ -65,7 +65,7 @@ export default function MultiFileResults({ files }) {
             key={`${file.name}-${index}`}
             className="flex flex-col rounded-xl theme-card overflow-hidden shadow-sm"
           >
-            <div className="aspect-[3/4] bg-[var(--color-app-surface-muted)] flex items-center justify-center overflow-hidden">
+            <div className="aspect-3/4 bg-(--color-app-surface-muted) flex items-center justify-center overflow-hidden">
               {previewUrls[index] ? (
                 <img
                   src={previewUrls[index]}
@@ -79,7 +79,7 @@ export default function MultiFileResults({ files }) {
               )}
             </div>
 
-            <div className="p-2 border-t border-[var(--color-app-border)]">
+            <div className="p-2 border-t border-(--color-app-border)">
               <p
                 className="text-[11px] font-medium theme-muted truncate mb-2"
                 title={file.name}
@@ -91,7 +91,7 @@ export default function MultiFileResults({ files }) {
                 <button
                   type="button"
                   onClick={() => downloadBlob(file.blob, file.name)}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg border border-[var(--color-app-border)] text-xs font-semibold text-[var(--color-app-primary)] hover:bg-[var(--color-app-surface-soft)] transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg border border-(--color-app-border) text-xs font-semibold text-(--color-app-primary) hover:bg-(--color-app-surface-soft) transition-colors"
                   title="Download Image"
                 >
                   <Download size={14} />
@@ -104,7 +104,7 @@ export default function MultiFileResults({ files }) {
                   className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
                     copiedIndex === index
                       ? "border-green-200 text-green-600 bg-green-50"
-                      : "border-[var(--color-app-border)] text-[var(--color-app-primary)] hover:bg-[var(--color-app-surface-soft)]"
+                      : "border-(--color-app-border) text-(--color-app-primary) hover:bg-(--color-app-surface-soft)"
                   }`}
                   title="Copy to Clipboard"
                 >

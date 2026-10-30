@@ -185,7 +185,7 @@ const ToolPageTemplate = ({
 
   return (
     <div className={`w-full ${maxWidthClass} mx-auto p-10 text-center flex flex-col justify-center items-center theme-panel rounded-2xl overflow-hidden`}>
-      <h1 className="mb-10 text-[var(--color-app-text)] text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
+      <h1 className="mb-10 text-(--color-app-text) text-5xl font-bold tracking-tight relative inline-block after:content-[''] after:absolute after:w-15 after:h-1 after:bg-linear-to-r after:from-[#4361ee] after:to-[#7209b7] after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:rounded-sm">
         {title}
       </h1>
       {description && <p className="theme-muted mb-8">{description}</p>}

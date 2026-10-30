@@ -371,7 +371,7 @@ export default function PdfBlankRemover() {
                   )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[450px] overflow-y-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-112.5 overflow-y-auto">
                 {previews.map((page) => {
                   const isDeleted = deletedPages.has(page.pageNum);
                   const isAutoDetected = blankPages.includes(page.pageNum);
