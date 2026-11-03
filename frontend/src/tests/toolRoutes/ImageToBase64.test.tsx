@@ -1,5 +1,5 @@
 import { describe, it } from "vitest";
-import { expectToolRouteToRender } from "../toolRouteTest";
+import { expectToolRouteToRender } from "../toolRoute.test";
 
 describe("Image to Base64", () => {
   it("renders its tool route", async () => {
