@@ -285,16 +285,6 @@ const tools = [
     iconGradient: "from-slate-500 to-slate-700",
   },
   {
-    id: "remove-bg",
-    name: "Remove Background",
-    category: "AI Tools",
-    icon: <Eraser />,
-    description: "Extract subjects from their backgrounds with AI processing.",
-    path: "/remove-bg",
-    gradient: "from-purple-500/10 to-pink-500/10",
-    iconGradient: "from-purple-500 to-pink-500",
-  },
-  {
     id: "rotate-flip",
     name: "Rotate & Flip",
     category: "Image Tools",
