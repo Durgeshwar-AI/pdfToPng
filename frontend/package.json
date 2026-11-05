@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "@cantoo/pdf-lib": "^2.11.1",
-    "@imgly/background-removal": "^1.7.0",
+    "@imgly/background-removal": "^1.4.5",
+    "@imgly/background-removal-data": "^1.4.5",
     "@s8fy/pptx-converter": "^1.6.0",
     "@tailwindcss/vite": "^4.1.18",
     "clsx": "^2.1.1",

@@ -56,7 +56,13 @@ function RemoveBg() {
       setStageLabel(stageLabels.queued);
       setResultUrl(null);
 
+      const localAssetPath =
+        window.location.protocol === "file:"
+          ? new URL("background-removal/", document.baseURI).href
+          : `${window.location.origin}/background-removal/`;
       const blob = await removeBackground(file, {
+        publicPath: localAssetPath,
+        model: "medium",
         progress: (_key, current, total) => {
           setStageLabel(stageLabels.loading_model);
           setProgress(total > 0 ? Math.round((current / total) * 45) : 0);
