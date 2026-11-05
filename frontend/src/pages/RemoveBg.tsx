@@ -1,10 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { removeBackground } from "@imgly/background-removal";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { toastError, toastSuccess } from "../utils/toast";
 
 const stageLabels: Record<string, string> = {
   queued: "Queued...",
-  loading_model: "Loading AI model...",
+  loading_model: "Loading removed background...",
   removing_background: "Removing background...",
   refining_edges: "Refining edges...",
   finalizing: "Finalizing image...",
@@ -14,6 +15,15 @@ const stageLabels: Record<string, string> = {
 function RemoveBg() {
   const [progress, setProgress] = useState(0);
   const [stageLabel, setStageLabel] = useState("");
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resultUrl) {
+        window.URL.revokeObjectURL(resultUrl);
+      }
+    };
+  }, [resultUrl]);
 
   const validateFile = useCallback(async (selectedFile: any) => {
     if (selectedFile && selectedFile.type.startsWith("image/")) {
@@ -33,78 +43,50 @@ function RemoveBg() {
   const handleClear = () => {
     setProgress(0);
     setStageLabel("");
+    setResultUrl(null);
   };
 
-  const handleCustomSubmit = async ({ file, setLoading, addToHistory }) => {
+  const handleCustomSubmit = async ({ file, addToHistory }) => {
     try {
-      setProgress(0);
-      setStageLabel(stageLabels.queued);
-
-      const form = new FormData();
-      form.append("image", file);
-
-      const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const startRes = await fetch(`${apiBaseUrl}/removeBg`, {
-        method: "POST",
-        body: form,
-      });
-
-      if (!startRes.ok) {
-        const errData = await startRes.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to start background removal");
+      if (!file) {
+        throw new Error("Please select an image first.");
       }
 
-      const { job_id } = await startRes.json();
+      setProgress(0);
+      setStageLabel(stageLabels.queued);
+      setResultUrl(null);
 
-      // Poll for progress until done or errored
-      const poll = async () => {
-        const statusRes = await fetch(`${apiBaseUrl}/removeBg/status/${job_id}`);
-        if (!statusRes.ok) {
-          throw new Error("Lost connection while checking job status");
-        }
-        const statusData = await statusRes.json();
+      const blob = await removeBackground(file, {
+        progress: (_key, current, total) => {
+          setStageLabel(stageLabels.loading_model);
+          setProgress(total > 0 ? Math.round((current / total) * 45) : 0);
+        },
+      });
 
-        setProgress(statusData.progress ?? 0);
-        setStageLabel(stageLabels[statusData.stage] || statusData.stage);
+      setProgress(100);
+      setStageLabel(stageLabels.complete);
 
-        if (statusData.status === "done") {
-          const resultRes = await fetch(`${apiBaseUrl}/removeBg/result/${job_id}`);
-          if (!resultRes.ok) {
-            throw new Error("Failed to fetch final image");
-          }
-          const blob = await resultRes.blob();
-          const downloadUrl = window.URL.createObjectURL(blob);
-          const downloadName = `${file.name.split(".")[0]}_no_bg.png`;
+      const previewUrl = window.URL.createObjectURL(blob);
+      setResultUrl(previewUrl);
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const downloadName = `${file.name.replace(/\.[^.]+$/, "")}_no_bg.png`;
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
 
-          const a = document.createElement("a");
-          a.href = downloadUrl;
-          a.download = downloadName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+      toastSuccess("Background removed successfully!");
 
-          toastSuccess("Background removed successfully!");
-
-          if (addToHistory) {
-            addToHistory(downloadUrl, downloadName);
-          } else {
-            window.URL.revokeObjectURL(downloadUrl);
-          }
-
-          setLoading(false);
-        } else if (statusData.status === "error") {
-          toastError(statusData.error || "Processing failed");
-          setLoading(false);
-        } else {
-          setTimeout(poll, 500);
-        }
-      };
-
-      await poll();
-    } catch (err: any) {
+      if (addToHistory) {
+        addToHistory(downloadUrl, downloadName);
+      } else {
+        window.setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 0);
+      }
+    } catch (err: unknown) {
       console.error("RemoveBg error:", err);
-      toastError(err.message || "Failed to remove background.");
-      setLoading(false);
+      toastError(err instanceof Error ? err.message : "Failed to remove background.");
     }
   };
 
@@ -129,6 +111,25 @@ function RemoveBg() {
             </div>
           </div>
         )
+      }
+      extraContent={
+        resultUrl ? (
+          <section className="w-full mt-8 text-left" aria-labelledby="remove-bg-result-title">
+            <h2
+              id="remove-bg-result-title"
+              className="text-xl font-semibold text-(--color-app-text) mb-4"
+            >
+              Result preview
+            </h2>
+            <div className="rounded-xl border border-gray-200 bg-[repeating-conic-gradient(#f3f4f6_0%_25%,#ffffff_0%_50%)_50%/20px_20px] p-4">
+              <img
+                src={resultUrl}
+                alt="Image with the background removed"
+                className="max-h-96 w-full object-contain"
+              />
+            </div>
+          </section>
+        ) : null
       }
       defaultIcon={
         <svg
