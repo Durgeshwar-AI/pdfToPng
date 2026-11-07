@@ -35,7 +35,8 @@ const tools = [
     name: "Scanned PDF OCR",
     category: "PDF Tools",
     icon: <FileSearch />,
-    description: "Convert scanned image-only PDFs into searchable PDFs with selectable text.",
+    description:
+      "Convert scanned image-only PDFs into searchable PDFs with selectable text.",
     path: "/pdf-searchable-ocr",
     gradient: "from-blue-500/10 to-indigo-500/10",
     iconGradient: "from-blue-500 to-indigo-500",
@@ -56,7 +57,8 @@ const tools = [
     name: "Batch PDF to PNG",
     category: "PDF Tools",
     icon: <Layers />,
-    description: "Convert multiple PDF files to PNG images at once and download them as a ZIP.",
+    description:
+      "Convert multiple PDF files to PNG images at once and download them as a ZIP.",
     path: "/pdf-to-png-batch",
     gradient: "from-amber-500/10 to-orange-500/10",
     iconGradient: "from-amber-500 to-orange-500",
@@ -138,7 +140,8 @@ const tools = [
     name: "Protect PDF",
     category: "PDF Tools",
     icon: <Lock />,
-    description: "Encrypt and password-protect your PDF documents entirely in your browser.",
+    description:
+      "Encrypt and password-protect your PDF documents entirely in your browser.",
     path: "/pdf-protect",
     gradient: "from-red-500/10 to-rose-500/10",
     iconGradient: "from-red-500 to-rose-500",
@@ -148,7 +151,8 @@ const tools = [
     name: "PPTX to PDF",
     category: "Conversion Tools",
     icon: <FileText />,
-    description: "Convert PowerPoint presentations (.pptx) to PDF entirely in your browser.",
+    description:
+      "Convert PowerPoint presentations (.pptx) to PDF entirely in your browser.",
     path: "/pptx-to-pdf",
     gradient: "from-sky-500/10 to-indigo-500/10",
     iconGradient: "from-sky-500 to-indigo-500",
@@ -158,7 +162,8 @@ const tools = [
     name: "PDF Compressor",
     category: "PDF Tools",
     icon: <FileDown />,
-    description: "Reduce PDF file size with adjustable compression levels in your browser.",
+    description:
+      "Reduce PDF file size with adjustable compression levels in your browser.",
     path: "/pdf-compress",
     gradient: "from-blue-500/10 to-cyan-500/10",
     iconGradient: "from-blue-500 to-cyan-500",
@@ -168,7 +173,8 @@ const tools = [
     name: "Unlock PDF",
     category: "PDF Tools",
     icon: <LockOpen />,
-    description: "Remove password protection from your PDF documents in your browser.",
+    description:
+      "Remove password protection from your PDF documents in your browser.",
     path: "/pdf-unlock",
     gradient: "from-green-500/10 to-emerald-500/10",
     iconGradient: "from-green-500 to-emerald-500",
@@ -178,7 +184,8 @@ const tools = [
     name: "PDF Metadata Editor",
     category: "PDF Tools",
     icon: <Tags />,
-    description: "View, edit, or sanitize metadata properties from your PDF documents.",
+    description:
+      "View, edit, or sanitize metadata properties from your PDF documents.",
     path: "/pdf-metadata",
     gradient: "from-blue-500/10 to-indigo-500/10",
     iconGradient: "from-blue-500 to-indigo-500",
@@ -199,7 +206,8 @@ const tools = [
     name: "PDF Page Numbering",
     category: "PDF Tools",
     icon: <Hash />,
-    description: "Add custom page numbers to your PDF documents with custom positioning.",
+    description:
+      "Add custom page numbers to your PDF documents with custom positioning.",
     path: "/pdf-page-number",
     gradient: "from-orange-500/10 to-amber-500/10",
     iconGradient: "from-orange-500 to-amber-500",
@@ -239,7 +247,8 @@ const tools = [
     name: "Image to JPG",
     category: "Conversion Tools",
     icon: <FileImage />,
-    description: "Standardize image formats by converting to JPG in your browser.",
+    description:
+      "Standardize image formats by converting to JPG in your browser.",
     path: "/image-to-jpg",
     gradient: "from-blue-500/10 to-indigo-500/10",
     iconGradient: "from-blue-500 to-indigo-500",
@@ -249,7 +258,8 @@ const tools = [
     name: "HEIC to JPG/PNG",
     category: "Conversion Tools",
     icon: <Image />,
-    description: "Convert Apple HEIC/HEIF images to standard JPG or PNG format client-side.",
+    description:
+      "Convert Apple HEIC/HEIF images to standard JPG or PNG format client-side.",
     path: "/heic-to-jpg",
     gradient: "from-[#4361ee]/10 to-[#7209b7]/10",
     iconGradient: "from-[#4361ee] to-[#7209b7]",
@@ -265,14 +275,15 @@ const tools = [
     iconGradient: "from-sky-500 to-cyan-500",
   },
   {
-  id: "image-watermark",
-  name: "Image Watermark",
-  category: "Image Tools",
-  icon: <Droplets />,
-  description: "Add text or image watermarks locally with custom positioning and opacity.",
-  path: "/image-watermark",
-  gradient: "from-cyan-500/10 to-teal-500/10",
-  iconGradient: "from-cyan-500 to-teal-500",
+    id: "image-watermark",
+    name: "Image Watermark",
+    category: "Image Tools",
+    icon: <Droplets />,
+    description:
+      "Add text or image watermarks locally with custom positioning and opacity.",
+    path: "/image-watermark",
+    gradient: "from-cyan-500/10 to-teal-500/10",
+    iconGradient: "from-cyan-500 to-teal-500",
   },
   {
     id: "image-to-grayscale",
@@ -283,6 +294,16 @@ const tools = [
     path: "/image-to-grayscale",
     gradient: "from-slate-500/10 to-slate-700/10",
     iconGradient: "from-slate-500 to-slate-700",
+  },
+  {
+    id: "remove-bg",
+    name: "Remove Background",
+    category: "AI Tools",
+    icon: <Eraser />,
+    description: "Extract subjects from their backgrounds with AI processing.",
+    path: "/remove-bg",
+    gradient: "from-purple-500/10 to-pink-500/10",
+    iconGradient: "from-purple-500 to-pink-500",
   },
   {
     id: "rotate-flip",
@@ -299,7 +320,8 @@ const tools = [
     name: "Image Resize",
     category: "Image Tools",
     icon: <Expand />,
-    description: "Resize images to exact dimensions or aspect ratios in your browser.",
+    description:
+      "Resize images to exact dimensions or aspect ratios in your browser.",
     path: "/image-resize",
     gradient: "from-cyan-500/10 to-sky-500/10",
     iconGradient: "from-cyan-500 to-sky-500",
@@ -309,7 +331,8 @@ const tools = [
     name: "Image DPI Converter",
     category: "Image Tools",
     icon: <Gauge />,
-    description: "Change image dimensions for print-ready DPI output in your browser.",
+    description:
+      "Change image dimensions for print-ready DPI output in your browser.",
     path: "/image-dpi",
     gradient: "from-cyan-500/10 to-sky-500/10",
     iconGradient: "from-cyan-500 to-sky-500",
@@ -319,7 +342,8 @@ const tools = [
     name: "Metadata Viewer",
     category: "Utilities",
     icon: <Info />,
-    description: "Inspect basic image metadata and strip metadata locally in your browser.",
+    description:
+      "Inspect basic image metadata and strip metadata locally in your browser.",
     path: "/image-metadata",
     gradient: "from-violet-500/10 to-purple-500/10",
     iconGradient: "from-violet-500 to-purple-500",
@@ -349,7 +373,8 @@ const tools = [
     name: "SVG to PNG/JPG",
     category: "Conversion Tools",
     icon: <Code />,
-    description: "Convert SVG vector files to standard PNG/JPG raster images client-side.",
+    description:
+      "Convert SVG vector files to standard PNG/JPG raster images client-side.",
     path: "/svg-to-image",
     gradient: "from-emerald-500/10 to-blue-500/10",
     iconGradient: "from-emerald-500 to-blue-500",
@@ -369,7 +394,8 @@ const tools = [
     name: "Markdown to HTML",
     category: "Conversion Tools",
     icon: <FileText />,
-    description: "Convert Markdown files to HTML with optional themes (light, dark, blue)",
+    description:
+      "Convert Markdown files to HTML with optional themes (light, dark, blue)",
     path: "/md-to-html",
     gradient: "from-slate-500/10 to-slate-700/10",
     iconGradient: "from-slate-500 to-slate-700",
@@ -379,7 +405,8 @@ const tools = [
     name: "Markdown to DOCX",
     category: "Conversion Tools",
     icon: <FileText />,
-    description: "Convert Markdown files to Word (.docx) documents with proper formatting.",
+    description:
+      "Convert Markdown files to Word (.docx) documents with proper formatting.",
     path: "/md-to-docx",
     gradient: "from-indigo-500/10 to-blue-500/10",
     iconGradient: "from-indigo-500 to-blue-500",
@@ -389,7 +416,8 @@ const tools = [
     name: "PDF to Text",
     category: "Conversion Tools",
     icon: <Type />,
-    description: "Extract native text content from selectable PDF documents client-side.",
+    description:
+      "Extract native text content from selectable PDF documents client-side.",
     path: "/pdf-to-text",
     gradient: "from-sky-500/10 to-indigo-500/10",
     iconGradient: "from-sky-500 to-indigo-500",
@@ -459,25 +487,24 @@ const tools = [
     iconGradient: "from-emerald-500 to-blue-500",
   },
   {
-  id: "pdf-blank-remover",
-  name: "Blank Page Remover",
-  category: "PDF Tools",
-  icon: <Scissors />,
-  description:
-    "Automatically detect and remove blank pages from PDF documents.",
-  path: "/pdf-blank-remover",
-  gradient: "from-purple-500/10 to-violet-500/10",
-  iconGradient: "from-purple-500 to-violet-500",
-}
+    id: "pdf-blank-remover",
+    name: "Blank Page Remover",
+    category: "PDF Tools",
+    icon: <Scissors />,
+    description:
+      "Automatically detect and remove blank pages from PDF documents.",
+    path: "/pdf-blank-remover",
+    gradient: "from-purple-500/10 to-violet-500/10",
+    iconGradient: "from-purple-500 to-violet-500",
+  },
 ];
 
 // Keep this list aligned with tools that send the selected file to the Flask API.
-const backendToolIds = new Set([
-]);
+const backendToolIds = new Set([]);
 
 const toolsWithProcessingLocation = tools.map((tool) => ({
-...tool,
-processingLocation: backendToolIds.has(tool.id) ? "backend" : "frontend",
+  ...tool,
+  processingLocation: backendToolIds.has(tool.id) ? "backend" : "frontend",
 }));
 
 export default toolsWithProcessingLocation;
