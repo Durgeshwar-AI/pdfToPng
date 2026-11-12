@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "node scripts/copy-background-removal-assets.mjs",
+    "prebuild": "node scripts/copy-background-removal-assets.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

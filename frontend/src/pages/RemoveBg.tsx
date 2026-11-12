@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
-import { removeBackground } from "@imgly/background-removal";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ToolPageTemplate from "../components/ToolPageTemplate";
 import { toastError, toastSuccess } from "../utils/toast";
 
@@ -16,6 +15,65 @@ function RemoveBg() {
   const [progress, setProgress] = useState(0);
   const [stageLabel, setStageLabel] = useState("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const preloadPromiseRef = useRef<Promise<void> | null>(null);
+
+  const getLocalAssetPath = useCallback(
+    () =>
+      window.location.protocol === "file:"
+        ? new URL("background-removal/", document.baseURI).href
+        : new URL(
+            `${import.meta.env.BASE_URL}background-removal/`,
+            document.baseURI,
+          ).href,
+    [],
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    const preloadAssets = async () => {
+      setProgress(1);
+      setStageLabel("Loading offline assets...");
+
+      try {
+        const { preload } = await import("@imgly/background-removal");
+        await preload({
+          publicPath: getLocalAssetPath(),
+          model: "medium",
+          progress: (_key, current, total) => {
+            if (active && total > 0) {
+              setProgress((previous) =>
+                Math.min(95, Math.max(previous, Math.round((current / total) * 95))),
+              );
+            }
+          },
+        });
+
+        if (active) {
+          setProgress(100);
+          setStageLabel("Offline assets ready");
+        }
+      } catch (err: unknown) {
+        if (active) {
+          setStageLabel("Offline asset loading failed");
+          toastError(
+            err instanceof Error
+              ? `Unable to load offline background removal assets: ${err.message}`
+              : "Unable to load offline background removal assets.",
+          );
+        }
+        throw err;
+      }
+    };
+
+    const preloadPromise = preloadAssets();
+    preloadPromiseRef.current = preloadPromise;
+    preloadPromise.catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, [getLocalAssetPath]);
 
   useEffect(() => {
     return () => {
@@ -56,12 +114,10 @@ function RemoveBg() {
       setStageLabel(stageLabels.queued);
       setResultUrl(null);
 
-      const localAssetPath =
-        window.location.protocol === "file:"
-          ? new URL("background-removal/", document.baseURI).href
-          : `${window.location.origin}/background-removal/`;
+      await preloadPromiseRef.current;
+      const { removeBackground } = await import("@imgly/background-removal");
       const blob = await removeBackground(file, {
-        publicPath: localAssetPath,
+        publicPath: getLocalAssetPath(),
         model: "medium",
         progress: (_key, current, total) => {
           setStageLabel(stageLabels.loading_model);
